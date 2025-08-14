@@ -31,7 +31,7 @@ export default function LandingStory() {
       {/* Header */}
       <header className="px-4 py-6">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-left">Calmer</h1>
+          <h1 className="text-2xl font-bold text-left">calmer.</h1>
           <Link to="/landing-problem" className="text-sm text-muted-foreground hover:text-foreground">
             See the problem →
           </Link>
@@ -43,7 +43,7 @@ export default function LandingStory() {
         <div className="max-w-2xl mx-auto text-left">
           <h2 className="text-4xl md:text-5xl font-bold leading-tight mb-8">
             I built my business to help people,
-            <span className="text-primary"> not to scroll endlessly</span>
+            <span className="text-foreground"> not to scroll endlessly</span>
           </h2>
           
           <div className="space-y-6 mb-12 text-lg text-muted-foreground leading-relaxed">
@@ -64,8 +64,8 @@ export default function LandingStory() {
           </div>
 
           {/* The Transformation */}
-          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-8 mb-12">
-            <h3 className="text-2xl font-semibold mb-6 text-left">Sarah's transformation with Calmer:</h3>
+          <div className="bg-card border rounded-2xl p-8 mb-12">
+            <h3 className="text-2xl font-semibold mb-6 text-left">Sarah's transformation with calmer.:</h3>
             
             <div className="grid md:grid-cols-2 gap-8">
               <div>
@@ -79,7 +79,7 @@ export default function LandingStory() {
               </div>
               
               <div>
-                <h4 className="font-medium text-primary mb-3">After Calmer</h4>
+                <h4 className="font-medium text-foreground mb-3">After calmer.</h4>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li>• 45 minutes of intentional social media</li>
                   <li>• Authentic posts that attract ideal clients</li>
@@ -92,11 +92,11 @@ export default function LandingStory() {
 
           {/* How It Works */}
           <div className="mb-12">
-            <h3 className="text-2xl font-semibold mb-6 text-left">How Calmer works:</h3>
+            <h3 className="text-2xl font-semibold mb-6 text-left">How calmer. works:</h3>
             <div className="space-y-4">
               <div className="flex items-start space-x-4">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
-                  <span className="text-sm font-medium text-primary">1</span>
+                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-1">
+                  <span className="text-sm font-medium text-foreground">1</span>
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">Personal chat assessment</h4>
@@ -105,8 +105,8 @@ export default function LandingStory() {
               </div>
               
               <div className="flex items-start space-x-4">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
-                  <span className="text-sm font-medium text-primary">2</span>
+                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-1">
+                  <span className="text-sm font-medium text-foreground">2</span>
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">Custom daily framework</h4>
@@ -115,8 +115,8 @@ export default function LandingStory() {
               </div>
               
               <div className="flex items-start space-x-4">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
-                  <span className="text-sm font-medium text-primary">3</span>
+                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-1">
+                  <span className="text-sm font-medium text-foreground">3</span>
                 </div>
                 <div>
                   <h4 className="font-medium mb-1">Gentle daily guidance</h4>
@@ -127,13 +127,13 @@ export default function LandingStory() {
           </div>
 
           {/* Waitlist Form */}
-          <div className="bg-secondary/20 rounded-2xl p-8 text-center">
-            <h3 className="text-2xl font-semibold mb-3">Start your own transformation</h3>
-            <p className="text-muted-foreground mb-6">
+          <div className="bg-secondary/20 rounded-2xl p-8">
+            <h3 className="text-2xl font-semibold mb-3 text-left">Start your own transformation</h3>
+            <p className="text-muted-foreground mb-6 text-left">
               Join the waitlist and be among the first to escape social media burnout
             </p>
             
-            <form onSubmit={handleWaitlistJoin} className="max-w-sm mx-auto">
+            <form onSubmit={handleWaitlistJoin} className="max-w-sm">
               <div className="flex space-x-2">
                 <Input
                   type="email"
@@ -145,7 +145,7 @@ export default function LandingStory() {
                 />
                 <CalmButton
                   type="submit"
-                  variant="primary"
+                  variant="default"
                   disabled={isLoading}
                 >
                   {isLoading ? "Joining..." : "Get Early Access"}
@@ -153,7 +153,7 @@ export default function LandingStory() {
               </div>
             </form>
             
-            <p className="text-xs text-muted-foreground mt-4">
+            <p className="text-xs text-muted-foreground mt-4 text-left">
               No spam, just updates on your journey to calmer social media
             </p>
           </div>

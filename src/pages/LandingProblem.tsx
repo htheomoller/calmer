@@ -31,7 +31,7 @@ export default function LandingProblem() {
       {/* Header */}
       <header className="px-4 py-6">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-left">Calmer</h1>
+          <h1 className="text-2xl font-bold text-left">calmer.</h1>
           <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground">
             See the story →
           </Link>
@@ -43,7 +43,7 @@ export default function LandingProblem() {
         <div className="max-w-2xl mx-auto text-left">
           <h2 className="text-4xl md:text-5xl font-bold leading-tight mb-6">
             Stop letting social media
-            <span className="text-primary"> burn you out</span>
+            <span className="text-foreground"> burn you out</span>
           </h2>
           
           <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
@@ -54,15 +54,15 @@ export default function LandingProblem() {
           {/* Problem Points */}
           <div className="space-y-4 mb-12">
             <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 rounded-full bg-primary mt-3 flex-shrink-0"></div>
+              <div className="w-2 h-2 rounded-full bg-foreground mt-3 flex-shrink-0"></div>
               <p className="text-lg">Spending 2+ hours daily on social media without clear results</p>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 rounded-full bg-primary mt-3 flex-shrink-0"></div>
+              <div className="w-2 h-2 rounded-full bg-foreground mt-3 flex-shrink-0"></div>
               <p className="text-lg">Feeling overwhelmed by constant posting pressure</p>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 rounded-full bg-primary mt-3 flex-shrink-0"></div>
+              <div className="w-2 h-2 rounded-full bg-foreground mt-3 flex-shrink-0"></div>
               <p className="text-lg">Getting distracted from actual business work</p>
             </div>
           </div>
@@ -78,13 +78,13 @@ export default function LandingProblem() {
           </div>
 
           {/* Waitlist Form */}
-          <div className="bg-secondary/20 rounded-2xl p-6 text-center">
-            <h3 className="text-xl font-semibold mb-2">Get early access to Calmer</h3>
-            <p className="text-muted-foreground mb-6">
+          <div className="bg-secondary/20 rounded-2xl p-6">
+            <h3 className="text-xl font-semibold mb-2 text-left">Get early access to calmer.</h3>
+            <p className="text-muted-foreground mb-6 text-left">
               Join 200+ small business owners taking back control
             </p>
             
-            <form onSubmit={handleWaitlistJoin} className="max-w-sm mx-auto">
+            <form onSubmit={handleWaitlistJoin} className="max-w-sm">
               <div className="flex space-x-2">
                 <Input
                   type="email"
@@ -96,7 +96,7 @@ export default function LandingProblem() {
                 />
                 <CalmButton
                   type="submit"
-                  variant="primary"
+                  variant="default"
                   disabled={isLoading}
                 >
                   {isLoading ? "Joining..." : "Join Waitlist"}
