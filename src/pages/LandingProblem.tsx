@@ -30,16 +30,13 @@ export default function LandingProblem() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="px-4 py-6">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
+        <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold text-left">calmer.</h1>
-          <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground">
-            See the story →
-          </Link>
         </div>
       </header>
 
       {/* Hero Section */}
-      <main className="px-4 py-12">
+      <main className="px-4">
         <div className="max-w-2xl mx-auto text-left">
           <h2 className="text-4xl md:text-5xl font-bold leading-tight mb-6">
             Stop letting social media
@@ -52,23 +49,29 @@ export default function LandingProblem() {
           </p>
 
           {/* Problem Points */}
-          <div className="space-y-4 mb-12">
+          <div className="space-y-4 mb-6">
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 rounded-full bg-foreground mt-3 flex-shrink-0"></div>
-              <p className="text-lg">Spending 2+ hours daily on social media without clear results</p>
+              <p className="text-lg">Spending 2+ hours daily on social media without clear results?</p>
             </div>
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 rounded-full bg-foreground mt-3 flex-shrink-0"></div>
-              <p className="text-lg">Feeling overwhelmed by constant posting pressure</p>
+              <p className="text-lg">Feeling overwhelmed by constant posting pressure?</p>
             </div>
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 rounded-full bg-foreground mt-3 flex-shrink-0"></div>
-              <p className="text-lg">Getting distracted from actual business work</p>
+              <p className="text-lg">Getting distracted from actual business work?</p>
             </div>
           </div>
 
+          <div className="mb-12">
+            <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground">
+              See the story →
+            </Link>
+          </div>
+
           {/* Solution Preview */}
-          <div className="bg-card border rounded-2xl p-6 mb-12">
+          <div className="mb-12">
             <h3 className="text-xl font-semibold mb-4">What if you could:</h3>
             <div className="space-y-3">
               <p className="text-muted-foreground">✓ Have a personalized daily plan that actually works</p>
@@ -78,7 +81,7 @@ export default function LandingProblem() {
           </div>
 
           {/* Waitlist Form */}
-          <div className="bg-secondary/20 rounded-2xl p-6">
+          <div className="bg-gray-100 rounded-2xl p-6">
             <h3 className="text-xl font-semibold mb-2 text-left">Get early access to calmer.</h3>
             <p className="text-muted-foreground mb-6 text-left">
               Join 200+ small business owners taking back control
