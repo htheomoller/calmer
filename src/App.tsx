@@ -8,6 +8,7 @@ import Chat from "./pages/Chat";
 import MyPlan from "./pages/MyPlan";
 import Progress from "./pages/Progress";
 import LandingProblem from "./pages/LandingProblem";
+import LandingStory from "./pages/LandingStory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,7 +21,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/landing" element={<LandingProblem />} />
+          <Route path="/landing-problem" element={<LandingProblem />} />
+          <Route path="/landing-story" element={<LandingStory />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/plan" element={<MyPlan />} />
           <Route path="/progress" element={<Progress />} />

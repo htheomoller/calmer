@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CalmButton } from "@/components/ui/calm-button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 export default function LandingProblem() {
   const [email, setEmail] = useState("");
@@ -29,8 +30,11 @@ export default function LandingProblem() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="px-4 py-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold text-left">Calmer</h1>
+          <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground">
+            See the story →
+          </Link>
         </div>
       </header>
 

@@ -5,8 +5,8 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // For now, redirect to chat. Later we'll check auth status
-    navigate("/chat");
+    // Redirect to problem-first landing page by default
+    navigate("/landing-problem");
   }, [navigate]);
 
   return (
