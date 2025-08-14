@@ -29,15 +29,13 @@ export default function LandingProblem() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="px-4 py-6">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-left">calmer.</h1>
-        </div>
+      <header className="py-6 pl-5">
+        <h1 className="text-2xl font-bold">calmer.</h1>
       </header>
 
       {/* Hero Section */}
-      <main className="px-4">
-        <div className="max-w-2xl mx-auto text-left">
+      <main className="pl-16">
+        <div className="max-w-2xl">
           <h2 className="text-4xl md:text-5xl font-bold leading-tight mb-6">
             Stop letting social media
             <span className="text-foreground"> burn you out</span>
