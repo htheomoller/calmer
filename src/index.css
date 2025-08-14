@@ -2,41 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Calmer Design System - Calm, minimal mobile-first design */
 
 @layer base {
   :root {
+    /* Core colors - Calmer palette */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    --foreground: 210 17% 13%;  /* #222 dark gray */
+    
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 210 17% 13%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
+    --popover-foreground: 210 17% 13%;
+    
+    /* Bright orange accent - used sparingly */
+    --primary: 16 100% 61%;  /* #ff6f3c */
+    --primary-foreground: 0 0% 100%;
+    
+    /* Light gray for buttons and secondary elements */
+    --secondary: 0 0% 90%;  /* #e5e5e5 */
+    --secondary-foreground: 210 17% 13%;
+    
+    --muted: 0 0% 96%;
+    --muted-foreground: 210 10% 40%;
+    
+    --accent: 16 100% 61%;  /* Orange for emphasis */
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 16 100% 61%;
+    
     --radius: 0.5rem;
+    
+    /* Chat-specific colors */
+    --chat-user: 0 0% 90%;      /* Light gray for user messages */
+    --chat-bot: 0 0% 100%;      /* White for bot messages */
+    --chat-background: 0 0% 98%; /* Slightly off-white chat background */
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +106,27 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+@layer components {
+  /* Chat message bubbles */
+  .chat-message-user {
+    @apply bg-[hsl(var(--chat-user))] text-foreground;
+  }
+  
+  .chat-message-bot {
+    @apply bg-[hsl(var(--chat-bot))] text-foreground border;
+  }
+  
+  /* Calm button styles */
+  .btn-calm {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+  
+  .btn-calm-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
   }
 }
