@@ -29,6 +29,14 @@ export default function LandingProblem() {
       waitlistRef.current,
     ];
 
+    // Initialize elements as hidden immediately
+    elements.forEach((el, index) => {
+      if (el) {
+        el.classList.add("opacity-0", "translate-y-1", "transition-all", "duration-700");
+        el.style.transitionDelay = `${index * 200}ms`;
+      }
+    });
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -41,15 +49,19 @@ export default function LandingProblem() {
       { threshold: 0.1, rootMargin: "50px" }
     );
 
-    elements.forEach((el, index) => {
-      if (el) {
-        el.classList.add("opacity-0", "translate-y-1", "transition-all", "duration-700");
-        el.style.transitionDelay = `${index * 200}ms`;
-        observer.observe(el);
-      }
-    });
+    // Start observing after a brief delay to ensure DOM is ready
+    const timeoutId = setTimeout(() => {
+      elements.forEach((el) => {
+        if (el) {
+          observer.observe(el);
+        }
+      });
+    }, 100);
 
-    return () => observer.disconnect();
+    return () => {
+      clearTimeout(timeoutId);
+      observer.disconnect();
+    };
   }, []);
 
   const handleWaitlistJoin = async (e: React.FormEvent) => {
@@ -79,7 +91,7 @@ export default function LandingProblem() {
       {/* Hero Section */}
       <main className="pt-16" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
         <div className="max-w-2xl">
-          <h2 ref={heroRef} className="text-7xl md:text-8xl font-medium leading-tight md:leading-none mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <h2 ref={heroRef} className="text-7xl md:text-8xl font-semibold leading-none md:leading-none tracking-tight mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>
             Stop letting social media
             <span className="text-foreground"> burn you out.</span>
           </h2>
