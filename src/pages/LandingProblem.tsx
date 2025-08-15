@@ -98,12 +98,12 @@ export default function LandingProblem() {
           </p>
 
           {/* Sub Button */}
-          <div ref={subButtonRef} className="mb-8">
+          <div ref={subButtonRef} className="mb-8 px-0 py-0">
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <button className="bg-black text-white px-8 py-4 rounded-full text-lg font-normal hover:bg-gray-800 transition-colors flex items-center space-x-3">
-                  <span className="text-4xl font-extralight">+</span>
-                  <span className="text-3xl font-extralight">Sub</span>
+                <button className="bg-black text-white rounded-full hover:bg-gray-800 transition-colors flex items-center space-x-3 font-extralight text-2xl px-[18px] py-[10px]">
+                  <span className="font-extralight text-2xl">+</span>
+                  <span className="font-extralight text-2xl">Sub</span>
                 </button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
