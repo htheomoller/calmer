@@ -4,7 +4,7 @@ import { CalmButton } from "@/components/ui/calm-button";
 import { Input } from "@/components/ui/input";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Send } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
