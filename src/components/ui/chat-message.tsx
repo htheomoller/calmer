@@ -15,10 +15,10 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
       isUser ? "justify-end" : "justify-start"
     )}>
       <div className={cn(
-        "max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed",
+        "max-w-[80%] px-4 py-3 text-sm leading-relaxed",
         isUser 
-          ? "chat-message-user rounded-br-md" 
-          : "chat-message-bot rounded-bl-md"
+          ? "bg-secondary text-secondary-foreground rounded-2xl rounded-br-md" 
+          : "text-foreground rounded-2xl rounded-bl-md"
       )}>
         <p className="whitespace-pre-wrap">{content}</p>
         {timestamp && (

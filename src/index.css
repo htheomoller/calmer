@@ -112,21 +112,12 @@
 }
 
 @layer components {
-  /* Chat message bubbles */
-  .chat-message-user {
-    @apply bg-[hsl(var(--chat-user))] text-foreground;
-  }
-  
-  .chat-message-bot {
-    @apply bg-[hsl(var(--chat-bot))] text-foreground border;
-  }
-  
   /* Calm button styles */
   .btn-calm {
     @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
   }
   
   .btn-calm-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
   }
 }

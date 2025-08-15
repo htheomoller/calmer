@@ -4,6 +4,7 @@ import { CalmButton } from "@/components/ui/calm-button";
 import { Input } from "@/components/ui/input";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Send } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface Message {
   id: string;
@@ -17,7 +18,7 @@ export default function Chat() {
     {
       id: '1',
       role: 'assistant',
-      content: "Hi! I'm here to help you build a calmer, more intentional relationship with social media. Let's start with a quick question: What's your business name?",
+      content: "Hi! I'm Calmer, your mindful chat companion. I'm here to help you grow your business online without burning out. How can I support you today?",
       timestamp: new Date()
     }
   ]);
@@ -47,17 +48,36 @@ export default function Chat() {
     setInput("");
     setIsLoading(true);
 
-    // Simulate AI response for now
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke('chat', {
+        body: {
+          message: userMessage.content,
+          userId: 'demo-user' // For testing without auth
+        }
+      });
+
+      if (error) throw error;
+
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "Thanks for sharing! I'm getting to know you better so I can create a personalized daily plan that fits your business. What type of business do you run?",
+        content: data.message,
         timestamp: new Date()
       };
+      
       setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -87,7 +107,7 @@ export default function Chat() {
         ))}
         {isLoading && (
           <div className="flex justify-start mb-4">
-            <div className="bg-[hsl(var(--chat-bot))] border rounded-2xl rounded-bl-md px-4 py-3 max-w-[80%]">
+            <div className="rounded-2xl rounded-bl-md px-4 py-3 max-w-[80%]">
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -101,7 +121,7 @@ export default function Chat() {
 
       {/* Input */}
       <div className="bg-background border-t border-border p-4 pb-20">
-        <div className="flex space-x-2 max-w-lg mx-auto">
+        <div className="flex space-x-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
