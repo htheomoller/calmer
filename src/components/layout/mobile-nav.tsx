@@ -1,4 +1,4 @@
-import { MessageCircle, CheckSquare, TrendingUp } from "lucide-react";
+import { MessageCircle, CheckSquare, TrendingUp, BookOpen } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +23,12 @@ export function MobileNav() {
       icon: TrendingUp,
       label: "Progress",
       isActive: location.pathname === "/progress"
+    },
+    {
+      href: "/resources",
+      icon: BookOpen,
+      label: "Resources",
+      isActive: location.pathname.startsWith("/resources")
     }
   ];
 

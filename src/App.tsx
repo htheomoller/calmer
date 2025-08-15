@@ -9,6 +9,9 @@ import MyPlan from "./pages/MyPlan";
 import Progress from "./pages/Progress";
 import LandingProblem from "./pages/LandingProblem";
 import LandingStory from "./pages/LandingStory";
+import Resources from "./pages/Resources";
+import ResourcePost from "./pages/ResourcePost";
+import ResourceCategory from "./pages/ResourceCategory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +29,9 @@ const App = () => (
           <Route path="/chat" element={<Chat />} />
           <Route path="/plan" element={<MyPlan />} />
           <Route path="/progress" element={<Progress />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/resources/:slug" element={<ResourcePost />} />
+          <Route path="/resources/category/:category" element={<ResourceCategory />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
