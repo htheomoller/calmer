@@ -1,17 +1,17 @@
-
 import { useState, useEffect, useRef } from "react";
 import { CalmButton } from "@/components/ui/calm-button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-
 export default function LandingProblem() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { toast } = useToast();
-  
+  const {
+    toast
+  } = useToast();
+
   // Animation refs
   const headerRef = useRef<HTMLElement>(null);
   const heroRef = useRef<HTMLHeadingElement>(null);
@@ -21,18 +21,8 @@ export default function LandingProblem() {
   const storyLinkRef = useRef<HTMLDivElement>(null);
   const solutionRef = useRef<HTMLDivElement>(null);
   const subButtonRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    const elements = [
-      headerRef.current,
-      heroRef.current,
-      counterRef.current,
-      subtitleRef.current,
-      problemsRef.current,
-      storyLinkRef.current,
-      solutionRef.current,
-      subButtonRef.current,
-    ];
+    const elements = [headerRef.current, heroRef.current, counterRef.current, subtitleRef.current, problemsRef.current, storyLinkRef.current, solutionRef.current, subButtonRef.current];
 
     // Initialize elements as hidden immediately
     elements.forEach((el, index) => {
@@ -41,63 +31,63 @@ export default function LandingProblem() {
         el.style.transitionDelay = `${index * 200}ms`;
       }
     });
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.remove("opacity-0", "translate-y-1");
-            entry.target.classList.add("opacity-100", "translate-y-0");
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: "50px" }
-    );
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.remove("opacity-0", "translate-y-1");
+          entry.target.classList.add("opacity-100", "translate-y-0");
+        }
+      });
+    }, {
+      threshold: 0.1,
+      rootMargin: "50px"
+    });
 
     // Start observing after a brief delay to ensure DOM is ready
     const timeoutId = setTimeout(() => {
-      elements.forEach((el) => {
+      elements.forEach(el => {
         if (el) {
           observer.observe(el);
         }
       });
     }, 100);
-
     return () => {
       clearTimeout(timeoutId);
       observer.disconnect();
     };
   }, []);
-
   const handleWaitlistJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
-
     setIsLoading(true);
-    
+
     // TODO: Integrate with Brevo API
     setTimeout(() => {
       toast({
         title: "You're on the list!",
-        description: "We'll notify you when Calmer is ready to help you escape digital burnout.",
+        description: "We'll notify you when Calmer is ready to help you escape digital burnout."
       });
       setEmail("");
       setIsLoading(false);
       setIsDialogOpen(false);
     }, 1000);
   };
-
-  return (
-    <div className="min-h-screen bg-background pt-2.5">
+  return <div className="min-h-screen bg-background pt-2.5">
       {/* Header */}
-      <header ref={headerRef} className="py-6" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
+      <header ref={headerRef} className="py-6" style={{
+      paddingLeft: 'clamp(25px, 4vw, 64px)'
+    }}>
         <h1 className="text-2xl font-bold">calmer.</h1>
       </header>
 
       {/* Hero Section */}
-      <main className="pt-16" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
+      <main className="pt-16" style={{
+      paddingLeft: 'clamp(25px, 4vw, 64px)'
+    }}>
         <div className="max-w-2xl">
-          <h2 ref={heroRef} className="text-7xl md:text-8xl font-semibold leading-none md:leading-none tracking-tight mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <h2 ref={heroRef} style={{
+          fontFamily: 'Inter, sans-serif'
+        }} className="text-7xl leading-none md:leading-none tracking-tight mb-6 font-semibold md:text-8xl">
             Stop letting social media
             <span className="text-foreground"> burn you out.</span>
           </h2>
@@ -125,20 +115,8 @@ export default function LandingProblem() {
                 </DialogHeader>
                 
                 <form onSubmit={handleWaitlistJoin} className="space-y-4">
-                  <Input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full"
-                    required
-                  />
-                  <CalmButton
-                    type="submit"
-                    variant="default"
-                    disabled={isLoading}
-                    className="w-full"
-                  >
+                  <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="w-full" required />
+                  <CalmButton type="submit" variant="default" disabled={isLoading} className="w-full">
                     {isLoading ? "Joining..." : "Join Waitlist"}
                   </CalmButton>
                 </form>
@@ -146,7 +124,9 @@ export default function LandingProblem() {
             </Dialog>
           </div>
           
-          <p ref={subtitleRef} className="text-3xl text-foreground mb-8 leading-tight md:leading-snug tracking-tight" style={{ fontFamily: 'Inter, sans-serif' }}>
+          <p ref={subtitleRef} className="text-3xl text-foreground mb-8 leading-tight md:leading-snug tracking-tight" style={{
+          fontFamily: 'Inter, sans-serif'
+        }}>
             You started your business to help people, not to spend hours scrolling, 
             posting, and stressing about engagement. There's a better way.
           </p>
@@ -194,6 +174,5 @@ export default function LandingProblem() {
           </p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 }
