@@ -33,8 +33,8 @@ export default function LandingProblem() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("animate-fade-in");
             entry.target.classList.remove("opacity-0", "translate-y-4");
+            entry.target.classList.add("opacity-100", "translate-y-0");
           }
         });
       },
@@ -43,9 +43,8 @@ export default function LandingProblem() {
 
     elements.forEach((el, index) => {
       if (el) {
-        el.style.opacity = "0";
-        el.style.transform = "translateY(16px)";
-        el.style.animationDelay = `${index * 0.2}s`;
+        el.classList.add("opacity-0", "translate-y-4", "transition-all", "duration-700");
+        el.style.transitionDelay = `${index * 200}ms`;
         observer.observe(el);
       }
     });
