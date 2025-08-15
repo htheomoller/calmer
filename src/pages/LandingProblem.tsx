@@ -33,7 +33,7 @@ export default function LandingProblem() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.remove("opacity-0", "translate-y-4");
+            entry.target.classList.remove("opacity-0", "translate-y-1");
             entry.target.classList.add("opacity-100", "translate-y-0");
           }
         });
@@ -43,7 +43,7 @@ export default function LandingProblem() {
 
     elements.forEach((el, index) => {
       if (el) {
-        el.classList.add("opacity-0", "translate-y-4", "transition-all", "duration-700");
+        el.classList.add("opacity-0", "translate-y-1", "transition-all", "duration-700");
         el.style.transitionDelay = `${index * 200}ms`;
         observer.observe(el);
       }
@@ -72,14 +72,14 @@ export default function LandingProblem() {
   return (
     <div className="min-h-screen bg-background pt-2.5">
       {/* Header */}
-      <header ref={headerRef} className="py-6 pl-16">
+      <header ref={headerRef} className="py-6" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
         <h1 className="text-2xl font-bold">calmer.</h1>
       </header>
 
       {/* Hero Section */}
-      <main className="pl-16 pt-16">
+      <main className="pt-16" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
         <div className="max-w-2xl">
-          <h2 ref={heroRef} className="text-6xl md:text-7xl font-bold leading-tight mb-6">
+          <h2 ref={heroRef} className="text-7xl md:text-8xl font-medium leading-tight md:leading-none mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>
             Stop letting social media
             <span className="text-foreground"> burn you out.</span>
           </h2>
