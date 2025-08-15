@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { Logo } from "@/components/ui/logo";
 
 interface BlogPost {
   id: string;
@@ -90,11 +91,17 @@ export default function ResourcePost() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa]">
-      <article className="max-w-2xl mx-auto px-6 py-12">
-        <Link to="/resources" className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-block">
-          ← Back to Resources
-        </Link>
+    <div className="min-h-screen bg-[#fafafa] pt-2.5">
+      {/* Header */}
+      <header className="py-6" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
+        <Logo />
+      </header>
+
+      <div style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
+        <article className="max-w-2xl pr-6 py-12">
+          <Link to="/resources" className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-block">
+            ← Back to Resources
+          </Link>
         
         <header className="mb-12">
           <h1 className="text-5xl font-bold font-serif text-foreground leading-tight mb-6">
@@ -148,7 +155,8 @@ export default function ResourcePost() {
             </div>
           </footer>
         )}
-      </article>
+        </article>
+      </div>
       <MobileNav />
     </div>
   );
