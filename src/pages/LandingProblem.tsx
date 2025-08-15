@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CalmButton } from "@/components/ui/calm-button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -8,6 +8,50 @@ export default function LandingProblem() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  
+  // Animation refs
+  const headerRef = useRef<HTMLElement>(null);
+  const heroRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const problemsRef = useRef<HTMLDivElement>(null);
+  const storyLinkRef = useRef<HTMLDivElement>(null);
+  const solutionRef = useRef<HTMLDivElement>(null);
+  const waitlistRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const elements = [
+      headerRef.current,
+      heroRef.current,
+      subtitleRef.current,
+      problemsRef.current,
+      storyLinkRef.current,
+      solutionRef.current,
+      waitlistRef.current,
+    ];
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("animate-fade-in");
+            entry.target.classList.remove("opacity-0", "translate-y-4");
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: "50px" }
+    );
+
+    elements.forEach((el, index) => {
+      if (el) {
+        el.style.opacity = "0";
+        el.style.transform = "translateY(16px)";
+        el.style.animationDelay = `${index * 0.2}s`;
+        observer.observe(el);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const handleWaitlistJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,27 +71,27 @@ export default function LandingProblem() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-2.5">
       {/* Header */}
-      <header className="py-6 pl-16">
+      <header ref={headerRef} className="py-6 pl-16">
         <h1 className="text-2xl font-bold">calmer.</h1>
       </header>
 
       {/* Hero Section */}
       <main className="pl-16 pt-16">
         <div className="max-w-2xl">
-          <h2 className="text-4xl md:text-5xl font-bold leading-tight mb-6">
+          <h2 ref={heroRef} className="text-6xl md:text-7xl font-bold leading-tight mb-6">
             Stop letting social media
-            <span className="text-foreground"> burn you out</span>
+            <span className="text-foreground"> burn you out.</span>
           </h2>
           
-          <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+          <p ref={subtitleRef} className="text-xl text-muted-foreground mb-8 leading-relaxed">
             You started your business to help people, not to spend hours scrolling, 
             posting, and stressing about engagement. There's a better way.
           </p>
 
           {/* Problem Points */}
-          <div className="space-y-4 mb-6">
+          <div ref={problemsRef} className="space-y-4 mb-6">
             <div className="flex items-start space-x-3">
               <div className="w-2 h-2 rounded-full bg-foreground mt-3 flex-shrink-0"></div>
               <p className="text-lg">Spending 2+ hours daily on social media without clear results?</p>
@@ -62,14 +106,14 @@ export default function LandingProblem() {
             </div>
           </div>
 
-          <div className="mb-12">
+          <div ref={storyLinkRef} className="mb-12">
             <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground">
               See the story →
             </Link>
           </div>
 
           {/* Solution Preview */}
-          <div className="mb-12">
+          <div ref={solutionRef} className="mb-12">
             <h3 className="text-xl font-semibold mb-4">What if you could:</h3>
             <div className="space-y-3">
               <p className="text-muted-foreground">✓ Have a personalized daily plan that actually works</p>
@@ -79,7 +123,7 @@ export default function LandingProblem() {
           </div>
 
           {/* Waitlist Form */}
-          <div className="bg-gray-100 rounded-2xl p-6">
+          <div ref={waitlistRef} className="bg-gray-100 rounded-2xl p-6">
             <h3 className="text-xl font-semibold mb-2 text-left">Get early access to calmer.</h3>
             <p className="text-muted-foreground mb-6 text-left">
               Join 200+ small business owners taking back control
