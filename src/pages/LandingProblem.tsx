@@ -102,8 +102,8 @@ export default function LandingProblem() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <button className="bg-black text-white px-8 py-4 rounded-full text-lg font-normal hover:bg-gray-800 transition-colors flex items-center space-x-3">
-                  <span className="text-2xl">+</span>
-                  <span>Sub</span>
+                  <span className="text-4xl font-extralight">+</span>
+                  <span className="text-3xl font-extralight">Sub</span>
                 </button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
