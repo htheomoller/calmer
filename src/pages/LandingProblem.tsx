@@ -93,9 +93,7 @@ export default function LandingProblem() {
           </h2>
 
           {/* Counter */}
-          <p ref={counterRef} className="text-sm text-muted-foreground mb-4">
-            82 did yesterday
-          </p>
+          <p ref={counterRef} className="text-sm text-muted-foreground mb-4">Join the waitlist. 82 did yesterday.</p>
 
           {/* Sub Button */}
           <div ref={subButtonRef} className="mb-8 px-0 py-0">
@@ -103,7 +101,7 @@ export default function LandingProblem() {
               <DialogTrigger asChild>
                 <button className="bg-black text-white rounded-full hover:bg-gray-800 transition-colors flex items-center space-x-3 font-extralight text-2xl px-[18px] py-[10px]">
                   <span className="font-extralight text-2xl">+</span>
-                  <span className="font-extralight text-2xl">Sub</span>
+                  <span className="font-extralight text-2xl">get calmer.</span>
                 </button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
