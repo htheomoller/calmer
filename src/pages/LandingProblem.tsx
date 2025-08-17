@@ -2,16 +2,15 @@ import { useState } from "react";
 import { CalmButton } from "@/components/ui/calm-button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HeaderNav } from "@/components/layout/header-nav";
+
 export default function LandingProblem() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+
   const handleWaitlistJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
@@ -28,7 +27,9 @@ export default function LandingProblem() {
       setIsDialogOpen(false);
     }, 1000);
   };
-  return <div className="min-h-screen bg-gradient-to-b from-slate-50 via-green-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-green-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Fixed Header */}
       <HeaderNav />
 
@@ -40,7 +41,7 @@ export default function LandingProblem() {
             <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>
           </h1>
 
-          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8" data-animate="fade-in" data-delay="0.3s">You started your business to help people, not to spend hours scrolling, posting, and hustling in the DMs. There’s a better way.</p>
+          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8" data-animate="fade-in" data-delay="0.3s">You started your business to help people, not to spend hours scrolling, posting, and hustling in the DMs. There's a better way.</p>
 
           {/* Button and Counter */}
           <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12" data-animate="fade-in" data-delay="0.5s">
@@ -75,33 +76,28 @@ export default function LandingProblem() {
 
           {/* Problem Description */}
           <div className="space-y-8 mb-12">
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.7s">Calmer lets you send an instant, thoughtful DM whenever someone comments on your post — with your link, offer, or message. Set it up once and forget it. It’s that simple.</p>
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.9s">Sell more, stress less, and stay off Instagram while your business keeps growing.</p>
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.7s">Calmer lets you send an instant, thoughtful DM whenever someone comments on your post — with your link, offer, or message. Set it up once and forget it. It's that simple.</p>
             
-            
-            
-          </div>
-
-          <div className="mb-12" data-animate="fade-in" data-delay="1.7s">
-            <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground">
-              See the story →
-            </Link>
-          </div>
-
-          {/* Solution Preview */}
-          <div className="mb-12" data-animate="fade-in" data-delay="1.9s">
-            <h3 className="text-xl font-semibold mb-4">How it works</h3>
-            <div className="space-y-3">
-              <p className="text-muted-foreground">✓ Post as usual
-Share on Instagram and add a simple instruction in your caption (e.g. “Comment yes for the link”).
-            </p>
-              <p className="text-muted-foreground">✓ Calmer handles it
-We read the caption, catch the comments, and know exactly what to send.
-            </p>
-              <p className="text-muted-foreground">✓ Instant DM
-Your follower gets a thoughtful message right away, without you lifting a finger.
-            </p>
+            {/* How it works */}
+            <div className="mb-8" data-animate="fade-in" data-delay="0.9s">
+              <h3 className="text-xl font-semibold mb-4">How it works</h3>
+              <div className="space-y-3">
+                <p className="text-muted-foreground">
+                  <span className="font-bold">1 Post as usual</span><br />
+                  Share on Instagram and add a simple instruction in your caption (e.g. "Comment yes for the link").
+                </p>
+                <p className="text-muted-foreground">
+                  <span className="font-bold">2 Calmer handles it</span><br />
+                  We read the caption, catch the comments, and know exactly what to send.
+                </p>
+                <p className="text-muted-foreground">
+                  <span className="font-bold">3 Instant DM</span><br />
+                  Your follower gets a thoughtful message right away, without you lifting a finger.
+                </p>
+              </div>
             </div>
+
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="1.1s">Sell more, stress less, and stay off Instagram while your business keeps growing.</p>
           </div>
         </div>
       </main>
@@ -114,6 +110,6 @@ Your follower gets a thoughtful message right away, without you lifting a finger
           </p>
         </div>
       </footer>
-
-    </div>;
+    </div>
+  );
 }
