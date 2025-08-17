@@ -40,7 +40,7 @@ export default function LandingProblem() {
             <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>
           </h1>
 
-          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8" data-animate="fade-in" data-delay="0.3s">You started your business to help people, not to spend hours scrolling, posting, and hustling in the DMs. There’s a better way..</p>
+          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8" data-animate="fade-in" data-delay="0.3s">You started your business to help people, not to spend hours scrolling, posting, and hustling in the DMs. There’s a better way.</p>
 
           {/* Button and Counter */}
           <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12" data-animate="fade-in" data-delay="0.5s">
@@ -78,12 +78,8 @@ export default function LandingProblem() {
             <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.7s">Calmer lets you send an instant, thoughtful DM whenever someone comments on your post — with your link, offer, or message. Set it up once and forget it. It’s that simple.</p>
             <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.9s">Sell more, stress less, and stay off Instagram while your business keeps growing.</p>
             
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="1.3s">
-              And still feeling like you're shouting into the void.
-            </p>
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="1.5s">
-              What if there was a better way to connect authentically with your audience?
-            </p>
+            
+            
           </div>
 
           <div className="mb-12" data-animate="fade-in" data-delay="1.7s">
