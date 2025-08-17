@@ -140,9 +140,9 @@ export default function LandingProblem() {
       {/* Hero Section */}
       <main className="pt-32 px-[clamp(25px,4vw,64px)]">
         <div className="max-w-2xl">
-          <h1 ref={heroRef} className="text-6xl md:text-8xl font-semibold leading-none tracking-tight mb-6 opacity-0">
+          <h1 ref={heroRef} className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6 opacity-0">
             Stop letting Instagram
-            <span className="text-foreground"> burn you out.</span>
+            <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>
           </h1>
 
           <p ref={subtitleRef} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8 opacity-0">
