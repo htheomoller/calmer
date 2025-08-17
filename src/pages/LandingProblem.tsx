@@ -34,22 +34,12 @@ export default function LandingProblem() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // State tracking for animation states to prevent vibrating
-  const animationStates = useRef<Map<Element, 'in' | 'out' | 'none'>>(new Map());
-
-  // Intersection Observer for scroll-triggered animations
+  // Intersection Observer for simple fade-in animations
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const currentState = animationStates.current.get(entry.target) || 'none';
-          
-          if (entry.isIntersecting && currentState !== 'in') {
-            // Only animate in if not already in
-            animationStates.current.set(entry.target, 'in');
-            
-            // Remove fade-out classes first
-            entry.target.classList.remove('animate-fade-out');
+          if (entry.isIntersecting) {
             // Apply specific animation class based on element
             if (entry.target === heroRef.current) {
               entry.target.classList.add('animate-fade-in-hero-1');
@@ -60,19 +50,12 @@ export default function LandingProblem() {
             } else {
               entry.target.classList.add('animate-fade-in');
             }
-          } else if (!entry.isIntersecting && currentState !== 'out') {
-            // Only animate out if not already out
-            animationStates.current.set(entry.target, 'out');
-            
-            // Remove fade-in classes and add fade-out
-            entry.target.classList.remove('animate-fade-in', 'animate-fade-in-hero-1', 'animate-fade-in-hero-2', 'animate-fade-in-hero-3');
-            entry.target.classList.add('animate-fade-out');
           }
         });
       },
       { 
-        threshold: [0.1, 0.5], // Use multiple thresholds for hysteresis
-        rootMargin: '50px 0px -50px 0px' // Less aggressive margins
+        threshold: 0.3,
+        rootMargin: '0px 0px -100px 0px'
       }
     );
 
@@ -88,7 +71,6 @@ export default function LandingProblem() {
 
     elementsToObserve.forEach(element => {
       if (element) {
-        element.classList.remove('animate-fade-in', 'animate-fade-in-hero-1', 'animate-fade-in-hero-2', 'animate-fade-in-hero-3');
         observer.observe(element);
       }
     });
