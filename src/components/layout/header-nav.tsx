@@ -51,22 +51,24 @@ export function HeaderNav() {
         )}
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Overlay */}
       {isMobile && isMenuOpen && (
-        <nav className="mt-4 pb-4 border-t border-border relative z-[70]">
-          <div className="pt-4 space-y-3">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className="block text-foreground hover:text-muted-foreground transition-colors font-medium py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
+        <div className="fixed inset-0 bg-white z-[80] animate-fade-in">
+          <div className="pt-24 px-6">
+            <nav className="space-y-6">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className="block text-foreground hover:text-muted-foreground transition-colors font-medium text-xl py-3"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
           </div>
-        </nav>
+        </div>
       )}
     </header>
   );

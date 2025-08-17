@@ -190,25 +190,22 @@ export default function LandingProblem() {
 
           {/* Animated Subtitles */}
           <div className="space-y-4 mb-6">
-            <AnimatedSubtitle delay={0}>
+            <AnimatedSubtitle delay={0} index={0}>
               You started your business to help people, not to spend hours scrolling, 
               posting, and stressing about engagement. There's a better way.
             </AnimatedSubtitle>
-            <AnimatedSubtitle delay={200}>
-              You started your business to help people, not to spend hours scrolling, 
-              posting, and stressing about engagement. There's a better way.
+            
+            <AnimatedSubtitle delay={200} index={1}>
+              Every moment you spend wrestling with social media is a moment stolen from what you love: 
+              helping your clients and growing your business.
             </AnimatedSubtitle>
-            <AnimatedSubtitle delay={400}>
-              You started your business to help people, not to spend hours scrolling, 
-              posting, and stressing about engagement. There's a better way.
+            
+            <AnimatedSubtitle delay={400} index={2}>
+              You deserve peace of mind, not digital overwhelm.
             </AnimatedSubtitle>
-            <AnimatedSubtitle delay={600}>
-              You started your business to help people, not to spend hours scrolling, 
-              posting, and stressing about engagement. There's a better way.
-            </AnimatedSubtitle>
-            <AnimatedSubtitle delay={800}>
-              You started your business to help people, not to spend hours scrolling, 
-              posting, and stressing about engagement. There's a better way.
+            
+            <AnimatedSubtitle delay={600} index={3}>
+              What if your social media could work for you instead of against you?
             </AnimatedSubtitle>
           </div>
 
@@ -246,5 +243,6 @@ export default function LandingProblem() {
           Scroll to see the background color transition effect
         </p>
       </div>
-    </div>;
+    </div>
+  );
 }
