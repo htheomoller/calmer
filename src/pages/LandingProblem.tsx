@@ -47,8 +47,8 @@ export default function LandingProblem() {
   const interpolateColor = (progress: number) => {
     // Define color stops as HSL values
     const startColor = [0, 0, 98]; // --scroll-start: #fafafa
-    const midColor = [120, 10, 98]; // --scroll-mid: light sage green
-    const endColor = [210, 20, 98]; // --scroll-end: light blue
+    const midColor = [120, 25, 95]; // --scroll-mid: light sage green
+    const endColor = [210, 35, 95]; // --scroll-end: light blue
 
     let currentColor;
     if (progress <= 0.5) {
@@ -69,7 +69,9 @@ export default function LandingProblem() {
       ];
     }
 
-    return `hsl(${currentColor[0]}, ${currentColor[1]}%, ${currentColor[2]}%)`;
+    const colorString = `hsl(${currentColor[0]}, ${currentColor[1]}%, ${currentColor[2]}%)`;
+    console.log('Color Debug:', { progress, currentColor, colorString });
+    return colorString;
   };
 
   useEffect(() => {
