@@ -88,9 +88,9 @@ export default function LandingProblem() {
 
   // Color interpolation function
   const interpolateColor = (progress: number) => {
-    const startColor = [315, 25, 93]; // Soft Instagram purple/pink
+    const startColor = [0, 0, 98]; // Light gray
     const midColor = [120, 25, 95]; // Light sage green
-    const endColor = [0, 0, 98]; // Light gray
+    const endColor = [315, 25, 93]; // Soft Instagram purple/pink
 
     let currentColor;
     if (progress <= 0.5) {
@@ -138,7 +138,7 @@ export default function LandingProblem() {
       <HeaderNav />
 
       {/* Hero Section */}
-      <main className="pt-32 px-[clamp(25px,4vw,64px)]">
+      <main className="pt-64 px-[clamp(25px,4vw,64px)]">
         <div className="max-w-2xl">
           <h1 ref={heroRef} className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6 opacity-0">
             Stop letting Instagram
