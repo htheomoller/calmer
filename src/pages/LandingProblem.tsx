@@ -88,9 +88,9 @@ export default function LandingProblem() {
 
   // Color interpolation function
   const interpolateColor = (progress: number) => {
-    const startColor = [0, 0, 98]; // Light gray
+    const startColor = [210, 35, 95]; // Light blue
     const midColor = [120, 25, 95]; // Light sage green
-    const endColor = [210, 35, 95]; // Light blue
+    const endColor = [0, 0, 98]; // Light gray
 
     let currentColor;
     if (progress <= 0.5) {
@@ -141,7 +141,7 @@ export default function LandingProblem() {
       <main className="pt-32 px-[clamp(25px,4vw,64px)]">
         <div className="max-w-2xl">
           <h1 ref={heroRef} className="text-6xl md:text-8xl font-semibold leading-none tracking-tight mb-6 opacity-0">
-            Stop letting social media
+            Stop letting Instagram
             <span className="text-foreground"> burn you out.</span>
           </h1>
 
