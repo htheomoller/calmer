@@ -45,9 +45,9 @@
     --chat-background: 0 0% 98%; /* Slightly off-white chat background */
 
     /* Scroll effect colors */
-    --scroll-start: 0 0% 98%;     /* #fafafa - starting grey */
-    --scroll-mid: 120 25% 95%;    /* more visible light green */
-    --scroll-end: 210 35% 95%;    /* more visible light blue */
+    --scroll-start: 0 0% 95%;     /* light grey */
+    --scroll-mid: 120 40% 88%;    /* visible light green */
+    --scroll-end: 210 45% 88%;    /* visible light blue */
 
     --sidebar-background: 0 0% 98%;
 
@@ -137,56 +137,6 @@
     animation: gradientShift 20s ease-in-out infinite;
   }
 
-  .parallax-hero {
-    will-change: transform;
-    animation: parallaxFloat 6s ease-in-out infinite;
-  }
-
-  .hero-title-reveal {
-    overflow: hidden;
-  }
-
-  .hero-title-reveal h1 {
-    animation: slideUpReveal 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    transform: translateY(100%);
-  }
-
-  .cta-pulse {
-    animation: ctaPulse 3s ease-in-out infinite;
-  }
-
-  .slide-in-left {
-    animation: slideInLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    transform: translateX(-50px);
-    opacity: 0;
-  }
-
-  .slide-up-spring {
-    animation: slideUpSpring 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    transform: translateY(30px);
-    opacity: 0;
-  }
-
-  .enhanced-hover {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .enhanced-hover:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 10px 25px -5px hsl(var(--primary) / 0.3);
-  }
-
-  .dialog-scale-in {
-    animation: dialogScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  }
-
-  .input-focus-glow {
-    transition: all 0.3s ease;
-  }
-
-  .input-focus-glow:focus {
-    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2), 0 0 15px hsl(var(--primary) / 0.1);
-  }
 
   /* Visual-Edits-friendly animations - no opacity blocking */
   [data-animate="fade-in"] {

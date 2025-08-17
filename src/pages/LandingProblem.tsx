@@ -34,30 +34,30 @@ export default function LandingProblem() {
       <HeaderNav />
 
       {/* Hero Section */}
-      <main className="pt-64 px-[clamp(25px,4vw,64px)] parallax-hero">
+      <main className="pt-64 px-[clamp(25px,4vw,64px)]">
         <div className="max-w-2xl">
-          <div className="hero-title-reveal">
+          <div data-animate="fade-in">
             <h1 className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6">
               Stop letting Instagram
               <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>
             </h1>
           </div>
 
-          <div className="slide-up-spring" style={{animationDelay: '0.3s'}}>
+          <div data-animate="fade-in" data-delay="0.3s">
             <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8">You started your business to help people, not to spend hours scrolling, posting, and hustling in the DMs. There's a better way.</p>
           </div>
 
           {/* Button and Counter */}
-          <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12 slide-up-spring" style={{animationDelay: '0.5s'}}>
+          <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12" data-animate="fade-in" data-delay="0.5s">
             <div className="mb-4 md:mb-0">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <button className="bg-black text-white rounded-full hover:bg-gray-800 flex items-center space-x-3 font-extralight text-2xl px-[18px] py-[10px] cta-pulse enhanced-hover">
+                  <button className="bg-black text-white rounded-full hover:bg-gray-800 hover:scale-105 transition-all duration-300 flex items-center space-x-3 font-extralight text-2xl px-[18px] py-[10px]">
                     <span className="font-extralight text-2xl">+</span>
                     <span className="font-extralight text-2xl">get calmer.</span>
                   </button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md dialog-scale-in">
+                <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle className="text-xl font-semibold mb-2">Get early access to calmer.</DialogTitle>
                     <p className="text-muted-foreground mb-6">
@@ -66,8 +66,8 @@ export default function LandingProblem() {
                   </DialogHeader>
                   
                   <form onSubmit={handleWaitlistJoin} className="space-y-4">
-                    <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="w-full input-focus-glow" required />
-                    <CalmButton type="submit" variant="default" disabled={isLoading} className="w-full enhanced-hover">
+                    <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="w-full" required />
+                    <CalmButton type="submit" variant="default" disabled={isLoading} className="w-full">
                       {isLoading ? "Joining..." : "Join Waitlist"}
                     </CalmButton>
                   </form>
@@ -75,34 +75,34 @@ export default function LandingProblem() {
               </Dialog>
             </div>
 
-            <div className="slide-up-spring" style={{animationDelay: '0.7s'}}>
+            <div data-animate="fade-in" data-delay="0.7s">
               <p className="text-sm text-muted-foreground">Join the waitlist. 82 did yesterday.</p>
             </div>
           </div>
 
           {/* Problem Description */}
           <div className="space-y-8 mb-12">
-            <div className="slide-up-spring" style={{animationDelay: '0.8s'}}>
+            <div data-animate="fade-in" data-delay="0.9s">
               <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground">Calmer lets you send an instant, thoughtful DM whenever someone comments on your post — with your link, offer, or message. Set it up once and forget it. It's that simple.</p>
             </div>
             
             {/* How it works */}
-            <div className="mb-8 slide-in-left" style={{animationDelay: '1s'}}>
+            <div className="mb-8" data-animate="fade-in" data-delay="1.1s">
               <h3 className="text-xl font-semibold mb-4">How it works</h3>
               <div className="space-y-3">
-                <div className="slide-up-spring" style={{animationDelay: '1.1s'}}>
+                <div data-animate="fade-in" data-delay="1.3s">
                   <p className="text-muted-foreground">
                     <span className="font-bold">1 Post as usual</span><br />
                     Share on Instagram and add a simple instruction in your caption (e.g. "Comment yes for the link").
                   </p>
                 </div>
-                <div className="slide-up-spring" style={{animationDelay: '1.2s'}}>
+                <div data-animate="fade-in" data-delay="1.5s">
                   <p className="text-muted-foreground">
                     <span className="font-bold">2 Calmer handles it</span><br />
                     We read the caption, catch the comments, and know exactly what to send.
                   </p>
                 </div>
-                <div className="slide-up-spring" style={{animationDelay: '1.3s'}}>
+                <div data-animate="fade-in" data-delay="1.7s">
                   <p className="text-muted-foreground">
                     <span className="font-bold">3 Instant DM</span><br />
                     Your follower gets a thoughtful message right away, without you lifting a finger.
@@ -111,7 +111,7 @@ export default function LandingProblem() {
               </div>
             </div>
 
-            <div className="slide-up-spring" style={{animationDelay: '1.4s'}}>
+            <div data-animate="fade-in" data-delay="1.9s">
               <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground">Sell more, stress less, and stay off Instagram while your business keeps growing.</p>
             </div>
           </div>
