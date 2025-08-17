@@ -40,15 +40,25 @@ export default function LandingProblem() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('animate-fade-in');
+            // Apply specific animation class based on element
+            if (entry.target === heroRef.current) {
+              entry.target.classList.add('animate-fade-in-hero-1');
+            } else if (entry.target === subtitleRef.current) {
+              entry.target.classList.add('animate-fade-in-hero-2');
+            } else if (entry.target === buttonRef.current) {
+              entry.target.classList.add('animate-fade-in-hero-3');
+            } else {
+              entry.target.classList.add('animate-fade-in');
+            }
           } else {
-            entry.target.classList.remove('animate-fade-in');
+            // Remove all animation classes when out of view
+            entry.target.classList.remove('animate-fade-in', 'animate-fade-in-hero-1', 'animate-fade-in-hero-2', 'animate-fade-in-hero-3');
           }
         });
       },
       { 
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
+        threshold: 0.3,
+        rootMargin: '0px 0px -100px 0px'
       }
     );
 
@@ -64,7 +74,7 @@ export default function LandingProblem() {
 
     elementsToObserve.forEach(element => {
       if (element) {
-        element.classList.remove('animate-fade-in');
+        element.classList.remove('animate-fade-in', 'animate-fade-in-hero-1', 'animate-fade-in-hero-2', 'animate-fade-in-hero-3');
         observer.observe(element);
       }
     });
