@@ -1,35 +1,62 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const navItems = [
-  { href: "/resources", label: "Resources" }
+const resourceItems = [
+  { href: "/resources/digital-minimalism-guide", label: "The Art of Digital Minimalism" }
 ];
 
 export function HeaderNav() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const isMobile = useIsMobile();
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm z-50 py-6 px-[clamp(25px,4vw,64px)]">
+      <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm z-50 py-3 px-[clamp(25px,4vw,64px)]">
         <div className="flex items-center justify-between">
           <Logo />
           
           {/* Desktop Navigation */}
           {!isMobile && (
             <nav className="flex items-center space-x-8">
-              {navItems.map((item) => (
+              <div 
+                className="relative"
+                onMouseEnter={() => setIsResourcesOpen(true)}
+                onMouseLeave={() => setIsResourcesOpen(false)}
+              >
                 <Link
-                  key={item.href}
-                  to={item.href}
-                  className="text-foreground hover:text-muted-foreground transition-colors font-medium"
+                  to="/resources"
+                  className="text-foreground hover:text-muted-foreground transition-colors font-medium flex items-center space-x-1"
                 >
-                  {item.label}
+                  <span>Resources</span>
+                  <ChevronDown className="h-4 w-4" />
                 </Link>
-              ))}
+                
+                {/* Resources Dropdown */}
+                {isResourcesOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-border py-2 z-50">
+                    <Link
+                      to="/resources"
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                    >
+                      All Resources
+                    </Link>
+                    <div className="border-t border-border my-1"></div>
+                    {resourceItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             </nav>
           )}
 
@@ -55,16 +82,27 @@ export function HeaderNav() {
         <div className="fixed inset-0 bg-white/95 backdrop-blur-sm z-40 animate-fade-in-fast">
           <div className="pt-24 px-6">
             <nav className="space-y-6">
-              {navItems.map((item) => (
+              <div>
                 <Link
-                  key={item.href}
-                  to={item.href}
+                  to="/resources"
                   className="block text-foreground hover:text-muted-foreground transition-colors font-medium text-xl py-3"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  {item.label}
+                  Resources
                 </Link>
-              ))}
+                <div className="ml-4 space-y-2 mt-2">
+                  {resourceItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className="block text-muted-foreground hover:text-foreground transition-colors text-lg py-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
             </nav>
           </div>
         </div>

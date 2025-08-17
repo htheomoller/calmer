@@ -32,8 +32,8 @@ const Index = () => {
     <div className="min-h-screen bg-[#fafafa]">
       <HeaderNav />
 
-      <main className="pt-64 px-[clamp(25px,4vw,64px)]">
-        <div className="max-w-2xl">
+      <main className="pt-32 px-[clamp(25px,4vw,64px)]">
+        <div className="max-w-2xl mt-32">
           <h1 className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6">
             Stop letting Instagram
             <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>

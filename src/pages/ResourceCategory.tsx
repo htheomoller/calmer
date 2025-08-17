@@ -47,7 +47,7 @@ export default function ResourceCategory() {
     <div className="min-h-screen bg-[#fafafa]">
       <HeaderNav />
 
-      <main className="pt-64 px-[clamp(25px,4vw,64px)]">
+      <main className="pt-32 px-[clamp(25px,4vw,64px)]">
         <div className="max-w-4xl pr-6">
           <header className="mb-16">
             <Link to="/resources" className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block">

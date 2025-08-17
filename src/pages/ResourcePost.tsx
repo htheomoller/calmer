@@ -55,7 +55,7 @@ export default function ResourcePost() {
     return (
       <div className="min-h-screen bg-[#fafafa]">
         <HeaderNav />
-        <main className="pt-64 px-[clamp(25px,4vw,64px)]">
+        <main className="pt-32 px-[clamp(25px,4vw,64px)]">
           <div className="max-w-2xl pr-6">
             <div className="h-4 bg-muted rounded mb-8 w-24"></div>
             <div className="h-12 bg-muted rounded mb-6"></div>
@@ -75,7 +75,7 @@ export default function ResourcePost() {
     return (
       <div className="min-h-screen bg-[#fafafa]">
         <HeaderNav />
-        <main className="pt-64 px-[clamp(25px,4vw,64px)]">
+        <main className="pt-32 px-[clamp(25px,4vw,64px)]">
           <div className="max-w-2xl pr-6">
             <Link to="/resources" className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-block">
               ← Back to Resources
@@ -97,7 +97,7 @@ export default function ResourcePost() {
     <div className="min-h-screen bg-[#fafafa]">
       <HeaderNav />
 
-      <main className="pt-64 px-[clamp(25px,4vw,64px)]">
+      <main className="pt-32 px-[clamp(25px,4vw,64px)]">
         <article className="max-w-2xl pr-6">
           <Link to="/resources" className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-block">
             ← Back to Resources
