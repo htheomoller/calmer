@@ -9,9 +9,9 @@ export default function LandingProblem() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const {
-    toast
-  } = useToast();
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const { toast } = useToast();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Animation refs
   const headerRef = useRef<HTMLElement>(null);
@@ -22,6 +22,52 @@ export default function LandingProblem() {
   const storyLinkRef = useRef<HTMLDivElement>(null);
   const solutionRef = useRef<HTMLDivElement>(null);
   const subButtonRef = useRef<HTMLDivElement>(null);
+  // Scroll effect for background color
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = Math.min(scrollY / maxScroll, 1);
+      setScrollProgress(progress);
+    };
+
+    const throttledScroll = () => {
+      requestAnimationFrame(handleScroll);
+    };
+
+    window.addEventListener('scroll', throttledScroll);
+    return () => window.removeEventListener('scroll', throttledScroll);
+  }, []);
+
+  // Color interpolation function
+  const interpolateColor = (progress: number) => {
+    // Define color stops as HSL values
+    const startColor = [0, 0, 98]; // --scroll-start: #fafafa
+    const midColor = [120, 10, 98]; // --scroll-mid: light sage green
+    const endColor = [210, 20, 98]; // --scroll-end: light blue
+
+    let currentColor;
+    if (progress <= 0.5) {
+      // Interpolate from start to mid (0-50%)
+      const t = progress * 2;
+      currentColor = [
+        startColor[0] + (midColor[0] - startColor[0]) * t,
+        startColor[1] + (midColor[1] - startColor[1]) * t,
+        startColor[2] + (midColor[2] - startColor[2]) * t
+      ];
+    } else {
+      // Interpolate from mid to end (50-100%)
+      const t = (progress - 0.5) * 2;
+      currentColor = [
+        midColor[0] + (endColor[0] - midColor[0]) * t,
+        midColor[1] + (endColor[1] - midColor[1]) * t,
+        midColor[2] + (endColor[2] - midColor[2]) * t
+      ];
+    }
+
+    return `hsl(${currentColor[0]}, ${currentColor[1]}%, ${currentColor[2]}%)`;
+  };
+
   useEffect(() => {
     const elements = [headerRef.current, heroRef.current, counterRef.current, subtitleRef.current, problemsRef.current, storyLinkRef.current, solutionRef.current, subButtonRef.current];
 
@@ -73,7 +119,11 @@ export default function LandingProblem() {
       setIsDialogOpen(false);
     }, 1000);
   };
-  return <div className="min-h-screen bg-[#fafafa]">
+  return <div 
+    ref={containerRef}
+    className="min-h-screen transition-colors duration-300 ease-out"
+    style={{ backgroundColor: interpolateColor(scrollProgress) }}
+  >
       {/* Fixed Header */}
       <header ref={headerRef} className="fixed top-0 left-0 right-0 bg-white z-50 py-6" style={{
       paddingLeft: 'clamp(25px, 4vw, 64px)'

@@ -44,6 +44,11 @@
     --chat-bot: 0 0% 100%;      /* White for bot messages */
     --chat-background: 0 0% 98%; /* Slightly off-white chat background */
 
+    /* Scroll effect colors */
+    --scroll-start: 0 0% 98%;   /* #fafafa - starting grey */
+    --scroll-mid: 120 10% 98%;  /* #f8faf8 - light sage green */
+    --scroll-end: 210 20% 98%;  /* #f8f9fb - light blue */
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
