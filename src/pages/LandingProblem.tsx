@@ -84,7 +84,7 @@ export default function LandingProblem() {
       {/* Hero Section */}
       <main style={{
       paddingLeft: 'clamp(25px, 4vw, 64px)'
-    }} className="pt-32 px-[20px]">
+    }} className="pt-32 mx-0 px-[21px] py-[127px]">
         <div className="max-w-2xl">
           <h2 ref={heroRef} style={{
           fontFamily: 'Inter, sans-serif'
