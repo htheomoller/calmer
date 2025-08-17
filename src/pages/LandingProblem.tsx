@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { CalmButton } from "@/components/ui/calm-button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -13,7 +13,15 @@ export default function LandingProblem() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const { toast } = useToast();
 
-  // Simple scroll effect for background color only
+  // Refs for animated elements
+  const heroRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const buttonRef = useRef<HTMLDivElement>(null);
+  const paragraphRefs = useRef<(HTMLParagraphElement | null)[]>([]);
+  const linkRef = useRef<HTMLDivElement>(null);
+  const solutionRef = useRef<HTMLDivElement>(null);
+
+  // Scroll effects
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
@@ -24,6 +32,48 @@ export default function LandingProblem() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Intersection Observer for scroll-triggered animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-fade-in');
+          } else {
+            entry.target.classList.remove('animate-fade-in');
+          }
+        });
+      },
+      { 
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      }
+    );
+
+    // Observe all animated elements
+    const elementsToObserve = [
+      heroRef.current,
+      subtitleRef.current,
+      buttonRef.current,
+      linkRef.current,
+      solutionRef.current,
+      ...paragraphRefs.current.filter(Boolean)
+    ].filter(Boolean);
+
+    elementsToObserve.forEach(element => {
+      if (element) {
+        element.classList.remove('animate-fade-in');
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      elementsToObserve.forEach(element => {
+        if (element) observer.unobserve(element);
+      });
+    };
   }, []);
 
   // Color interpolation function
@@ -80,20 +130,18 @@ export default function LandingProblem() {
       {/* Hero Section */}
       <main className="pt-32 px-[clamp(25px,4vw,64px)]">
         <div className="max-w-2xl">
-          <h1 className="text-6xl md:text-8xl font-semibold leading-none tracking-tight mb-6 animate-fade-in">
+          <h1 ref={heroRef} className="text-6xl md:text-8xl font-semibold leading-none tracking-tight mb-6 opacity-0">
             Stop letting social media
             <span className="text-foreground"> burn you out.</span>
           </h1>
 
-          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8 animate-fade-in" 
-             style={{ animationDelay: '200ms' }}>
+          <p ref={subtitleRef} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8 opacity-0">
             You started your business to help people, not to spend hours scrolling, 
             posting, and stressing about engagement. There's a better way.
           </p>
 
           {/* Button and Counter */}
-          <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12 animate-fade-in" 
-               style={{ animationDelay: '400ms' }}>
+          <div ref={buttonRef} className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12 opacity-0">
             <div className="mb-4 md:mb-0">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
@@ -132,36 +180,31 @@ export default function LandingProblem() {
 
           {/* Problem Description */}
           <div className="space-y-8 mb-12">
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in" 
-               style={{ animationDelay: '600ms' }}>
+            <p ref={el => paragraphRefs.current[0] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
               You started your business with passion and a vision to make a difference.
             </p>
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in" 
-               style={{ animationDelay: '800ms' }}>
+            <p ref={el => paragraphRefs.current[1] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
               But somehow, you find yourself trapped in an endless cycle of content creation.
             </p>
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in" 
-               style={{ animationDelay: '1000ms' }}>
+            <p ref={el => paragraphRefs.current[2] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
               Hours spent crafting posts, responding to comments, analyzing metrics...
             </p>
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in" 
-               style={{ animationDelay: '1200ms' }}>
+            <p ref={el => paragraphRefs.current[3] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
               And still feeling like you're shouting into the void.
             </p>
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in" 
-               style={{ animationDelay: '1400ms' }}>
+            <p ref={el => paragraphRefs.current[4] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
               What if there was a better way to connect authentically with your audience?
             </p>
           </div>
 
-          <div className="mb-12 animate-fade-in" style={{ animationDelay: '1600ms' }}>
+          <div ref={linkRef} className="mb-12 opacity-0">
             <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               See the story →
             </Link>
           </div>
 
           {/* Solution Preview */}
-          <div className="mb-12 animate-fade-in" style={{ animationDelay: '1800ms' }}>
+          <div ref={solutionRef} className="mb-12 opacity-0">
             <h3 className="text-xl font-semibold mb-4">What if you could:</h3>
             <div className="space-y-3">
               <p className="text-muted-foreground">✓ Have a personalized daily plan that actually works</p>
@@ -181,12 +224,6 @@ export default function LandingProblem() {
         </div>
       </footer>
 
-      {/* Extra content for scroll effect */}
-      <div className="h-screen flex items-center justify-center">
-        <p className="text-muted-foreground text-center">
-          Scroll to see the background color transition effect
-        </p>
-      </div>
     </div>
   );
 }
