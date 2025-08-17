@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { CalmButton } from "@/components/ui/calm-button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -12,19 +12,8 @@ export default function LandingProblem() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const { toast } = useToast();
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Animation refs
-  const headerRef = useRef<HTMLDivElement>(null);
-  const heroRef = useRef<HTMLHeadingElement>(null);
-  const counterRef = useRef<HTMLParagraphElement>(null);
-  const subtitleRef = useRef<HTMLParagraphElement>(null);
-  const problemsRef = useRef<HTMLDivElement>(null);
-  const storyLinkRef = useRef<HTMLDivElement>(null);
-  const solutionRef = useRef<HTMLDivElement>(null);
-  const subButtonRef = useRef<HTMLDivElement>(null);
-
-  // Scroll effect for background color
+  // Simple scroll effect for background color only
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
@@ -33,24 +22,18 @@ export default function LandingProblem() {
       setScrollProgress(progress);
     };
 
-    const throttledScroll = () => {
-      requestAnimationFrame(handleScroll);
-    };
-
-    window.addEventListener('scroll', throttledScroll);
-    return () => window.removeEventListener('scroll', throttledScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Color interpolation function
   const interpolateColor = (progress: number) => {
-    // Define color stops as HSL values
-    const startColor = [0, 0, 98]; // --scroll-start: #fafafa
-    const midColor = [120, 25, 95]; // --scroll-mid: light sage green
-    const endColor = [210, 35, 95]; // --scroll-end: light blue
+    const startColor = [0, 0, 98]; // Light gray
+    const midColor = [120, 25, 95]; // Light sage green
+    const endColor = [210, 35, 95]; // Light blue
 
     let currentColor;
     if (progress <= 0.5) {
-      // Interpolate from start to mid (0-50%)
       const t = progress * 2;
       currentColor = [
         startColor[0] + (midColor[0] - startColor[0]) * t,
@@ -58,7 +41,6 @@ export default function LandingProblem() {
         startColor[2] + (midColor[2] - startColor[2]) * t
       ];
     } else {
-      // Interpolate from mid to end (50-100%)
       const t = (progress - 0.5) * 2;
       currentColor = [
         midColor[0] + (endColor[0] - midColor[0]) * t,
@@ -69,44 +51,6 @@ export default function LandingProblem() {
 
     return `hsl(${currentColor[0]}, ${currentColor[1]}%, ${currentColor[2]}%)`;
   };
-
-  useEffect(() => {
-    const elements = [headerRef.current, heroRef.current, counterRef.current, subtitleRef.current, problemsRef.current, storyLinkRef.current, solutionRef.current, subButtonRef.current];
-
-    // Initialize elements as hidden immediately
-    elements.forEach((el, index) => {
-      if (el) {
-        el.classList.add("opacity-0", "translate-y-1", "transition-all", "duration-700");
-        el.style.transitionDelay = `${index * 200}ms`;
-      }
-    });
-
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.remove("opacity-0", "translate-y-1");
-          entry.target.classList.add("opacity-100", "translate-y-0");
-        }
-      });
-    }, {
-      threshold: 0.1,
-      rootMargin: "50px"
-    });
-
-    // Start observing after a brief delay to ensure DOM is ready
-    const timeoutId = setTimeout(() => {
-      elements.forEach(el => {
-        if (el) {
-          observer.observe(el);
-        }
-      });
-    }, 100);
-
-    return () => {
-      clearTimeout(timeoutId);
-      observer.disconnect();
-    };
-  }, []);
 
   const handleWaitlistJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,38 +71,30 @@ export default function LandingProblem() {
 
   return (
     <div 
-      ref={containerRef}
       className="min-h-screen transition-colors duration-300 ease-out"
       style={{ backgroundColor: interpolateColor(scrollProgress) }}
     >
       {/* Fixed Header */}
-      <div ref={headerRef}>
-        <HeaderNav />
-      </div>
+      <HeaderNav />
 
       {/* Hero Section */}
-      <main style={{
-        paddingLeft: 'clamp(25px, 4vw, 64px)'
-      }} className="pt-32 pr-[clamp(25px,4vw,64px)]">
+      <main className="pt-32 px-[clamp(25px,4vw,64px)]">
         <div className="max-w-2xl">
-          <h2 ref={heroRef} style={{
-            fontFamily: 'Inter, sans-serif'
-          }} className="leading-none md:leading-none tracking-tight mb-6 font-semibold md:text-8xl text-6xl">
+          <h1 className="text-6xl md:text-8xl font-semibold leading-none tracking-tight mb-6 animate-fade-in">
             Stop letting social media
             <span className="text-foreground"> burn you out.</span>
-          </h2>
+          </h1>
 
-          <p ref={subtitleRef} style={{
-            fontFamily: 'Inter, sans-serif'
-          }} className="text-foreground mb-8 leading-tight md:leading-snug tracking-tight text-2xl">
+          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8 animate-fade-in" 
+             style={{ animationDelay: '200ms' }}>
             You started your business to help people, not to spend hours scrolling, 
             posting, and stressing about engagement. There's a better way.
           </p>
 
           {/* Button and Counter */}
-          <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-8">
-            {/* Sub Button */}
-            <div ref={subButtonRef} className="mb-4 md:mb-0">
+          <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12 animate-fade-in" 
+               style={{ animationDelay: '400ms' }}>
+            <div className="mb-4 md:mb-0">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <button className="bg-black text-white rounded-full hover:bg-gray-800 transition-colors flex items-center space-x-3 font-extralight text-2xl px-[18px] py-[10px]">
@@ -175,7 +111,14 @@ export default function LandingProblem() {
                   </DialogHeader>
                   
                   <form onSubmit={handleWaitlistJoin} className="space-y-4">
-                    <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="w-full" required />
+                    <Input 
+                      type="email" 
+                      placeholder="Enter your email" 
+                      value={email} 
+                      onChange={e => setEmail(e.target.value)} 
+                      className="w-full" 
+                      required 
+                    />
                     <CalmButton type="submit" variant="default" disabled={isLoading} className="w-full">
                       {isLoading ? "Joining..." : "Join Waitlist"}
                     </CalmButton>
@@ -184,37 +127,41 @@ export default function LandingProblem() {
               </Dialog>
             </div>
 
-            {/* Counter */}
-            <p ref={counterRef} className="text-sm text-muted-foreground">Join the waitlist. 82 did yesterday.</p>
+            <p className="text-sm text-muted-foreground">Join the waitlist. 82 did yesterday.</p>
           </div>
 
-          {/* Simple Animated Subtitles */}
-          <div ref={problemsRef} className="space-y-8 max-w-4xl mx-auto text-center mb-12">
-            <p className="leading-tight md:leading-snug tracking-tight text-2xl text-white opacity-0 translate-y-4 animate-fade-in" style={{ animationDelay: '0ms', fontFamily: 'Inter, sans-serif' }}>
+          {/* Problem Description */}
+          <div className="space-y-8 mb-12">
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in" 
+               style={{ animationDelay: '600ms' }}>
               You started your business with passion and a vision to make a difference.
             </p>
-            <p className="leading-tight md:leading-snug tracking-tight text-2xl text-white opacity-0 translate-y-4 animate-fade-in" style={{ animationDelay: '200ms', fontFamily: 'Inter, sans-serif' }}>
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in" 
+               style={{ animationDelay: '800ms' }}>
               But somehow, you find yourself trapped in an endless cycle of content creation.
             </p>
-            <p className="leading-tight md:leading-snug tracking-tight text-2xl text-white opacity-0 translate-y-4 animate-fade-in" style={{ animationDelay: '400ms', fontFamily: 'Inter, sans-serif' }}>
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in" 
+               style={{ animationDelay: '1000ms' }}>
               Hours spent crafting posts, responding to comments, analyzing metrics...
             </p>
-            <p className="leading-tight md:leading-snug tracking-tight text-2xl text-white opacity-0 translate-y-4 animate-fade-in" style={{ animationDelay: '600ms', fontFamily: 'Inter, sans-serif' }}>
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in" 
+               style={{ animationDelay: '1200ms' }}>
               And still feeling like you're shouting into the void.
             </p>
-            <p className="leading-tight md:leading-snug tracking-tight text-2xl text-white opacity-0 translate-y-4 animate-fade-in" style={{ animationDelay: '800ms', fontFamily: 'Inter, sans-serif' }}>
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in" 
+               style={{ animationDelay: '1400ms' }}>
               What if there was a better way to connect authentically with your audience?
             </p>
           </div>
 
-          <div ref={storyLinkRef} className="mb-12">
-            <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground">
+          <div className="mb-12 animate-fade-in" style={{ animationDelay: '1600ms' }}>
+            <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               See the story →
             </Link>
           </div>
 
           {/* Solution Preview */}
-          <div ref={solutionRef} className="mb-12">
+          <div className="mb-12 animate-fade-in" style={{ animationDelay: '1800ms' }}>
             <h3 className="text-xl font-semibold mb-4">What if you could:</h3>
             <div className="space-y-3">
               <p className="text-muted-foreground">✓ Have a personalized daily plan that actually works</p>
@@ -222,7 +169,6 @@ export default function LandingProblem() {
               <p className="text-muted-foreground">✓ Focus on your business while staying visible online</p>
             </div>
           </div>
-
         </div>
       </main>
 
@@ -235,7 +181,7 @@ export default function LandingProblem() {
         </div>
       </footer>
 
-      {/* Extra content to ensure scrollable page */}
+      {/* Extra content for scroll effect */}
       <div className="h-screen flex items-center justify-center">
         <p className="text-muted-foreground text-center">
           Scroll to see the background color transition effect
