@@ -45,9 +45,9 @@
     --chat-background: 0 0% 98%; /* Slightly off-white chat background */
 
     /* Scroll effect colors */
-    --scroll-start: 0 0% 98%;   /* #fafafa - starting grey */
-    --scroll-mid: 120 10% 98%;  /* #f8faf8 - light sage green */
-    --scroll-end: 210 20% 98%;  /* #f8f9fb - light blue */
+    --scroll-start: 0 0% 98%;     /* #fafafa - starting grey */
+    --scroll-mid: 120 25% 95%;    /* more visible light green */
+    --scroll-end: 210 35% 95%;    /* more visible light blue */
 
     --sidebar-background: 0 0% 98%;
 
