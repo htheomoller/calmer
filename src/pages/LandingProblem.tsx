@@ -133,12 +133,12 @@ export default function LandingProblem() {
   };
 
   const handleHeadlineClick = () => {
-    if (subtitleRef.current) {
-      subtitleRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
+    // Scroll to a position that keeps the headline visible but reveals the subtitle
+    const scrollAmount = window.innerHeight * 0.2; // Scroll 20% of viewport height
+    window.scrollTo({
+      top: scrollAmount,
+      behavior: 'smooth'
+    });
   };
 
   return (

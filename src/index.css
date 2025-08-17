@@ -165,6 +165,10 @@
     animation: fadeOut 0.2s ease-out forwards;
   }
 
+  .animate-fade-out {
+    animation: fadeOut 0.8s ease-out forwards;
+  }
+
   @keyframes fadeIn {
     to {
       opacity: 1;
