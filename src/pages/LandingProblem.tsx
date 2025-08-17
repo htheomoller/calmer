@@ -40,7 +40,7 @@ export default function LandingProblem() {
             <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>
           </h1>
 
-          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8" data-animate="fade-in" data-delay="0.3s">You started your business to help people, not to spend hours scrolling, posting, and stressing about engagement. There's a better way.</p>
+          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8" data-animate="fade-in" data-delay="0.3s">You started your business to help people, not to spend hours scrolling, posting, and hustling in the DMs. There’s a better way..</p>
 
           {/* Button and Counter */}
           <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12" data-animate="fade-in" data-delay="0.5s">
@@ -75,7 +75,7 @@ export default function LandingProblem() {
 
           {/* Problem Description */}
           <div className="space-y-8 mb-12">
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.7s">Calmer lets you send an instant, thoughtful DM whenever someone comments on your post — with your link, offer, or message. Set it up once and forget it. Sell more, stress less, and stay off Instagram while your business keeps growing.</p>
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.7s">Calmer lets you send an instant, thoughtful DM whenever someone comments on your post — with your link, offer, or message. Set it up once and forget it. It’s that simple.</p>
             <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.9s">
               But somehow, you find yourself trapped in an endless cycle of content creation.
             </p>
@@ -98,14 +98,9 @@ export default function LandingProblem() {
 
           {/* Solution Preview */}
           <div className="mb-12" data-animate="fade-in" data-delay="1.9s">
-            <h3 className="text-xl font-semibold mb-4">How it works</h3>
+            <h3 className="text-xl font-semibold mb-4">What if you could:</h3>
             <div className="space-y-3">
-              <p className="text-muted-foreground">Calmer is built right into the way you already use Instagram. You don’t need to change your workflow or add complicated steps:
-Post as usual – Share a post or reel on Instagram. In your caption, include a note like “Comment ‘yes’ to get the link.”
-Calmer picks it up – Our system automatically scans your new post, understands the instructions in your caption, and knows what link, offer, or message to send.
-Instant reply – The moment someone comments with your chosen word, Calmer sends them a thoughtful DM on your behalf. No app-switching, no copy-pasting, no stress.
-That’s it. One simple setup, then every post works on autopilot — helping you connect, sell, and grow while staying out of Instagram.
-            </p>
+              <p className="text-muted-foreground">✓ Have a personalized daily plan that actually works</p>
               <p className="text-muted-foreground">✓ Use social media intentionally, not compulsively</p>
               <p className="text-muted-foreground">✓ Focus on your business while staying visible online</p>
             </div>
