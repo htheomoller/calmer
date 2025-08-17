@@ -42,7 +42,7 @@ export default function LandingProblem() {
             <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>
           </h1>
 
-          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8 animate-fade-in [animation-delay:0.3s] [animation-fill-mode:both] md:block hidden">
+          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8 animate-fade-in [animation-delay:0.3s] [animation-fill-mode:both]">
             You started your business to help people, not to spend hours scrolling, 
             posting, and stressing about engagement. There's a better way.
           </p>
@@ -52,7 +52,7 @@ export default function LandingProblem() {
             <div className="mb-4 md:mb-0">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <button className="bg-black text-white rounded-full hover:bg-gray-800 transition-colors flex items-center space-x-3 font-extralight text-2xl px-[18px] py-[10px]">
+                  <button className="bg-black text-white rounded-full hover:bg-gray-800 flex items-center space-x-3 font-extralight text-2xl px-[18px] py-[10px]">
                     <span className="font-extralight text-2xl">+</span>
                     <span className="font-extralight text-2xl">get calmer.</span>
                   </button>
@@ -105,7 +105,7 @@ export default function LandingProblem() {
           </div>
 
           <div className="mb-12 animate-fade-in [animation-delay:1.7s] [animation-fill-mode:both]">
-            <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground">
               See the story →
             </Link>
           </div>
@@ -123,7 +123,7 @@ export default function LandingProblem() {
       </main>
 
       {/* Footer */}
-      <footer className="px-4 py-8 border-t border-border">
+      <footer className="px-4 py-8">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-sm text-muted-foreground">
             Built for small business owners who want to escape digital burnout
