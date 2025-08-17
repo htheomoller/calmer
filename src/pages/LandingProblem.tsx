@@ -88,7 +88,7 @@ export default function LandingProblem() {
         <div className="max-w-2xl">
           <h2 ref={heroRef} style={{
           fontFamily: 'Inter, sans-serif'
-        }} className="text-7xl leading-none md:leading-none tracking-tight mb-6 font-semibold md:text-8xl">
+        }} className="leading-none md:leading-none tracking-tight mb-6 font-semibold md:text-8xl text-6xl">
             Stop letting social media
             <span className="text-foreground"> burn you out.</span>
           </h2>
