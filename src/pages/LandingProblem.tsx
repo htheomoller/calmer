@@ -34,49 +34,32 @@ export default function LandingProblem() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Intersection Observer for simple fade-in animations
+  // Simple intersection observer for scroll-triggered animations (optional)
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Apply specific animation class based on element
-            if (entry.target === heroRef.current) {
-              entry.target.classList.add('animate-fade-in-hero-1');
-            } else if (entry.target === subtitleRef.current) {
-              entry.target.classList.add('animate-fade-in-hero-2');
-            } else if (entry.target === buttonRef.current) {
-              entry.target.classList.add('animate-fade-in-hero-3');
-            } else {
-              entry.target.classList.add('animate-fade-in');
-            }
+            entry.target.classList.add('animate-fade-in');
           }
         });
       },
-      { 
-        threshold: 0.3,
-        rootMargin: '0px 0px -100px 0px'
-      }
+      { threshold: 0.2 }
     );
 
-    // Observe all animated elements
-    const elementsToObserve = [
-      heroRef.current,
-      subtitleRef.current,
-      buttonRef.current,
+    // Only observe elements that need scroll-triggered animations
+    const scrollElements = [
       linkRef.current,
       solutionRef.current,
       ...paragraphRefs.current.filter(Boolean)
     ].filter(Boolean);
 
-    elementsToObserve.forEach(element => {
-      if (element) {
-        observer.observe(element);
-      }
+    scrollElements.forEach(element => {
+      if (element) observer.observe(element);
     });
 
     return () => {
-      elementsToObserve.forEach(element => {
+      scrollElements.forEach(element => {
         if (element) observer.unobserve(element);
       });
     };
@@ -148,19 +131,19 @@ export default function LandingProblem() {
           <h1 
             ref={heroRef} 
             onClick={handleHeadlineClick}
-            className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6 opacity-0 cursor-pointer hover:opacity-80 transition-opacity"
+            className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6 cursor-pointer hover:opacity-80 transition-opacity animate-fade-in-hero-1"
           >
             Stop letting Instagram
             <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>
           </h1>
 
-          <p ref={subtitleRef} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8 opacity-0">
+          <p ref={subtitleRef} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8 animate-fade-in-hero-2">
             You started your business to help people, not to spend hours scrolling, 
             posting, and stressing about engagement. There's a better way.
           </p>
 
           {/* Button and Counter */}
-          <div ref={buttonRef} className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12 opacity-0">
+          <div ref={buttonRef} className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12 animate-fade-in-hero-3">
             <div className="mb-4 md:mb-0">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
@@ -199,31 +182,31 @@ export default function LandingProblem() {
 
           {/* Problem Description */}
           <div className="space-y-8 mb-12">
-            <p ref={el => paragraphRefs.current[0] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
+            <p ref={el => paragraphRefs.current[0] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground [animation-delay:0.2s] animate-fade-in">
               You started your business with passion and a vision to make a difference.
             </p>
-            <p ref={el => paragraphRefs.current[1] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
+            <p ref={el => paragraphRefs.current[1] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground [animation-delay:0.4s] animate-fade-in">
               But somehow, you find yourself trapped in an endless cycle of content creation.
             </p>
-            <p ref={el => paragraphRefs.current[2] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
+            <p ref={el => paragraphRefs.current[2] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground [animation-delay:0.6s] animate-fade-in">
               Hours spent crafting posts, responding to comments, analyzing metrics...
             </p>
-            <p ref={el => paragraphRefs.current[3] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
+            <p ref={el => paragraphRefs.current[3] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground [animation-delay:0.8s] animate-fade-in">
               And still feeling like you're shouting into the void.
             </p>
-            <p ref={el => paragraphRefs.current[4] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
+            <p ref={el => paragraphRefs.current[4] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground [animation-delay:1.0s] animate-fade-in">
               What if there was a better way to connect authentically with your audience?
             </p>
           </div>
 
-          <div ref={linkRef} className="mb-12 opacity-0">
+          <div ref={linkRef} className="mb-12 [animation-delay:1.2s] animate-fade-in">
             <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               See the story →
             </Link>
           </div>
 
           {/* Solution Preview */}
-          <div ref={solutionRef} className="mb-12 opacity-0">
+          <div ref={solutionRef} className="mb-12 [animation-delay:1.4s] animate-fade-in">
             <h3 className="text-xl font-semibold mb-4">What if you could:</h3>
             <div className="space-y-3">
               <p className="text-muted-foreground">✓ Have a personalized daily plan that actually works</p>
