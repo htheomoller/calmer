@@ -52,7 +52,7 @@ export function HeaderNav() {
 
       {/* Mobile Menu Overlay */}
       {isMobile && isMenuOpen && (
-        <div className="fixed inset-0 bg-white z-40 animate-fade-in">
+        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm z-40 animate-fade-in">
           <div className="pt-24 px-6">
             <nav className="space-y-6">
               {navItems.map((item) => (
