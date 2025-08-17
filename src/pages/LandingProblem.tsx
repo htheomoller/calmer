@@ -28,6 +28,10 @@ export default function LandingProblem() {
       const scrollY = window.scrollY;
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       const progress = Math.min(scrollY / maxScroll, 1);
+      
+      // Debug logging
+      console.log('Scroll Debug:', { scrollY, maxScroll, progress, scrollHeight: document.documentElement.scrollHeight, windowHeight: window.innerHeight });
+      
       setScrollProgress(progress);
     };
 
@@ -226,5 +230,12 @@ export default function LandingProblem() {
           </p>
         </div>
       </footer>
+
+      {/* Extra content to ensure scrollable page */}
+      <div className="h-screen flex items-center justify-center">
+        <p className="text-muted-foreground text-center">
+          Scroll to see the background color transition effect
+        </p>
+      </div>
     </div>;
 }
