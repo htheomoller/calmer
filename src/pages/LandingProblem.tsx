@@ -75,7 +75,7 @@ export default function LandingProblem() {
   };
   return <div className="min-h-screen bg-[#fafafa]">
       {/* Fixed Header */}
-      <header ref={headerRef} className="fixed top-0 left-0 right-0 bg-white border-b border-border z-50 py-6" style={{
+      <header ref={headerRef} className="fixed top-0 left-0 right-0 bg-white z-50 py-6" style={{
       paddingLeft: 'clamp(25px, 4vw, 64px)'
     }}>
         <Logo />
@@ -93,42 +93,45 @@ export default function LandingProblem() {
             <span className="text-foreground"> burn you out.</span>
           </h2>
 
-          {/* Counter */}
-          <p ref={counterRef} className="text-sm text-muted-foreground mb-4">Join the waitlist. 82 did yesterday.</p>
-
-          {/* Sub Button */}
-          <div ref={subButtonRef} className="mb-8 px-0 py-0">
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <button className="bg-black text-white rounded-full hover:bg-gray-800 transition-colors flex items-center space-x-3 font-extralight text-2xl px-[18px] py-[10px]">
-                  <span className="font-extralight text-2xl">+</span>
-                  <span className="font-extralight text-2xl">get calmer.</span>
-                </button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle className="text-xl font-semibold mb-2">Get early access to calmer.</DialogTitle>
-                  <p className="text-muted-foreground mb-6">
-                    Join 200+ small business owners taking back control
-                  </p>
-                </DialogHeader>
-                
-                <form onSubmit={handleWaitlistJoin} className="space-y-4">
-                  <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="w-full" required />
-                  <CalmButton type="submit" variant="default" disabled={isLoading} className="w-full">
-                    {isLoading ? "Joining..." : "Join Waitlist"}
-                  </CalmButton>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-          
           <p ref={subtitleRef} className="text-3xl text-foreground mb-8 leading-tight md:leading-snug tracking-tight" style={{
           fontFamily: 'Inter, sans-serif'
         }}>
             You started your business to help people, not to spend hours scrolling, 
             posting, and stressing about engagement. There's a better way.
           </p>
+
+          {/* Button and Counter */}
+          <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-8">
+            {/* Sub Button */}
+            <div ref={subButtonRef} className="mb-4 md:mb-0">
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <button className="bg-black text-white rounded-full hover:bg-gray-800 transition-colors flex items-center space-x-3 font-extralight text-2xl px-[18px] py-[10px]">
+                    <span className="font-extralight text-2xl">+</span>
+                    <span className="font-extralight text-2xl">get calmer.</span>
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-semibold mb-2">Get early access to calmer.</DialogTitle>
+                    <p className="text-muted-foreground mb-6">
+                      Join 200+ small business owners taking back control
+                    </p>
+                  </DialogHeader>
+                  
+                  <form onSubmit={handleWaitlistJoin} className="space-y-4">
+                    <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="w-full" required />
+                    <CalmButton type="submit" variant="default" disabled={isLoading} className="w-full">
+                      {isLoading ? "Joining..." : "Join Waitlist"}
+                    </CalmButton>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Counter */}
+            <p ref={counterRef} className="text-sm text-muted-foreground">Join the waitlist. 82 did yesterday.</p>
+          </div>
 
           {/* Problem Points */}
           <div ref={problemsRef} className="space-y-4 mb-6">
