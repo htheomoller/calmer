@@ -76,7 +76,7 @@ export default function LandingProblem() {
           {/* Problem Description */}
           <div className="space-y-8 mb-12">
             <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.7s">Calmer lets you send an instant, thoughtful DM whenever someone comments on your post — with your link, offer, or message. Set it up once and forget it. It’s that simple.</p>
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.9s">But somehow, you find yourself trapped in an endless cycle of content creation. Sell more, stress less, and stay off Instagram while your business keeps growing.</p>
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.9s">Sell more, stress less, and stay off Instagram while your business keeps growing.</p>
             
             <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="1.3s">
               And still feeling like you're shouting into the void.
