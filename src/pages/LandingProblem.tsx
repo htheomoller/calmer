@@ -5,13 +5,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HeaderNav } from "@/components/layout/header-nav";
-
 export default function LandingProblem() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleWaitlistJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
@@ -28,9 +28,7 @@ export default function LandingProblem() {
       setIsDialogOpen(false);
     }, 1000);
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-green-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+  return <div className="min-h-screen bg-gradient-to-b from-slate-50 via-green-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Fixed Header */}
       <HeaderNav />
 
@@ -42,10 +40,7 @@ export default function LandingProblem() {
             <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>
           </h1>
 
-          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8" data-animate="fade-in" data-delay="0.3s">
-            You started your business to help people, not to spend hours scrolling, 
-            posting, and stressing about engagement. There's a better way.
-          </p>
+          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8" data-animate="fade-in" data-delay="0.3s">You started your business to help people, not to spend hours scrolling, posting, and stressing about engagement. There's a better way.</p>
 
           {/* Button and Counter */}
           <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12" data-animate="fade-in" data-delay="0.5s">
@@ -66,14 +61,7 @@ export default function LandingProblem() {
                   </DialogHeader>
                   
                   <form onSubmit={handleWaitlistJoin} className="space-y-4">
-                    <Input 
-                      type="email" 
-                      placeholder="Enter your email" 
-                      value={email} 
-                      onChange={e => setEmail(e.target.value)} 
-                      className="w-full" 
-                      required 
-                    />
+                    <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="w-full" required />
                     <CalmButton type="submit" variant="default" disabled={isLoading} className="w-full">
                       {isLoading ? "Joining..." : "Join Waitlist"}
                     </CalmButton>
@@ -87,9 +75,9 @@ export default function LandingProblem() {
 
           {/* Problem Description */}
           <div className="space-y-8 mb-12">
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.7s">
-              You started your business with passion and a vision to make a difference.
-            </p>
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.7s">Calmer lets you send an instant, thoughtful DM whenever someone comments on your post — with your link, offer, or message. Setit up once and forget it.
+Sell more, stress less, and stay off Instagram while your business keeps growing.
+          </p>
             <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.9s">
               But somehow, you find yourself trapped in an endless cycle of content creation.
             </p>
@@ -131,6 +119,5 @@ export default function LandingProblem() {
         </div>
       </footer>
 
-    </div>
-  );
+    </div>;
 }
