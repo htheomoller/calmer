@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { MobileNav } from "@/components/layout/mobile-nav";
-import { Logo } from "@/components/ui/logo";
+import { HeaderNav } from "@/components/layout/header-nav";
 
 interface BlogPost {
   id: string;
@@ -46,13 +45,10 @@ export default function ResourceCategory() {
 
   return (
     <div className="min-h-screen bg-[#fafafa]">
-      {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white border-b border-border z-50 py-6" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
-        <Logo />
-      </header>
+      <HeaderNav />
 
-      <div className="pt-20" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
-        <div className="max-w-4xl pr-6 py-12">
+      <main className="pt-64 px-[clamp(25px,4vw,64px)]">
+        <div className="max-w-4xl pr-6">
           <header className="mb-16">
             <Link to="/resources" className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block">
               ← Back to Resources
@@ -115,8 +111,7 @@ export default function ResourceCategory() {
           </div>
         )}
         </div>
-      </div>
-      <MobileNav />
+      </main>
     </div>
   );
 }

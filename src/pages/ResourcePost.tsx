@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { MobileNav } from "@/components/layout/mobile-nav";
-import { Logo } from "@/components/ui/logo";
+import { HeaderNav } from "@/components/layout/header-nav";
 
 interface BlogPost {
   id: string;
@@ -55,17 +54,19 @@ export default function ResourcePost() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#fafafa]">
-        <div className="max-w-2xl mx-auto px-6 py-12">
-          <div className="h-4 bg-muted rounded mb-8 w-24"></div>
-          <div className="h-12 bg-muted rounded mb-6"></div>
-          <div className="h-6 bg-muted rounded mb-8 w-1/2"></div>
-          <div className="space-y-4">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="h-4 bg-muted rounded"></div>
-            ))}
+        <HeaderNav />
+        <main className="pt-64 px-[clamp(25px,4vw,64px)]">
+          <div className="max-w-2xl pr-6">
+            <div className="h-4 bg-muted rounded mb-8 w-24"></div>
+            <div className="h-12 bg-muted rounded mb-6"></div>
+            <div className="h-6 bg-muted rounded mb-8 w-1/2"></div>
+            <div className="space-y-4">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="h-4 bg-muted rounded"></div>
+              ))}
+            </div>
           </div>
-        </div>
-        <MobileNav />
+        </main>
       </div>
     );
   }
@@ -73,32 +74,31 @@ export default function ResourcePost() {
   if (notFound || !post) {
     return (
       <div className="min-h-screen bg-[#fafafa]">
-        <div className="max-w-2xl mx-auto px-6 py-12">
-          <Link to="/resources" className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-block">
-            ← Back to Resources
-          </Link>
-          <div className="text-center py-16">
-            <h1 className="text-3xl font-serif text-foreground mb-4">Post not found</h1>
-            <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist.</p>
-            <Link to="/resources" className="text-primary hover:text-primary/80">
-              Browse all resources
+        <HeaderNav />
+        <main className="pt-64 px-[clamp(25px,4vw,64px)]">
+          <div className="max-w-2xl pr-6">
+            <Link to="/resources" className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-block">
+              ← Back to Resources
             </Link>
+            <div className="text-center py-16">
+              <h1 className="text-3xl font-serif text-foreground mb-4">Post not found</h1>
+              <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist.</p>
+              <Link to="/resources" className="text-primary hover:text-primary/80">
+                Browse all resources
+              </Link>
+            </div>
           </div>
-        </div>
-        <MobileNav />
+        </main>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-[#fafafa]">
-      {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white border-b border-border z-50 py-6" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
-        <Logo />
-      </header>
+      <HeaderNav />
 
-      <div className="pt-20" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
-        <article className="max-w-2xl pr-6 py-12">
+      <main className="pt-64 px-[clamp(25px,4vw,64px)]">
+        <article className="max-w-2xl pr-6">
           <Link to="/resources" className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-block">
             ← Back to Resources
           </Link>
@@ -156,8 +156,7 @@ export default function ResourcePost() {
           </footer>
         )}
         </article>
-      </div>
-      <MobileNav />
+      </main>
     </div>
   );
 }
