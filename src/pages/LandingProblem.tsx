@@ -90,11 +90,11 @@ export default function LandingProblem() {
 
           {/* Solution Preview */}
           <div className="mb-12" data-animate="fade-in" data-delay="1.9s">
-            <h3 className="text-xl font-semibold mb-4">What if you could:</h3>
+            <h3 className="text-xl font-semibold mb-4">How it works</h3>
             <div className="space-y-3">
-              <p className="text-muted-foreground">✓ Have a personalized daily plan that actually works</p>
-              <p className="text-muted-foreground">✓ Use social media intentionally, not compulsively</p>
-              <p className="text-muted-foreground">✓ Focus on your business while staying visible online</p>
+              <p className="text-muted-foreground">✓ Post as usual – Share on Instagram and add a simple instruction in your caption (e.g. “Comment yes for the link”).</p>
+              <p className="text-muted-foreground">✓ Calmer handles it – We read the caption, catch the comments, and know exactly what to send.</p>
+              <p className="text-muted-foreground">✓ Instant DM – Your follower gets a thoughtful message right away, without you lifting a finger.</p>
             </div>
           </div>
         </div>
