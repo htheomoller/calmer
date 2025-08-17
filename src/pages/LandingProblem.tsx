@@ -5,14 +5,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HeaderNav } from "@/components/layout/header-nav";
+
 export default function LandingProblem() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
 
   // Refs for animated elements
   const heroRef = useRef<HTMLHeadingElement>(null);
@@ -30,43 +29,52 @@ export default function LandingProblem() {
       const progress = Math.min(scrollY / maxScroll, 1);
       setScrollProgress(progress);
     };
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Intersection Observer for scroll-triggered animations
+  // Intersection Observer for simple fade-in animations
   useEffect(() => {
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          // Apply specific animation class based on element
-          if (entry.target === heroRef.current) {
-            entry.target.classList.add('animate-fade-in-hero-1');
-          } else if (entry.target === subtitleRef.current) {
-            entry.target.classList.add('animate-fade-in-hero-2');
-          } else if (entry.target === buttonRef.current) {
-            entry.target.classList.add('animate-fade-in-hero-3');
-          } else {
-            entry.target.classList.add('animate-fade-in');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Apply specific animation class based on element
+            if (entry.target === heroRef.current) {
+              entry.target.classList.add('animate-fade-in-hero-1');
+            } else if (entry.target === subtitleRef.current) {
+              entry.target.classList.add('animate-fade-in-hero-2');
+            } else if (entry.target === buttonRef.current) {
+              entry.target.classList.add('animate-fade-in-hero-3');
+            } else {
+              entry.target.classList.add('animate-fade-in');
+            }
           }
-        } else {
-          // Remove all animation classes when out of view
-          entry.target.classList.remove('animate-fade-in', 'animate-fade-in-hero-1', 'animate-fade-in-hero-2', 'animate-fade-in-hero-3');
-        }
-      });
-    }, {
-      threshold: 0.3,
-      rootMargin: '0px 0px -100px 0px'
-    });
+        });
+      },
+      { 
+        threshold: 0.3,
+        rootMargin: '0px 0px -100px 0px'
+      }
+    );
 
     // Observe all animated elements
-    const elementsToObserve = [heroRef.current, subtitleRef.current, buttonRef.current, linkRef.current, solutionRef.current, ...paragraphRefs.current.filter(Boolean)].filter(Boolean);
+    const elementsToObserve = [
+      heroRef.current,
+      subtitleRef.current,
+      buttonRef.current,
+      linkRef.current,
+      solutionRef.current,
+      ...paragraphRefs.current.filter(Boolean)
+    ].filter(Boolean);
+
     elementsToObserve.forEach(element => {
       if (element) {
-        element.classList.remove('animate-fade-in', 'animate-fade-in-hero-1', 'animate-fade-in-hero-2', 'animate-fade-in-hero-3');
         observer.observe(element);
       }
     });
+
     return () => {
       elementsToObserve.forEach(element => {
         if (element) observer.unobserve(element);
@@ -76,20 +84,30 @@ export default function LandingProblem() {
 
   // Color interpolation function
   const interpolateColor = (progress: number) => {
-    const startColor = [315, 25, 93]; // Soft Instagram purple/pink
+    const startColor = [0, 0, 98]; // Light gray
     const midColor = [120, 25, 95]; // Light sage green
-    const endColor = [0, 0, 98]; // Light gray
+    const endColor = [315, 25, 93]; // Soft Instagram purple/pink
 
     let currentColor;
     if (progress <= 0.5) {
       const t = progress * 2;
-      currentColor = [startColor[0] + (midColor[0] - startColor[0]) * t, startColor[1] + (midColor[1] - startColor[1]) * t, startColor[2] + (midColor[2] - startColor[2]) * t];
+      currentColor = [
+        startColor[0] + (midColor[0] - startColor[0]) * t,
+        startColor[1] + (midColor[1] - startColor[1]) * t,
+        startColor[2] + (midColor[2] - startColor[2]) * t
+      ];
     } else {
       const t = (progress - 0.5) * 2;
-      currentColor = [midColor[0] + (endColor[0] - midColor[0]) * t, midColor[1] + (endColor[1] - midColor[1]) * t, midColor[2] + (endColor[2] - midColor[2]) * t];
+      currentColor = [
+        midColor[0] + (endColor[0] - midColor[0]) * t,
+        midColor[1] + (endColor[1] - midColor[1]) * t,
+        midColor[2] + (endColor[2] - midColor[2]) * t
+      ];
     }
+
     return `hsl(${currentColor[0]}, ${currentColor[1]}%, ${currentColor[2]}%)`;
   };
+
   const handleWaitlistJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
@@ -106,18 +124,34 @@ export default function LandingProblem() {
       setIsDialogOpen(false);
     }, 1000);
   };
-  return <div className="min-h-screen transition-colors duration-300 ease-out" style={{
-    backgroundColor: interpolateColor(scrollProgress)
-  }}>
+
+  const handleHeadlineClick = () => {
+    // Scroll to a position that keeps the headline visible but reveals the subtitle
+    const scrollAmount = window.innerHeight * 0.2; // Scroll 20% of viewport height
+    window.scrollTo({
+      top: scrollAmount,
+      behavior: 'smooth'
+    });
+  };
+
+  return (
+    <div 
+      className="min-h-screen transition-colors duration-300 ease-out"
+      style={{ backgroundColor: interpolateColor(scrollProgress) }}
+    >
       {/* Fixed Header */}
       <HeaderNav />
 
       {/* Hero Section */}
-      <main className="pt-32 px-[clamp(25px,4vw,64px)]">
+      <main className="pt-64 px-[clamp(25px,4vw,64px)]">
         <div className="max-w-2xl">
-          <h1 ref={heroRef} className="text-6xl md:text-8xl font-semibold leading-none tracking-tight mb-6 opacity-0">
+          <h1 
+            ref={heroRef} 
+            onClick={handleHeadlineClick}
+            className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6 opacity-0 cursor-pointer hover:opacity-80 transition-opacity"
+          >
             Stop letting Instagram
-            <span className="text-foreground"> burn you out.</span>
+            <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>
           </h1>
 
           <p ref={subtitleRef} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8 opacity-0">
@@ -144,7 +178,14 @@ export default function LandingProblem() {
                   </DialogHeader>
                   
                   <form onSubmit={handleWaitlistJoin} className="space-y-4">
-                    <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="w-full" required />
+                    <Input 
+                      type="email" 
+                      placeholder="Enter your email" 
+                      value={email} 
+                      onChange={e => setEmail(e.target.value)} 
+                      className="w-full" 
+                      required 
+                    />
                     <CalmButton type="submit" variant="default" disabled={isLoading} className="w-full">
                       {isLoading ? "Joining..." : "Join Waitlist"}
                     </CalmButton>
@@ -167,9 +208,12 @@ export default function LandingProblem() {
             <p ref={el => paragraphRefs.current[2] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
               Hours spent crafting posts, responding to comments, analyzing metrics...
             </p>
-            <p ref={el => paragraphRefs.current[3] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">.</p>
-            <p ref={el => paragraphRefs.current[4] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">Sell more, stress less, and stay off Instagram while your business keeps growing.
-          </p>
+            <p ref={el => paragraphRefs.current[3] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
+              And still feeling like you're shouting into the void.
+            </p>
+            <p ref={el => paragraphRefs.current[4] = el} className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground opacity-0">
+              What if there was a better way to connect authentically with your audience?
+            </p>
           </div>
 
           <div ref={linkRef} className="mb-12 opacity-0">
@@ -199,5 +243,6 @@ export default function LandingProblem() {
         </div>
       </footer>
 
-    </div>;
+    </div>
+  );
 }
