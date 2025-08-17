@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HeaderNav } from "@/components/layout/header-nav";
-import { AnimatedSubtitle } from "@/components/ui/animated-subtitle";
+
 export default function LandingProblem() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -23,16 +23,13 @@ export default function LandingProblem() {
   const storyLinkRef = useRef<HTMLDivElement>(null);
   const solutionRef = useRef<HTMLDivElement>(null);
   const subButtonRef = useRef<HTMLDivElement>(null);
+
   // Scroll effect for background color
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       const progress = Math.min(scrollY / maxScroll, 1);
-      
-      // Debug logging
-      console.log('Scroll Debug:', { scrollY, maxScroll, progress, scrollHeight: document.documentElement.scrollHeight, windowHeight: window.innerHeight });
-      
       setScrollProgress(progress);
     };
 
@@ -70,9 +67,7 @@ export default function LandingProblem() {
       ];
     }
 
-    const colorString = `hsl(${currentColor[0]}, ${currentColor[1]}%, ${currentColor[2]}%)`;
-    console.log('Color Debug:', { progress, currentColor, colorString });
-    return colorString;
+    return `hsl(${currentColor[0]}, ${currentColor[1]}%, ${currentColor[2]}%)`;
   };
 
   useEffect(() => {
@@ -85,6 +80,7 @@ export default function LandingProblem() {
         el.style.transitionDelay = `${index * 200}ms`;
       }
     });
+
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -105,11 +101,13 @@ export default function LandingProblem() {
         }
       });
     }, 100);
+
     return () => {
       clearTimeout(timeoutId);
       observer.disconnect();
     };
   }, []);
+
   const handleWaitlistJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
@@ -126,11 +124,13 @@ export default function LandingProblem() {
       setIsDialogOpen(false);
     }, 1000);
   };
-  return <div 
-    ref={containerRef}
-    className="min-h-screen transition-colors duration-300 ease-out"
-    style={{ backgroundColor: interpolateColor(scrollProgress) }}
-  >
+
+  return (
+    <div 
+      ref={containerRef}
+      className="min-h-screen transition-colors duration-300 ease-out"
+      style={{ backgroundColor: interpolateColor(scrollProgress) }}
+    >
       {/* Fixed Header */}
       <div ref={headerRef}>
         <HeaderNav />
@@ -138,19 +138,19 @@ export default function LandingProblem() {
 
       {/* Hero Section */}
       <main style={{
-      paddingLeft: 'clamp(25px, 4vw, 64px)'
-    }} className="pt-32 pr-[clamp(25px,4vw,64px)]">
+        paddingLeft: 'clamp(25px, 4vw, 64px)'
+      }} className="pt-32 pr-[clamp(25px,4vw,64px)]">
         <div className="max-w-2xl">
           <h2 ref={heroRef} style={{
-          fontFamily: 'Inter, sans-serif'
-        }} className="leading-none md:leading-none tracking-tight mb-6 font-semibold md:text-8xl text-6xl">
+            fontFamily: 'Inter, sans-serif'
+          }} className="leading-none md:leading-none tracking-tight mb-6 font-semibold md:text-8xl text-6xl">
             Stop letting social media
             <span className="text-foreground"> burn you out.</span>
           </h2>
 
           <p ref={subtitleRef} style={{
-          fontFamily: 'Inter, sans-serif'
-        }} className="text-foreground mb-8 leading-tight md:leading-snug tracking-tight text-2xl">
+            fontFamily: 'Inter, sans-serif'
+          }} className="text-foreground mb-8 leading-tight md:leading-snug tracking-tight text-2xl">
             You started your business to help people, not to spend hours scrolling, 
             posting, and stressing about engagement. There's a better way.
           </p>
@@ -188,25 +188,23 @@ export default function LandingProblem() {
             <p ref={counterRef} className="text-sm text-muted-foreground">Join the waitlist. 82 did yesterday.</p>
           </div>
 
-          {/* Animated Subtitles */}
-          <div className="space-y-4 mb-6">
-            <AnimatedSubtitle delay={0} index={0}>
-              You started your business to help people, not to spend hours scrolling, 
-              posting, and stressing about engagement. There's a better way.
-            </AnimatedSubtitle>
-            
-            <AnimatedSubtitle delay={200} index={1}>
-              Every moment you spend wrestling with social media is a moment stolen from what you love: 
-              helping your clients and growing your business.
-            </AnimatedSubtitle>
-            
-            <AnimatedSubtitle delay={400} index={2}>
-              You deserve peace of mind, not digital overwhelm.
-            </AnimatedSubtitle>
-            
-            <AnimatedSubtitle delay={600} index={3}>
-              What if your social media could work for you instead of against you?
-            </AnimatedSubtitle>
+          {/* Simple Animated Subtitles */}
+          <div ref={problemsRef} className="space-y-8 max-w-4xl mx-auto text-center mb-12">
+            <p className="leading-tight md:leading-snug tracking-tight text-2xl text-white opacity-0 translate-y-4 animate-fade-in" style={{ animationDelay: '0ms', fontFamily: 'Inter, sans-serif' }}>
+              You started your business with passion and a vision to make a difference.
+            </p>
+            <p className="leading-tight md:leading-snug tracking-tight text-2xl text-white opacity-0 translate-y-4 animate-fade-in" style={{ animationDelay: '200ms', fontFamily: 'Inter, sans-serif' }}>
+              But somehow, you find yourself trapped in an endless cycle of content creation.
+            </p>
+            <p className="leading-tight md:leading-snug tracking-tight text-2xl text-white opacity-0 translate-y-4 animate-fade-in" style={{ animationDelay: '400ms', fontFamily: 'Inter, sans-serif' }}>
+              Hours spent crafting posts, responding to comments, analyzing metrics...
+            </p>
+            <p className="leading-tight md:leading-snug tracking-tight text-2xl text-white opacity-0 translate-y-4 animate-fade-in" style={{ animationDelay: '600ms', fontFamily: 'Inter, sans-serif' }}>
+              And still feeling like you're shouting into the void.
+            </p>
+            <p className="leading-tight md:leading-snug tracking-tight text-2xl text-white opacity-0 translate-y-4 animate-fade-in" style={{ animationDelay: '800ms', fontFamily: 'Inter, sans-serif' }}>
+              What if there was a better way to connect authentically with your audience?
+            </p>
           </div>
 
           <div ref={storyLinkRef} className="mb-12">
