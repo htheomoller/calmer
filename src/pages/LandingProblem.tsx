@@ -88,7 +88,7 @@ export default function LandingProblem() {
 
   // Color interpolation function
   const interpolateColor = (progress: number) => {
-    const startColor = [210, 35, 95]; // Light blue
+    const startColor = [315, 25, 93]; // Soft Instagram purple/pink
     const midColor = [120, 25, 95]; // Light sage green
     const endColor = [0, 0, 98]; // Light gray
 
