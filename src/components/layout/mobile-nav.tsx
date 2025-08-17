@@ -7,6 +7,24 @@ export function MobileNav() {
   
   const navItems = [
     {
+      href: "/chat",
+      icon: MessageCircle,
+      label: "Chat",
+      isActive: location.pathname === "/chat" || location.pathname === "/"
+    },
+    {
+      href: "/plan",
+      icon: CheckSquare,
+      label: "My Plan",
+      isActive: location.pathname === "/plan"
+    },
+    {
+      href: "/progress",
+      icon: TrendingUp,
+      label: "Progress",
+      isActive: location.pathname === "/progress"
+    },
+    {
       href: "/resources",
       icon: BookOpen,
       label: "Resources",
