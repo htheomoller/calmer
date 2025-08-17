@@ -39,13 +39,13 @@ export default function Resources() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa] pt-2.5">
-      {/* Header */}
-      <header className="py-6" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
+    <div className="min-h-screen bg-[#fafafa]">
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 bg-white border-b border-border z-50 py-6" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
         <Logo />
       </header>
 
-      <div style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
+      <div className="pt-20" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
         <div className="max-w-4xl pr-6">
           <header className="mb-16">
           <h1 className="text-5xl font-bold font-serif text-foreground mb-4">Resources</h1>

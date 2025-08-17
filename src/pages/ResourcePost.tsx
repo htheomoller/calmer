@@ -91,13 +91,13 @@ export default function ResourcePost() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] pt-2.5">
-      {/* Header */}
-      <header className="py-6" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
+    <div className="min-h-screen bg-[#fafafa]">
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 bg-white border-b border-border z-50 py-6" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
         <Logo />
       </header>
 
-      <div style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
+      <div className="pt-20" style={{ paddingLeft: 'clamp(25px, 4vw, 64px)' }}>
         <article className="max-w-2xl pr-6 py-12">
           <Link to="/resources" className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-block">
             ← Back to Resources

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Logo } from "@/components/ui/logo";
 export default function LandingProblem() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -72,16 +73,16 @@ export default function LandingProblem() {
       setIsDialogOpen(false);
     }, 1000);
   };
-  return <div className="min-h-screen bg-background pt-2.5">
-      {/* Header */}
-      <header ref={headerRef} className="py-6" style={{
+  return <div className="min-h-screen bg-[#fafafa]">
+      {/* Fixed Header */}
+      <header ref={headerRef} className="fixed top-0 left-0 right-0 bg-white border-b border-border z-50 py-6" style={{
       paddingLeft: 'clamp(25px, 4vw, 64px)'
     }}>
-        <h1 className="text-2xl font-bold">calmer.</h1>
+        <Logo />
       </header>
 
       {/* Hero Section */}
-      <main className="pt-16" style={{
+      <main className="pt-32" style={{
       paddingLeft: 'clamp(25px, 4vw, 64px)'
     }}>
         <div className="max-w-2xl">
