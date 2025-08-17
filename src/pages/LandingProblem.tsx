@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Logo } from "@/components/ui/logo";
+import { HeaderNav } from "@/components/layout/header-nav";
+import { AnimatedSubtitle } from "@/components/ui/animated-subtitle";
 export default function LandingProblem() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -14,7 +15,7 @@ export default function LandingProblem() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Animation refs
-  const headerRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLHeadingElement>(null);
   const counterRef = useRef<HTMLParagraphElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
@@ -131,11 +132,9 @@ export default function LandingProblem() {
     style={{ backgroundColor: interpolateColor(scrollProgress) }}
   >
       {/* Fixed Header */}
-      <header ref={headerRef} className="fixed top-0 left-0 right-0 bg-white z-50 py-6" style={{
-      paddingLeft: 'clamp(25px, 4vw, 64px)'
-    }}>
-        <Logo />
-      </header>
+      <div ref={headerRef}>
+        <HeaderNav />
+      </div>
 
       {/* Hero Section */}
       <main style={{
@@ -189,20 +188,28 @@ export default function LandingProblem() {
             <p ref={counterRef} className="text-sm text-muted-foreground">Join the waitlist. 82 did yesterday.</p>
           </div>
 
-          {/* Problem Points */}
-          <div ref={problemsRef} className="space-y-4 mb-6">
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 rounded-full bg-foreground mt-3 flex-shrink-0"></div>
-              <p className="text-lg">Spending 2+ hours daily on social media without clear results?</p>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 rounded-full bg-foreground mt-3 flex-shrink-0"></div>
-              <p className="text-lg">Feeling overwhelmed by constant posting pressure?</p>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 rounded-full bg-foreground mt-3 flex-shrink-0"></div>
-              <p className="text-lg">Getting distracted from actual business work?</p>
-            </div>
+          {/* Animated Subtitles */}
+          <div className="space-y-8 mb-6">
+            <AnimatedSubtitle delay={0}>
+              You started your business to help people, not to spend hours scrolling, 
+              posting, and stressing about engagement. There's a better way.
+            </AnimatedSubtitle>
+            <AnimatedSubtitle delay={200}>
+              You started your business to help people, not to spend hours scrolling, 
+              posting, and stressing about engagement. There's a better way.
+            </AnimatedSubtitle>
+            <AnimatedSubtitle delay={400}>
+              You started your business to help people, not to spend hours scrolling, 
+              posting, and stressing about engagement. There's a better way.
+            </AnimatedSubtitle>
+            <AnimatedSubtitle delay={600}>
+              You started your business to help people, not to spend hours scrolling, 
+              posting, and stressing about engagement. There's a better way.
+            </AnimatedSubtitle>
+            <AnimatedSubtitle delay={800}>
+              You started your business to help people, not to spend hours scrolling, 
+              posting, and stressing about engagement. There's a better way.
+            </AnimatedSubtitle>
           </div>
 
           <div ref={storyLinkRef} className="mb-12">
