@@ -93,9 +93,9 @@ export default function LandingProblem() {
             <span className="text-foreground"> burn you out.</span>
           </h2>
 
-          <p ref={subtitleRef} className="text-3xl text-foreground mb-8 leading-tight md:leading-snug tracking-tight" style={{
+          <p ref={subtitleRef} style={{
           fontFamily: 'Inter, sans-serif'
-        }}>
+        }} className="text-foreground mb-8 leading-tight md:leading-snug tracking-tight text-2xl">
             You started your business to help people, not to spend hours scrolling, 
             posting, and stressing about engagement. There's a better way.
           </p>
