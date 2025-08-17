@@ -37,18 +37,18 @@ export default function LandingProblem() {
       {/* Hero Section */}
       <main className="pt-64 px-[clamp(25px,4vw,64px)]">
         <div className="max-w-2xl">
-          <h1 className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6 animate-fade-in [animation-delay:0.1s] [animation-fill-mode:both]">
+          <h1 className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6" data-animate="fade-in" data-delay="0.1s">
             Stop letting Instagram
             <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>
           </h1>
 
-          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8 animate-fade-in [animation-delay:0.3s] [animation-fill-mode:both]">
+          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8" data-animate="fade-in" data-delay="0.3s">
             You started your business to help people, not to spend hours scrolling, 
             posting, and stressing about engagement. There's a better way.
           </p>
 
           {/* Button and Counter */}
-          <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12 animate-fade-in [animation-delay:0.5s] [animation-fill-mode:both]">
+          <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12" data-animate="fade-in" data-delay="0.5s">
             <div className="mb-4 md:mb-0">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
@@ -87,31 +87,31 @@ export default function LandingProblem() {
 
           {/* Problem Description */}
           <div className="space-y-8 mb-12">
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in [animation-delay:0.7s] [animation-fill-mode:both]">
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.7s">
               You started your business with passion and a vision to make a difference.
             </p>
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in [animation-delay:0.9s] [animation-fill-mode:both]">
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="0.9s">
               But somehow, you find yourself trapped in an endless cycle of content creation.
             </p>
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in [animation-delay:1.1s] [animation-fill-mode:both]">
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="1.1s">
               Hours spent crafting posts, responding to comments, analyzing metrics...
             </p>
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in [animation-delay:1.3s] [animation-fill-mode:both]">
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="1.3s">
               And still feeling like you're shouting into the void.
             </p>
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground animate-fade-in [animation-delay:1.5s] [animation-fill-mode:both]">
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground" data-animate="fade-in" data-delay="1.5s">
               What if there was a better way to connect authentically with your audience?
             </p>
           </div>
 
-          <div className="mb-12 animate-fade-in [animation-delay:1.7s] [animation-fill-mode:both]">
+          <div className="mb-12" data-animate="fade-in" data-delay="1.7s">
             <Link to="/landing-story" className="text-sm text-muted-foreground hover:text-foreground">
               See the story →
             </Link>
           </div>
 
           {/* Solution Preview */}
-          <div className="mb-12 animate-fade-in [animation-delay:1.9s] [animation-fill-mode:both]">
+          <div className="mb-12" data-animate="fade-in" data-delay="1.9s">
             <h3 className="text-xl font-semibold mb-4">What if you could:</h3>
             <div className="space-y-3">
               <p className="text-muted-foreground">✓ Have a personalized daily plan that actually works</p>
