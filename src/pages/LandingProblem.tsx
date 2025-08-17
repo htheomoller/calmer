@@ -40,6 +40,8 @@ export default function LandingProblem() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
+            // Remove fade-out classes first
+            entry.target.classList.remove('animate-fade-out');
             // Apply specific animation class based on element
             if (entry.target === heroRef.current) {
               entry.target.classList.add('animate-fade-in-hero-1');
@@ -51,8 +53,9 @@ export default function LandingProblem() {
               entry.target.classList.add('animate-fade-in');
             }
           } else {
-            // Remove all animation classes when out of view
+            // Remove fade-in classes and add fade-out
             entry.target.classList.remove('animate-fade-in', 'animate-fade-in-hero-1', 'animate-fade-in-hero-2', 'animate-fade-in-hero-3');
+            entry.target.classList.add('animate-fade-out');
           }
         });
       },
@@ -129,6 +132,15 @@ export default function LandingProblem() {
     }, 1000);
   };
 
+  const handleHeadlineClick = () => {
+    if (subtitleRef.current) {
+      subtitleRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
   return (
     <div 
       className="min-h-screen transition-colors duration-300 ease-out"
@@ -140,7 +152,11 @@ export default function LandingProblem() {
       {/* Hero Section */}
       <main className="pt-64 px-[clamp(25px,4vw,64px)]">
         <div className="max-w-2xl">
-          <h1 ref={heroRef} className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6 opacity-0">
+          <h1 
+            ref={heroRef} 
+            onClick={handleHeadlineClick}
+            className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6 opacity-0 cursor-pointer hover:opacity-80 transition-opacity"
+          >
             Stop letting Instagram
             <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>
           </h1>
