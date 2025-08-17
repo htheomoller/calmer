@@ -13,7 +13,7 @@ export function HeaderNav() {
   const isMobile = useIsMobile();
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white z-50 py-6" style={{
+    <header className="fixed top-0 left-0 right-0 bg-white z-[60] py-6" style={{
       paddingLeft: 'clamp(25px, 4vw, 64px)',
       paddingRight: 'clamp(25px, 4vw, 64px)'
     }}>
@@ -53,7 +53,7 @@ export function HeaderNav() {
 
       {/* Mobile Menu */}
       {isMobile && isMenuOpen && (
-        <nav className="mt-4 pb-4 border-t border-border">
+        <nav className="mt-4 pb-4 border-t border-border relative z-[70]">
           <div className="pt-4 space-y-3">
             {navItems.map((item) => (
               <Link

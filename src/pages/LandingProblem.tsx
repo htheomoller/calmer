@@ -189,7 +189,7 @@ export default function LandingProblem() {
           </div>
 
           {/* Animated Subtitles */}
-          <div className="space-y-8 mb-6">
+          <div className="space-y-4 mb-6">
             <AnimatedSubtitle delay={0}>
               You started your business to help people, not to spend hours scrolling, 
               posting, and stressing about engagement. There's a better way.

@@ -47,8 +47,8 @@ export function AnimatedSubtitle({ children, delay = 0 }: AnimatedSubtitleProps)
         });
       },
       {
-        threshold: 0.5,
-        rootMargin: "-45% 0px -45% 0px" // Only trigger when element is in center 10% of viewport
+        threshold: [0.5, 0.6, 0.7],
+        rootMargin: "-40% 0px -40% 0px" // Smaller center detection zone for individual triggering
       }
     );
 
