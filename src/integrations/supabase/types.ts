@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          comment_limit: number | null
+          created_at: string | null
+          default_link: string | null
+          dm_template: string | null
+          id: string
+          reply_to_comments: boolean | null
+        }
+        Insert: {
+          comment_limit?: number | null
+          created_at?: string | null
+          default_link?: string | null
+          dm_template?: string | null
+          id?: string
+          reply_to_comments?: boolean | null
+        }
+        Update: {
+          comment_limit?: number | null
+          created_at?: string | null
+          default_link?: string | null
+          dm_template?: string | null
+          id?: string
+          reply_to_comments?: boolean | null
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           category: string | null
@@ -52,6 +79,80 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      events: {
+        Row: {
+          comment_text: string | null
+          created_at: string | null
+          id: string
+          ig_post_id: string | null
+          ig_user: string | null
+          matched: boolean | null
+          sent_dm: boolean | null
+          type: string | null
+        }
+        Insert: {
+          comment_text?: string | null
+          created_at?: string | null
+          id?: string
+          ig_post_id?: string | null
+          ig_user?: string | null
+          matched?: boolean | null
+          sent_dm?: boolean | null
+          type?: string | null
+        }
+        Update: {
+          comment_text?: string | null
+          created_at?: string | null
+          id?: string
+          ig_post_id?: string | null
+          ig_user?: string | null
+          matched?: boolean | null
+          sent_dm?: boolean | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      posts: {
+        Row: {
+          account_id: string | null
+          automation_enabled: boolean | null
+          caption: string | null
+          code: string | null
+          created_at: string | null
+          id: string
+          ig_post_id: string | null
+          link: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          automation_enabled?: boolean | null
+          caption?: string | null
+          code?: string | null
+          created_at?: string | null
+          id?: string
+          ig_post_id?: string | null
+          link?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          automation_enabled?: boolean | null
+          caption?: string | null
+          code?: string | null
+          created_at?: string | null
+          id?: string
+          ig_post_id?: string | null
+          link?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reply_logs: {
         Row: {
