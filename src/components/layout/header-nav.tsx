@@ -15,7 +15,7 @@ export function HeaderNav() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm z-50 py-3 px-[clamp(25px,4vw,64px)]">
+      <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm z-50 py-6 px-[clamp(25px,4vw,64px)]">
         <div className="flex items-center justify-between">
           <Logo />
           
@@ -37,7 +37,7 @@ export function HeaderNav() {
                 
                 {/* Resources Dropdown */}
                 {isResourcesOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-border py-2 z-50">
+                  <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-border py-2 z-50">
                     <Link
                       to="/resources"
                       className="block px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
