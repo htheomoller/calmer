@@ -130,3 +130,20 @@
 @media (prefers-reduced-motion: reduce){
   [data-anim]{transition:none !important; opacity:1 !important; transform:none !important;}
 }
+
+/* Live Preview click-through fixes */
+html.live-preview .editor-overlay,
+html.live-preview .lp-overlay,
+html.live-preview [data-editor-overlay],
+html.live-preview [data-lp-overlay],
+html.live-preview [data-scroll-locked="1"] {
+  pointer-events: none !important;
+}
+
+/* Re-enable clicks within actual app modals */
+html.live-preview .app-modal,
+html.live-preview [role="dialog"],
+html.live-preview [data-dialog],
+html.live-preview .modal-content {
+  pointer-events: auto !important;
+}
