@@ -1,16 +1,17 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { CalmButton } from "@/components/ui/calm-button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HeaderNav } from "@/components/layout/header-nav";
+import { useAuth } from "@/contexts/AuthContext";
 const Index = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const { user } = useAuth();
   const handleWaitlistJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
@@ -43,32 +44,43 @@ const Index = () => {
 
           <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12">
             <div data-anim data-anim-delay="240" data-anim-scale="0.98" className="mb-4 md:mb-0">
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
+              {user ? (
+                <Link to="/posts">
                   <button className="bg-black text-white rounded-full hover:bg-gray-800 transition-colors duration-200 flex items-center space-x-3 font-extralight text-2xl px-[18px] py-[10px]">
-                    <span className="font-extralight text-2xl">+</span>
-                    <span className="font-extralight text-2xl">get calmer.</span>
+                    <span className="font-extralight text-2xl">→</span>
+                    <span className="font-extralight text-2xl">go to dashboard</span>
                   </button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle className="text-xl font-semibold mb-2">Get early access to calmer.</DialogTitle>
-                    <p className="text-muted-foreground mb-6">
-                      Join 200+ small business owners taking back control
-                    </p>
-                  </DialogHeader>
-                  
-                  <form onSubmit={handleWaitlistJoin} className="space-y-4">
-                    <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="w-full" required />
-                    <CalmButton type="submit" variant="default" disabled={isLoading} className="w-full">
-                      {isLoading ? "Joining..." : "Join Waitlist"}
-                    </CalmButton>
-                  </form>
-                </DialogContent>
-              </Dialog>
+                </Link>
+              ) : (
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <button className="bg-black text-white rounded-full hover:bg-gray-800 transition-colors duration-200 flex items-center space-x-3 font-extralight text-2xl px-[18px] py-[10px]">
+                      <span className="font-extralight text-2xl">+</span>
+                      <span className="font-extralight text-2xl">get calmer.</span>
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl font-semibold mb-2">Get early access to calmer.</DialogTitle>
+                      <p className="text-muted-foreground mb-6">
+                        Join 200+ small business owners taking back control
+                      </p>
+                    </DialogHeader>
+                    
+                    <form onSubmit={handleWaitlistJoin} className="space-y-4">
+                      <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="w-full" required />
+                      <CalmButton type="submit" variant="default" disabled={isLoading} className="w-full">
+                        {isLoading ? "Joining..." : "Join Waitlist"}
+                      </CalmButton>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
 
-            <p data-anim data-anim-delay="360" className="text-sm text-muted-foreground">Join the waitlist. 82 did yesterday.</p>
+            <p data-anim data-anim-delay="360" className="text-sm text-muted-foreground">
+              {user ? "Welcome back! Manage your posts and automation." : "Join the waitlist. 82 did yesterday."}
+            </p>
           </div>
 
           <div className="space-y-8 mb-12">

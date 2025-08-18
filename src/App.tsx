@@ -15,7 +15,11 @@ import SimulateComment from "./pages/SimulateComment";
 import Resources from "./pages/Resources";
 import ResourcePost from "./pages/ResourcePost";
 import ResourceCategory from "./pages/ResourceCategory";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -40,11 +44,13 @@ function AppContent() {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
-      <Route path="/settings" element={<AccountSettings />} />
-      <Route path="/posts" element={<Posts />} />
-      <Route path="/posts/:id" element={<PostDetails />} />
-      <Route path="/activity" element={<Activity />} />
-      <Route path="/simulate" element={<SimulateComment />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
+      <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
+      <Route path="/posts/:id" element={<ProtectedRoute><PostDetails /></ProtectedRoute>} />
+      <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
+      <Route path="/simulate" element={<ProtectedRoute><SimulateComment /></ProtectedRoute>} />
       <Route path="/resources" element={<Resources />} />
       <Route path="/resources/:slug" element={<ResourcePost />} />
       <Route path="/resources/category/:category" element={<ResourceCategory />} />
@@ -62,7 +68,9 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AppContent />
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
