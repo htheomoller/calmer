@@ -7,8 +7,7 @@ type ProviderMode = 'sandbox' | 'gupshup';
  * Determine which provider mode to use based on available secrets
  */
 export const getProviderMode = (): ProviderMode => {
-  // In production builds, we need to check if secrets are available via the backend
-  // For now, we'll default to sandbox mode and let the backend handle the provider logic
+  // Default to sandbox mode - backend will determine actual provider
   return 'sandbox';
 };
 

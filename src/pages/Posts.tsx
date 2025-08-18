@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Settings, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { sendInstagramDM } from "@/integrations/sandbox/client";
 
 interface Post {
   id: string;
@@ -112,6 +113,25 @@ export default function Posts() {
     }
   };
 
+  const simulateSandboxDM = async () => {
+    try {
+      const success = await sendInstagramDM("test-user", "Hello from sandbox!");
+      
+      toast({
+        title: "Sandbox DM Sent",
+        description: success ? "DM logged successfully" : "Failed to log DM",
+        variant: success ? "default" : "destructive"
+      });
+    } catch (error: any) {
+      console.error('Sandbox DM test failed:', error);
+      toast({
+        title: "Test Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -137,6 +157,14 @@ export default function Posts() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Posts</h1>
           <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => simulateSandboxDM()}
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Simulate Comment → DM
+            </Button>
             <Button 
               variant="outline"
               onClick={() => simulateGupshupComment()}

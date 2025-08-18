@@ -35,14 +35,14 @@ export default function Health() {
         </div>
 
         <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Provider Configuration</h2>
+          <h2 className="text-xl font-semibold mb-4">Messaging Provider</h2>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span>Provider Mode</span>
-              <span className="font-mono">gupshup | sandbox</span>
+              <span>Current Provider</span>
+              <span className="font-mono">sandbox</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Auto-detected based on GUPSHUP secrets availability
+              Defaults to sandbox mode when GUPSHUP secrets are not configured
             </p>
           </div>
         </Card>
