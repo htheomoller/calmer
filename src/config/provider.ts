@@ -4,9 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 export type MessagingProvider = 'sandbox' | 'gupshup';
 
 /**
- * Get the messaging provider based on available secrets
+ * Get the messaging provider based on available secrets and overrides
  */
 export const getMessagingProvider = async (): Promise<MessagingProvider> => {
+  // Check for localStorage override first
+  const override = localStorage.getItem('providerOverride') as MessagingProvider | null;
+  if (override === 'sandbox' || override === 'gupshup') {
+    return override;
+  }
+
   try {
     // Check if Gupshup secrets are available via health check
     const { data } = await supabase.functions.invoke('health-check');

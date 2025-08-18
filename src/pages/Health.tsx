@@ -44,11 +44,12 @@ export default function Health() {
 
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Messaging Provider</h2>
-          <div className="space-y-2">
+          <div className="space-y-4">
             <div className="flex justify-between">
               <span>Current Provider</span>
               <span className="font-mono">
                 {provider} {provider === 'gupshup' ? '(active)' : '(default)'}
+                {localStorage.getItem('providerOverride') && ' (override)'}
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -57,6 +58,38 @@ export default function Health() {
                 'Sandbox mode active - messages are logged only'
               }
             </p>
+            
+            <div className="flex gap-2 flex-wrap">
+              <button 
+                onClick={() => {
+                  localStorage.setItem('providerOverride', 'sandbox');
+                  window.location.reload();
+                }}
+                className="px-3 py-1 text-xs bg-secondary text-secondary-foreground rounded"
+              >
+                Use sandbox now
+              </button>
+              <button 
+                onClick={() => {
+                  localStorage.setItem('providerOverride', 'gupshup');
+                  window.location.reload();
+                }}
+                className="px-3 py-1 text-xs bg-secondary text-secondary-foreground rounded"
+              >
+                Use gupshup now
+              </button>
+              {localStorage.getItem('providerOverride') && (
+                <button 
+                  onClick={() => {
+                    localStorage.removeItem('providerOverride');
+                    window.location.reload();
+                  }}
+                  className="px-3 py-1 text-xs text-muted-foreground underline"
+                >
+                  Clear override
+                </button>
+              )}
+            </div>
           </div>
         </Card>
 
