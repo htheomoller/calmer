@@ -262,31 +262,40 @@ export type Database = {
       }
       social_accounts: {
         Row: {
-          access_token: string
           connected_at: string
+          external_id: string | null
           fb_page_id: string | null
           id: string
           ig_user_id: string
+          provider: string | null
+          status: string | null
           token_expires_at: string | null
           user_id: string
+          username: string | null
         }
         Insert: {
-          access_token: string
           connected_at?: string
+          external_id?: string | null
           fb_page_id?: string | null
           id?: string
           ig_user_id: string
+          provider?: string | null
+          status?: string | null
           token_expires_at?: string | null
           user_id: string
+          username?: string | null
         }
         Update: {
-          access_token?: string
           connected_at?: string
+          external_id?: string | null
           fb_page_id?: string | null
           id?: string
           ig_user_id?: string
+          provider?: string | null
+          status?: string | null
           token_expires_at?: string | null
           user_id?: string
+          username?: string | null
         }
         Relationships: []
       }

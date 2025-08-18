@@ -153,3 +153,16 @@ These tables are defined in database_migration.sql but not yet used in current M
 - All auth.users table references preserved
 - Row Level Security policies maintained
 - No changes to database behavior or runtime code
+
+## Security Token Removal
+
+**Date: 2025-01-18**
+
+Sensitive OAuth tokens were removed from the `social_accounts` table to fix EXPOSED_SENSITIVE_DATA security warning:
+
+- **Removed columns**: `access_token`, `token_expires_at` 
+- **Added safe columns**: `provider`, `username`, `external_id`, `status`
+- **Archive location**: `supabase/_archive/social_accounts_redacted_20250118.sql` (tokens redacted)
+- **Future plan**: OAuth tokens will be stored securely via Sinch or external vault service
+
+The `social_accounts` table now only stores safe identifiers and metadata. RLS policies updated to allow user access to their own accounts.
