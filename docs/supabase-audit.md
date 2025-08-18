@@ -124,6 +124,25 @@ These tables are defined in database_migration.sql but not yet used in current M
   - Superseded by src/integrations/supabase/client.ts
   - Uses deprecated VITE_ env pattern
 
+## Configuration Management
+
+### Public Configuration
+- Location: `src/config/public.ts`
+- Contains: Supabase URL, Supabase anon key (safe for client-side)
+- Usage: Import from this centralized file instead of hardcoding values
+
+### Secrets Management
+- Location: `src/config/secrets.ts` (helpers for edge functions)
+- Current secrets: OPENAI_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL
+- Future secrets: SINCH_PROJECT_ID, SINCH_API_KEY, SINCH_API_SECRET, SINCH_REGION, IG_CHANNEL_ID
+- Add secrets via Supabase Dashboard → Settings → Edge Functions
+- Available in edge functions via `Deno.env.get()`
+
+### Health Check
+- Route: `/health` (development only)
+- Shows status of public config and expected secrets
+- No actual values displayed, only presence/absence indicators
+
 ## Actions Taken
 - Archived unused Instagram automation tables (reply_logs, reply_rules, reply_templates, social_accounts)
 - Archived legacy Supabase client (src/lib/supabase.ts)

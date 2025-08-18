@@ -15,6 +15,7 @@ import SimulateComment from "./pages/SimulateComment";
 import Resources from "./pages/Resources";
 import ResourcePost from "./pages/ResourcePost";
 import ResourceCategory from "./pages/ResourceCategory";
+import Health from "./pages/Health";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
@@ -46,6 +47,7 @@ function AppContent() {
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/health" element={<Health />} />
       <Route path="/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
       <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
       <Route path="/posts/:id" element={<ProtectedRoute><PostDetails /></ProtectedRoute>} />
