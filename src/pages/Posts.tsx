@@ -4,10 +4,14 @@ import { HeaderNav } from "@/components/layout/header-nav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Settings, ExternalLink } from "lucide-react";
+import { Eye, Settings, ExternalLink, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sendInstagramDM } from "@/integrations/sandbox/client";
+import { sendInstagramDM as sendGupshupDM } from "@/integrations/gupshup/client";
+import { getCurrentProvider, setProviderOverride, getProviderOverride, type MessagingProvider } from "@/config/provider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Post {
   id: string;
@@ -27,11 +31,21 @@ export default function Posts() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentProvider, setCurrentProvider] = useState<MessagingProvider>('sandbox');
+  const [availableProvider, setAvailableProvider] = useState<MessagingProvider>('sandbox');
   const { toast } = useToast();
 
   useEffect(() => {
     loadData();
+    loadProviderConfig();
   }, []);
+
+  const loadProviderConfig = async () => {
+    const provider = await getCurrentProvider();
+    const override = getProviderOverride();
+    setAvailableProvider(provider);
+    setCurrentProvider(override || provider);
+  };
 
   const loadData = async () => {
     try {
@@ -115,21 +129,36 @@ export default function Posts() {
 
   const simulateSandboxDM = async () => {
     try {
-      const success = await sendInstagramDM("test-user", "Hello from sandbox!");
+      let success = false;
+      
+      if (currentProvider === 'sandbox') {
+        success = await sendInstagramDM("test-user", "Hello from sandbox!");
+      } else {
+        success = await sendGupshupDM("test-user", "Hello from Gupshup!");
+      }
       
       toast({
-        title: "Sandbox DM Sent",
-        description: success ? "DM logged successfully" : "Failed to log DM",
+        title: `${currentProvider === 'sandbox' ? 'Sandbox' : 'Gupshup'} DM Sent`,
+        description: success ? "DM sent successfully" : "Failed to send DM",
         variant: success ? "default" : "destructive"
       });
     } catch (error: any) {
-      console.error('Sandbox DM test failed:', error);
+      console.error('DM test failed:', error);
       toast({
         title: "Test Failed",
         description: error.message,
         variant: "destructive"
       });
     }
+  };
+
+  const handleProviderChange = (provider: MessagingProvider) => {
+    setProviderOverride(provider);
+    setCurrentProvider(provider);
+    toast({
+      title: "Provider Changed",
+      description: `Switched to ${provider} mode`,
+    });
   };
 
   if (loading) {
@@ -154,30 +183,59 @@ export default function Posts() {
     <>
       <HeaderNav />
       <div className="pt-24 px-6 max-w-6xl mx-auto">
+        {currentProvider === 'sandbox' && (
+          <Alert className="mb-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              ⚠️ Running in sandbox mode - messages will be logged only, not sent
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Posts</h1>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => simulateSandboxDM()}
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Simulate Comment → DM
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => simulateGupshupComment()}
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Test Gupshup DM
-            </Button>
-            <Button asChild>
-              <Link to="/simulate">
+          <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Provider:</span>
+              <Select 
+                value={currentProvider} 
+                onValueChange={handleProviderChange}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sandbox">sandbox</SelectItem>
+                  {availableProvider === 'gupshup' && (
+                    <SelectItem value="gupshup">gupshup</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={() => simulateSandboxDM()}
+              >
                 <Eye className="w-4 h-4 mr-2" />
-                Test Comments
-              </Link>
-            </Button>
+                Test {currentProvider} DM
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => simulateGupshupComment()}
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Test Webhook
+              </Button>
+              <Button asChild>
+                <Link to="/simulate">
+                  <Eye className="w-4 h-4 mr-2" />
+                  Test Comments
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
 

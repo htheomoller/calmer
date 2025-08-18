@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { PUBLIC_CONFIG } from "@/config/public";
+import { getCurrentProvider, type MessagingProvider } from "@/config/provider";
 
 // Expected secrets for the application
 const EXPECTED_SECRETS = [
@@ -11,6 +13,12 @@ const EXPECTED_SECRETS = [
 ];
 
 export default function Health() {
+  const [provider, setProvider] = useState<MessagingProvider>('sandbox');
+
+  useEffect(() => {
+    getCurrentProvider().then(setProvider);
+  }, []);
+
   // Only show in development
   if (import.meta.env.PROD) {
     return (
@@ -39,10 +47,15 @@ export default function Health() {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span>Current Provider</span>
-              <span className="font-mono">sandbox</span>
+              <span className="font-mono">
+                {provider} {provider === 'gupshup' ? '(active)' : '(default)'}
+              </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Defaults to sandbox mode when GUPSHUP secrets are not configured
+              {provider === 'gupshup' ? 
+                'Gupshup provider active - real messages will be sent' :
+                'Sandbox mode active - messages are logged only'
+              }
             </p>
           </div>
         </Card>
