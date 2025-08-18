@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { WaitlistForm } from "@/components/WaitlistForm";
 const ComingSoon = () => {
   useEffect(() => {
     // Add noindex meta tag for this page only
@@ -48,6 +49,10 @@ const ComingSoon = () => {
             <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground">
               Sell more, stress less, and stay off Instagram while your business keeps growing.
             </p>
+
+            <div className="pt-8">
+              <WaitlistForm />
+            </div>
           </div>
         </div>
       </main>
