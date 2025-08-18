@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { sendDM, replyToComment } from "../utils/sinch-stub.ts";
+import { sendInstagramDM, sendInstagramDMSandbox } from "../utils/gupshup-client.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -187,14 +187,29 @@ const handler = async (req: Request): Promise<Response> => {
     // All checks passed - send DM
     const dmText = account.dm_template.replace('{link}', finalLink);
     
+    // Get secrets for provider determination
+    const gupshupApiKey = Deno.env.get('GUPSHUP_API_KEY');
+    const gupshupAppName = Deno.env.get('GUPSHUP_APP_NAME');
+    const isGupshupConfigured = gupshupApiKey && gupshupAppName;
+    const provider = isGupshupConfigured ? 'gupshup' : 'sandbox';
+    
+    console.log(`Using provider: ${provider} for DM to ${ig_user}`);
+    
     try {
-      await sendDM(ig_user, dmText, false);
-      console.log("DM sent successfully to:", ig_user);
+      const dmResult = provider === 'gupshup' 
+        ? await sendInstagramDM(ig_user, dmText, gupshupApiKey!, gupshupAppName!)
+        : await sendInstagramDMSandbox(ig_user, dmText);
 
-      // Reply to comment if enabled
+      if (!dmResult.success) {
+        throw new Error(dmResult.error || 'DM failed');
+      }
+
+      console.log("DM sent successfully to:", ig_user, "via", provider);
+
+      // TODO: Reply to comment functionality will be added later
+      // For now, we just log the intent
       if (account.reply_to_comments) {
-        await replyToComment(ig_post_id, ig_user, "Thanks! Check your DMs 📩");
-        console.log("Comment reply sent to:", ig_user);
+        console.log("Would reply to comment for:", ig_user, "(feature coming soon)");
       }
 
       // Save success event

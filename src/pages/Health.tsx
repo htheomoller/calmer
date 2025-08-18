@@ -6,11 +6,8 @@ const EXPECTED_SECRETS = [
   { name: "SUPABASE_URL", current: true },
   { name: "SUPABASE_ANON_KEY", current: true },
   { name: "OPENAI_API_KEY", current: true },
-  { name: "SINCH_PROJECT_ID", current: false },
-  { name: "SINCH_API_KEY", current: false },
-  { name: "SINCH_API_SECRET", current: false },
-  { name: "SINCH_REGION", current: false },
-  { name: "IG_CHANNEL_ID", current: false }
+  { name: "GUPSHUP_API_KEY", current: false },
+  { name: "GUPSHUP_APP_NAME", current: false }
 ];
 
 export default function Health() {
@@ -38,6 +35,19 @@ export default function Health() {
         </div>
 
         <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Provider Configuration</h2>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span>Provider Mode</span>
+              <span className="font-mono">gupshup | sandbox</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Auto-detected based on GUPSHUP secrets availability
+            </p>
+          </div>
+        </Card>
+
+        <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Public Configuration</h2>
           <div className="space-y-2">
             <div className="flex justify-between">
@@ -61,7 +71,7 @@ export default function Health() {
               <div key={secret.name} className="flex justify-between">
                 <span className={secret.current ? "" : "text-muted-foreground"}>
                   {secret.name}
-                  {!secret.current && " (future)"}
+                  {!secret.current && secret.name.includes('GUPSHUP') && " (for Gupshup provider)"}
                 </span>
                 <span>{secret.current ? "✅" : "❌"}</span>
               </div>
@@ -72,9 +82,10 @@ export default function Health() {
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Notes</h2>
           <ul className="text-sm text-muted-foreground space-y-2">
-            <li>• Public config is stored in <code>src/config/public.ts</code></li>
-            <li>• Secrets are managed via Supabase Secrets (Edge Functions only)</li>
-            <li>• ❌ for future secrets is expected and OK</li>
+            <li>• App runs in <strong>sandbox</strong> mode by default (logs only)</li>
+            <li>• When GUPSHUP_API_KEY + GUPSHUP_APP_NAME are configured, switches to <strong>gupshup</strong> mode</li>
+            <li>• Secrets are managed via Supabase and only available in edge functions</li>
+            <li>• Provider mode is auto-detected at runtime</li>
             <li>• This page is only available in development mode</li>
           </ul>
         </Card>

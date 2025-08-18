@@ -78,6 +78,40 @@ export default function Posts() {
     return { status: 'default', text: 'Default link' };
   };
 
+  const simulateGupshupComment = async () => {
+    try {
+      console.log('Testing Gupshup comment → DM flow...');
+      
+      const { data, error } = await supabase.functions.invoke('webhooks/gupshup', {
+        body: {
+          ig_post_id: 'test-post-gupshup',
+          ig_user: 'test_user_' + Date.now(),
+          comment_text: 'test comment',
+          dm_override: {
+            message: 'Test DM from Gupshup integration! 🚀',
+            direct: true
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Test Complete",
+        description: `Provider: ${data.provider} | ${data.message}`,
+        variant: data.success ? "default" : "destructive"
+      });
+
+    } catch (error: any) {
+      console.error('Gupshup test failed:', error);
+      toast({
+        title: "Test Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -102,12 +136,21 @@ export default function Posts() {
       <div className="pt-24 px-6 max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Posts</h1>
-          <Button asChild>
-            <Link to="/simulate">
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => simulateGupshupComment()}
+            >
               <Eye className="w-4 h-4 mr-2" />
-              Test Comments
-            </Link>
-          </Button>
+              Test Gupshup DM
+            </Button>
+            <Button asChild>
+              <Link to="/simulate">
+                <Eye className="w-4 h-4 mr-2" />
+                Test Comments
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {posts.length === 0 ? (
