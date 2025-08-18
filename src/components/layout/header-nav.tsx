@@ -27,13 +27,13 @@ export function HeaderNav() {
                 onMouseEnter={() => setIsResourcesOpen(true)}
                 onMouseLeave={() => setIsResourcesOpen(false)}
               >
-                <Link
-                  to="/resources"
+                <button
+                  onClick={() => setIsResourcesOpen(!isResourcesOpen)}
                   className="text-foreground hover:text-muted-foreground transition-colors font-medium flex items-center space-x-1"
                 >
                   <span>Resources</span>
                   <ChevronDown className="h-4 w-4" />
-                </Link>
+                </button>
                 
                 {/* Resources Dropdown */}
                 {isResourcesOpen && (
@@ -83,14 +83,21 @@ export function HeaderNav() {
           <div className="pt-24 px-6">
             <nav className="space-y-6">
               <div>
-                <Link
-                  to="/resources"
-                  className="block text-foreground hover:text-muted-foreground transition-colors font-medium text-xl py-3"
-                  onClick={() => setIsMenuOpen(false)}
+                <button
+                  onClick={() => setIsResourcesOpen(!isResourcesOpen)}
+                  className="block text-foreground hover:text-muted-foreground transition-colors font-medium text-xl py-3 w-full text-left"
                 >
                   Resources
-                </Link>
+                </button>
                 <div className="ml-4 space-y-2 mt-2">
+                  <Link
+                    to="/resources"
+                    className="block text-muted-foreground hover:text-foreground transition-colors text-lg py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    All Resources
+                  </Link>
+                  <div className="border-t border-border my-1 ml-4"></div>
                   {resourceItems.map((item) => (
                     <Link
                       key={item.href}
