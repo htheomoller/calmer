@@ -114,3 +114,24 @@
     @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
   }
 }
+
+/* Lean animations */
+[data-anim] {
+  opacity: 0;
+  transform: translateY(var(--anim-y, 16px)) scale(var(--anim-scale, 1));
+  will-change: transform, opacity;
+  transition: opacity 0.42s ease, transform 0.42s ease;
+}
+
+[data-anim].is-revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-anim] {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

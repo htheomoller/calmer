@@ -32,17 +32,17 @@ const Index = () => {
 
       <main className="pt-32 px-[clamp(25px,4vw,64px)]">
         <div className="max-w-2xl mt-32">
-          <h1 className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6">
+          <h1 data-anim className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6">
             Stop letting Instagram
             <span className="text-foreground"> <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent">burn you out</span>.</span>
           </h1>
 
-          <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8">
+          <p data-anim data-anim-delay="120" data-anim-y="10px" className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground mb-8">
             You started your business to help people, not to spend hours scrolling, posting, and hustling in the DMs. There's a better way.
           </p>
 
           <div className="flex flex-col md:flex-row md:items-center md:space-x-6 mb-12">
-            <div className="mb-4 md:mb-0">
+            <div data-anim data-anim-delay="240" data-anim-scale="0.98" className="mb-4 md:mb-0">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <button className="bg-black text-white rounded-full hover:bg-gray-800 transition-colors duration-200 flex items-center space-x-3 font-extralight text-2xl px-[18px] py-[10px]">
@@ -68,24 +68,24 @@ const Index = () => {
               </Dialog>
             </div>
 
-            <p className="text-sm text-muted-foreground">Join the waitlist. 82 did yesterday.</p>
+            <p data-anim data-anim-delay="360" className="text-sm text-muted-foreground">Join the waitlist. 82 did yesterday.</p>
           </div>
 
           <div className="space-y-8 mb-12">
             <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground">Calmer lets you send an instant, thoughtful DM whenever someone comments on your post — with your link, offer, or message. Set it up once and forget it. Yes, it's that simple.</p>
             
             <div className="mb-8">
-              <h3 className="text-xl font-semibold mb-4">How it works</h3>
+              <h3 data-anim className="text-xl font-semibold mb-4">How it works</h3>
               <div className="space-y-3">
-                <p className="text-muted-foreground">
+                <p data-anim data-anim-delay="80" className="text-muted-foreground">
                   <span className="font-bold">1 Post as usual</span><br />
                   Share on Instagram and add a simple instruction in your caption (e.g. "Comment yes for the link").
                 </p>
-                <p className="text-muted-foreground">
+                <p data-anim data-anim-delay="160" className="text-muted-foreground">
                   <span className="font-bold">2 Calmer handles it</span><br />
                   We read the caption, catch the comments, and know exactly what to send.
                 </p>
-                <p className="text-muted-foreground">
+                <p data-anim data-anim-delay="240" className="text-muted-foreground">
                   <span className="font-bold">3 Instant DM</span><br />
                   Your follower gets a thoughtful message right away, without you lifting a finger.
                 </p>
