@@ -22,11 +22,7 @@ export function HeaderNav() {
           {/* Desktop Navigation */}
           {!isMobile && (
             <nav className="flex items-center space-x-8">
-              <div 
-                className="relative"
-                onMouseEnter={() => setIsResourcesOpen(true)}
-                onMouseLeave={() => setIsResourcesOpen(false)}
-              >
+              <div className="relative">
                 <button
                   onClick={() => setIsResourcesOpen(!isResourcesOpen)}
                   className="text-foreground hover:text-muted-foreground transition-colors font-medium flex items-center space-x-1"
