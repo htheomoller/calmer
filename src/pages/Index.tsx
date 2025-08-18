@@ -4,13 +4,13 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HeaderNav } from "@/components/layout/header-nav";
-
 const Index = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleWaitlistJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
@@ -27,9 +27,7 @@ const Index = () => {
       setIsDialogOpen(false);
     }, 1000);
   };
-
-  return (
-    <div className="min-h-screen bg-[#fafafa]">
+  return <div className="min-h-screen bg-[#fafafa]">
       <HeaderNav />
 
       <main className="pt-32 px-[clamp(25px,4vw,64px)]">
@@ -61,14 +59,7 @@ const Index = () => {
                   </DialogHeader>
                   
                   <form onSubmit={handleWaitlistJoin} className="space-y-4">
-                    <Input 
-                      type="email" 
-                      placeholder="Enter your email" 
-                      value={email} 
-                      onChange={e => setEmail(e.target.value)} 
-                      className="w-full" 
-                      required 
-                    />
+                    <Input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} className="w-full" required />
                     <CalmButton type="submit" variant="default" disabled={isLoading} className="w-full">
                       {isLoading ? "Joining..." : "Join Waitlist"}
                     </CalmButton>
@@ -81,9 +72,7 @@ const Index = () => {
           </div>
 
           <div className="space-y-8 mb-12">
-            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground">
-              Calmer lets you send an instant, thoughtful DM whenever someone comments on your post — with your link, offer, or message. Set it up once and forget it. It's that simple.
-            </p>
+            <p className="text-2xl leading-tight md:leading-snug tracking-tight text-foreground">Calmer lets you send an instant, thoughtful DM whenever someone comments on your post — with your link, offer, or message. Set it up once and forget it. Yes, it's that simple.</p>
             
             <div className="mb-8">
               <h3 className="text-xl font-semibold mb-4">How it works</h3>
@@ -117,8 +106,6 @@ const Index = () => {
           </p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
