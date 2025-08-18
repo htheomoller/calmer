@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { initLeanAnimations } from "@/lib/lean-anim";
 import { debugClickBlockers } from "@/lib/debug-blockers";
 import Index from "./pages/Index";
+import ComingSoon from "./pages/ComingSoon";
 import AccountSettings from "./pages/AccountSettings";
 import Posts from "./pages/Posts";
 import PostDetails from "./pages/PostDetails";
@@ -21,6 +22,7 @@ import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { LockdownRedirect } from "./components/LockdownRedirect";
 
 const queryClient = new QueryClient();
 
@@ -43,22 +45,26 @@ function AppContent() {
   }, [pathname]);
 
   return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/health" element={<Health />} />
-      <Route path="/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
-      <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
-      <Route path="/posts/:id" element={<ProtectedRoute><PostDetails /></ProtectedRoute>} />
-      <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
-      <Route path="/simulate" element={<ProtectedRoute><SimulateComment /></ProtectedRoute>} />
-      <Route path="/resources" element={<Resources />} />
-      <Route path="/resources/:slug" element={<ResourcePost />} />
-      <Route path="/resources/category/:category" element={<ResourceCategory />} />
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <LockdownRedirect>
+      <Routes>
+        <Route path="/" element={<ComingSoon />} />
+        <Route path="/comingsoon" element={<ComingSoon />} />
+        <Route path="/home-legacy" element={<Index />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/health" element={<Health />} />
+        <Route path="/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
+        <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
+        <Route path="/posts/:id" element={<ProtectedRoute><PostDetails /></ProtectedRoute>} />
+        <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
+        <Route path="/simulate" element={<ProtectedRoute><SimulateComment /></ProtectedRoute>} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/resources/:slug" element={<ResourcePost />} />
+        <Route path="/resources/category/:category" element={<ResourceCategory />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </LockdownRedirect>
   );
 }
 
