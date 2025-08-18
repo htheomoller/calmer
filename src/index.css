@@ -115,23 +115,24 @@
   }
 }
 
-/* Lean animations */
-[data-anim] {
-  opacity: 0;
-  transform: translateY(var(--anim-y, 16px)) scale(var(--anim-scale, 1));
-  will-change: transform, opacity;
-  transition: opacity 0.42s ease, transform 0.42s ease;
+/* Lean animations (never hide if JS isn't active) */
+.js [data-anim]{
+  opacity:0;
+  transform:translateY(var(--anim-y,16px)) scale(var(--anim-scale,1));
+  transition:opacity .42s ease, transform .42s ease;
+  will-change:transform,opacity;
+}
+.js [data-anim].is-revealed{
+  opacity:1;
+  transform:none;
 }
 
-[data-anim].is-revealed {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+/* If JS is off (or failed), keep content visible */
+html:not(.js) [data-anim]{
+  opacity:1 !important;
+  transform:none !important;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-anim] {
-    transition: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
+@media (prefers-reduced-motion: reduce){
+  [data-anim]{transition:none !important; opacity:1 !important; transform:none !important;}
 }
