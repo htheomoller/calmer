@@ -21,6 +21,21 @@ These tables are actively referenced in the application code:
   - Used for: Blog/resource content display system
   - Status: Actively used in Resource pages
 
+- **accounts** - USED
+  - Migration: `supabase/migrations/20250118000000_mvp_schema.sql:7-13`
+  - Used for: User account settings and automation configuration
+  - Status: Core MVP table
+
+- **posts** - USED  
+  - Migration: `supabase/migrations/20250118000000_mvp_schema.sql:15-24`
+  - Used for: Instagram post tracking and automation rules
+  - Status: Core MVP table
+
+- **events** - USED
+  - Migration: `supabase/migrations/20250118000000_mvp_schema.sql:26-35`
+  - Used for: Activity logging and analytics
+  - Status: Core MVP table
+
 ### UNUSED Tables  
 These tables have no code references and appear to be for features not yet implemented:
 
