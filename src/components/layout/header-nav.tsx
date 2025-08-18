@@ -22,6 +22,24 @@ export function HeaderNav() {
           {/* Desktop Navigation */}
           {!isMobile && (
             <nav className="flex items-center space-x-8">
+              <Link
+                to="/posts"
+                className="text-foreground hover:text-muted-foreground transition-colors font-medium"
+              >
+                Posts
+              </Link>
+              <Link
+                to="/activity"
+                className="text-foreground hover:text-muted-foreground transition-colors font-medium"
+              >
+                Activity
+              </Link>
+              <Link
+                to="/settings"
+                className="text-foreground hover:text-muted-foreground transition-colors font-medium"
+              >
+                Settings
+              </Link>
               <div className="relative">
                 <button
                   onClick={() => setIsResourcesOpen(!isResourcesOpen)}
@@ -78,6 +96,27 @@ export function HeaderNav() {
         <div className="fixed inset-0 bg-white/95 backdrop-blur-sm z-40 animate-fade-in-fast">
           <div className="pt-24 px-6">
             <nav className="space-y-6">
+              <Link
+                to="/posts"
+                className="block text-foreground hover:text-muted-foreground transition-colors font-medium text-xl py-3"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Posts
+              </Link>
+              <Link
+                to="/activity"
+                className="block text-foreground hover:text-muted-foreground transition-colors font-medium text-xl py-3"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Activity
+              </Link>
+              <Link
+                to="/settings"
+                className="block text-foreground hover:text-muted-foreground transition-colors font-medium text-xl py-3"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Settings
+              </Link>
               <div>
                 <button
                   onClick={() => setIsResourcesOpen(!isResourcesOpen)}

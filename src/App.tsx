@@ -7,6 +7,11 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { initLeanAnimations } from "@/lib/lean-anim";
 import { debugClickBlockers } from "@/lib/debug-blockers";
 import Index from "./pages/Index";
+import AccountSettings from "./pages/AccountSettings";
+import Posts from "./pages/Posts";
+import PostDetails from "./pages/PostDetails";
+import Activity from "./pages/Activity";
+import SimulateComment from "./pages/SimulateComment";
 import Resources from "./pages/Resources";
 import ResourcePost from "./pages/ResourcePost";
 import ResourceCategory from "./pages/ResourceCategory";
@@ -35,6 +40,11 @@ function AppContent() {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
+      <Route path="/settings" element={<AccountSettings />} />
+      <Route path="/posts" element={<Posts />} />
+      <Route path="/posts/:id" element={<PostDetails />} />
+      <Route path="/activity" element={<Activity />} />
+      <Route path="/simulate" element={<SimulateComment />} />
       <Route path="/resources" element={<Resources />} />
       <Route path="/resources/:slug" element={<ResourcePost />} />
       <Route path="/resources/category/:category" element={<ResourceCategory />} />
