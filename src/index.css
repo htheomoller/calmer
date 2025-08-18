@@ -115,22 +115,16 @@
   }
 }
 
-/* Lean animations (never hide if JS isn't active) */
-.js [data-anim]{
+/* Lean animations (content visible by default) */
+.anim-ready [data-anim]{
   opacity:0;
   transform:translateY(var(--anim-y,16px)) scale(var(--anim-scale,1));
   transition:opacity .42s ease, transform .42s ease;
   will-change:transform,opacity;
 }
-.js [data-anim].is-revealed{
+.anim-ready [data-anim].is-revealed{
   opacity:1;
   transform:none;
-}
-
-/* If JS is off (or failed), keep content visible */
-html:not(.js) [data-anim]{
-  opacity:1 !important;
-  transform:none !important;
 }
 
 @media (prefers-reduced-motion: reduce){

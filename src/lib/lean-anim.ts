@@ -8,6 +8,9 @@
 let observer: IntersectionObserver | null = null;
 
 export function initLeanAnimations({ rootMargin = "0px 0px -10% 0px", once = true } = {}) {
+  // Enable animation system
+  document.documentElement.classList.add("anim-ready");
+  
   // Clean up existing observer
   if (observer) {
     observer.disconnect();
