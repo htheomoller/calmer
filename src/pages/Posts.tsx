@@ -95,30 +95,62 @@ export default function Posts() {
 
   const simulateGupshupComment = async () => {
     try {
-      console.log('Testing Gupshup comment → DM flow...');
+      console.log('Testing comment → DM flow...');
       
-      const { data, error } = await supabase.functions.invoke('webhooks/gupshup', {
+      // Get or create a sandbox post for testing
+      const testPost = await getOrCreateTestPost();
+      if (!testPost) {
+        toast({
+          title: "No sandbox post available",
+          description: "Click 'Create Sandbox Post' first.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const commentText = `test comment ${testPost.code || 'LINK'}`;
+      const testUser = 'test_user_' + Date.now();
+
+      console.log('Simulate details:', { 
+        stage: 'simulate', 
+        pickedId: testPost.ig_post_id, 
+        provider: currentProvider,
+        automationEnabled: testPost.automation_enabled,
+        commentText 
+      });
+
+      // Log simulation attempt
+      await supabase.from('events').insert({
+        type: 'sandbox_simulate_attempt',
+        ig_post_id: testPost.ig_post_id,
+        ig_user: testUser,
+        comment_text: `Attempt: ${commentText}`
+      });
+
+      const { data, error } = await supabase.functions.invoke('webhook-comments', {
         body: {
-          ig_post_id: 'test-post-gupshup',
-          ig_user: 'test_user_' + Date.now(),
-          comment_text: 'test comment',
-          dm_override: {
-            message: 'Test DM from Gupshup integration! 🚀',
-            direct: true
-          }
+          ig_post_id: testPost.ig_post_id,
+          ig_user: testUser,
+          comment_text: commentText,
+          created_at: new Date().toISOString()
         }
       });
 
       if (error) throw error;
 
       toast({
-        title: "Test Complete",
-        description: `Provider: ${data.provider} | ${data.message}`,
+        title: data.success ? "Simulation Complete" : "Simulation Result",
+        description: data.message || "Test completed",
         variant: data.success ? "default" : "destructive"
       });
 
+      // Refresh activity to show new events
+      if (data.success) {
+        setTimeout(() => window.location.reload(), 1000);
+      }
+
     } catch (error: any) {
-      console.error('Gupshup test failed:', error);
+      console.error('Simulation failed:', error);
       toast({
         title: "Test Failed",
         description: error.message,
@@ -129,13 +161,33 @@ export default function Posts() {
 
   const simulateSandboxDM = async () => {
     try {
+      // Get or create a sandbox post for testing
+      const testPost = await getOrCreateTestPost();
+      if (!testPost) {
+        toast({
+          title: "No sandbox post available",
+          description: "Click 'Create Sandbox Post' first.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const testUser = 'test_user_' + Date.now();
       let success = false;
       
       if (currentProvider === 'sandbox') {
-        success = await sendInstagramDM("test-user", "Hello from sandbox!");
+        success = await sendInstagramDM(testUser, "Hello from sandbox!");
       } else {
-        success = await sendGupshupDM("test-user", "Hello from Gupshup!");
+        success = await sendGupshupDM(testUser, "Hello from Gupshup!");
       }
+
+      // Log simulation attempt
+      await supabase.from('events').insert({
+        type: 'sandbox_simulate_attempt',
+        ig_post_id: testPost.ig_post_id,
+        ig_user: testUser,
+        comment_text: `Direct DM test via ${currentProvider}`
+      });
       
       toast({
         title: `${currentProvider === 'sandbox' ? 'Sandbox' : 'Gupshup'} DM Sent`,
@@ -188,32 +240,54 @@ export default function Posts() {
     }
   };
 
-  const ensurePostForTesting = async () => {
-    if (posts.length === 0) {
-      await createSandboxPost();
-      return;
-    }
+  const getOrCreateTestPost = async () => {
+    try {
+      // First, try to find an existing sandbox post with automation enabled
+      let testPost = posts.find(p => 
+        p.ig_post_id?.includes('sandbox-post-') && p.automation_enabled
+      );
 
-    // Enable automation on first post if disabled
-    const firstPost = posts[0];
-    if (!firstPost.automation_enabled) {
-      try {
+      if (testPost) {
+        console.log('Using existing sandbox post:', testPost.ig_post_id);
+        return testPost;
+      }
+
+      // If no enabled sandbox post, try to find any sandbox post and enable it
+      testPost = posts.find(p => p.ig_post_id?.includes('sandbox-post-'));
+      if (testPost && !testPost.automation_enabled) {
+        console.log('Enabling automation for existing sandbox post:', testPost.ig_post_id);
         const { error } = await supabase
           .from('posts')
           .update({ automation_enabled: true })
-          .eq('id', firstPost.id);
+          .eq('id', testPost.id);
 
         if (error) throw error;
 
         toast({
           title: "Automation enabled",
-          description: "Post automation turned on for testing"
+          description: "Sandbox post automation turned on for testing"
         });
 
         await loadData(); // Refresh
-      } catch (error: any) {
-        console.error('Error enabling automation:', error);
+        return { ...testPost, automation_enabled: true };
       }
+
+      // If no sandbox post exists, create one
+      console.log('Creating new sandbox post for testing');
+      await createSandboxPost();
+      
+      // Return the newly created post
+      const { data: newPosts } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('account_id', (await supabase.auth.getUser()).data.user?.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      return newPosts?.[0] || null;
+    } catch (error) {
+      console.error('Error getting/creating test post:', error);
+      return null;
     }
   };
 
@@ -289,28 +363,22 @@ export default function Posts() {
               <Button 
                 variant="outline"
                 size="sm"
-                onClick={async () => {
-                  await ensurePostForTesting();
-                  simulateSandboxDM();
-                }}
+                onClick={simulateSandboxDM}
               >
                 <Eye className="w-4 h-4 mr-2" />
                 Test {currentProvider} DM
               </Button>
               <Button 
                 variant="outline"
-                onClick={async () => {
-                  await ensurePostForTesting();
-                  simulateGupshupComment();
-                }}
+                onClick={simulateGupshupComment}
               >
                 <Eye className="w-4 h-4 mr-2" />
-                Test Webhook
+                Test Comments
               </Button>
               <Button asChild>
                 <Link to="/simulate">
                   <Eye className="w-4 h-4 mr-2" />
-                  Test Comments
+                  Simulate Page
                 </Link>
               </Button>
             </div>
