@@ -109,9 +109,27 @@ export default function Health() {
       console.log('webhook:test ->', { data, error });
 
       if (error) {
+        console.log('invoke:webhook-comments:error', { error });
+        
+        let errorBody = null;
+        try {
+          // Try to get the actual error body from the function
+          errorBody = error?.context?.body;
+          if (typeof errorBody === 'string') {
+            errorBody = JSON.parse(errorBody);
+          }
+        } catch {
+          // Fallback to error message
+          errorBody = null;
+        }
+
+        const errorDescription = errorBody 
+          ? JSON.stringify(errorBody, null, 2)
+          : error.message || "Unknown error";
+
         toast({
-          title: "Webhook Error",
-          description: error.message || "Unknown error",
+          title: `Edge ${error?.status ?? 'error'}`,
+          description: errorDescription,
           variant: "destructive"
         });
       } else {

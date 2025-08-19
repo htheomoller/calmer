@@ -134,9 +134,23 @@ export default function Posts() {
       console.log('simulate:invoke', { fn: WEBHOOK_COMMENTS_FN, ig_post_id: targetPost.ig_post_id }, { data, error });
 
       if (error) {
-        // Surface the exact error message from the function
-        const errorMessage = error.message || "Unknown error occurred";
-        throw new Error(errorMessage);
+        console.log('invoke:webhook-comments:error', { error });
+        
+        let errorBody = null;
+        try {
+          errorBody = error?.context?.body;
+          if (typeof errorBody === 'string') {
+            errorBody = JSON.parse(errorBody);
+          }
+        } catch {
+          errorBody = null;
+        }
+
+        const errorDescription = errorBody 
+          ? JSON.stringify(errorBody, null, 2)
+          : error.message || "Unknown error";
+
+        throw new Error(errorDescription);
       }
 
       // If function returns structured error, show that
@@ -207,8 +221,23 @@ export default function Posts() {
       console.log('simulate:invoke', { fn: WEBHOOK_COMMENTS_FN, ig_post_id: targetPost.ig_post_id }, { data, error });
 
       if (error) {
-        const errorMessage = error.message || "Unknown error occurred";
-        throw new Error(errorMessage);
+        console.log('invoke:webhook-comments:error', { error });
+        
+        let errorBody = null;
+        try {
+          errorBody = error?.context?.body;
+          if (typeof errorBody === 'string') {
+            errorBody = JSON.parse(errorBody);
+          }
+        } catch {
+          errorBody = null;
+        }
+
+        const errorDescription = errorBody 
+          ? JSON.stringify(errorBody, null, 2)
+          : error.message || "Unknown error";
+
+        throw new Error(errorDescription);
       }
 
       if (data && !data.ok) {

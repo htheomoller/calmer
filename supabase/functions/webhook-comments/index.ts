@@ -19,7 +19,6 @@ interface CommentWebhookPayload {
 
 const handler = async (req: Request): Promise<Response> => {
   const origin = req.headers.get('Origin');
-  
   console.log('webhook-comments:start', { method: req.method, origin });
   
   // Handle CORS preflight requests
@@ -31,13 +30,36 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const body = await req.json().catch(() => ({}));
+    // Parse and validate request body
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
+    
     console.log('webhook-comments:input', { provider: body?.provider, ig_post_id: body?.ig_post_id });
 
     const { ig_post_id, ig_user = `test_user_${Date.now()}`, comment_text, provider } = body as CommentWebhookPayload;
 
-    if (!ig_post_id || !comment_text) {
-      return new Response(JSON.stringify({ ok: false, error: 'MISSING_FIELDS' }), {
+    // Validate required fields
+    if (!ig_post_id) {
+      return new Response(JSON.stringify({ 
+        ok: false, 
+        code: 'MISSING_FIELDS', 
+        message: 'ig_post_id required' 
+      }), {
+        status: 400,
+        headers: { ...cors(origin), "Content-Type": "application/json" },
+      });
+    }
+
+    if (!comment_text) {
+      return new Response(JSON.stringify({ 
+        ok: false, 
+        code: 'MISSING_FIELDS', 
+        message: 'comment_text required' 
+      }), {
         status: 400,
         headers: { ...cors(origin), "Content-Type": "application/json" },
       });
@@ -73,7 +95,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (postError) {
       console.error("Error fetching post:", postError);
-      throw postError;
+      return new Response(JSON.stringify({ 
+        ok: false, 
+        code: 'DATABASE_ERROR', 
+        message: 'Failed to lookup post',
+        details: { error: postError.message }
+      }), {
+        status: 500,
+        headers: { ...cors(origin), "Content-Type": "application/json" },
+      });
     }
 
     console.log("webhook-comments:db", { 
@@ -96,7 +126,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Auto-recovery for sandbox posts
     if (!foundPost && provider === 'sandbox') {
-      console.log("simulate:trying_without_provider_filter");
+      console.log("webhook-comments:trying_without_provider_filter");
       const { data: fallbackPost } = await supabaseClient
         .from('posts')
         .select(`
@@ -112,7 +142,7 @@ const handler = async (req: Request): Promise<Response> => {
         .maybeSingle();
       
       if (fallbackPost) {
-        console.log("simulate:provider_mismatch");
+        console.log("webhook-comments:provider_mismatch");
         foundPost = fallbackPost;
       }
     }
@@ -120,9 +150,10 @@ const handler = async (req: Request): Promise<Response> => {
     if (!foundPost) {
       return new Response(JSON.stringify({ 
         ok: false, 
-        error: "POST_NOT_FOUND" 
+        code: 'POST_NOT_FOUND',
+        message: 'No post for ig_post_id'
       }), {
-        status: 200,
+        status: 404,
         headers: { ...cors(origin), "Content-Type": "application/json" },
       });
     }
@@ -140,16 +171,24 @@ const handler = async (req: Request): Promise<Response> => {
     } else if (!foundPost.automation_enabled) {
       return new Response(JSON.stringify({ 
         ok: false, 
-        error: "AUTOMATION_DISABLED" 
+        code: 'AUTOMATION_DISABLED',
+        message: 'Enable automation'
       }), {
-        status: 200,
+        status: 409,
         headers: { ...cors(origin), "Content-Type": "application/json" },
       });
     }
 
     const account = foundPost.accounts;
     if (!account) {
-      throw new Error("Account not found for post");
+      return new Response(JSON.stringify({ 
+        ok: false, 
+        code: 'ACCOUNT_NOT_FOUND',
+        message: 'Account not found for post'
+      }), {
+        status: 404,
+        headers: { ...cors(origin), "Content-Type": "application/json" },
+      });
     }
 
     // Determine final link
@@ -166,10 +205,11 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       return new Response(JSON.stringify({ 
-        success: false, 
-        message: "No link configured" 
+        ok: false, 
+        code: 'NO_LINK_AVAILABLE',
+        message: 'Add a link in Settings or Post'
       }), {
-        status: 200,
+        status: 422,
         headers: { ...cors(origin), "Content-Type": "application/json" },
       });
     }
@@ -192,8 +232,9 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       return new Response(JSON.stringify({ 
-        success: false, 
-        message: "Comment doesn't match trigger code" 
+        ok: false, 
+        code: 'CODE_MISMATCH',
+        message: "Comment doesn't match trigger code"
       }), {
         status: 200,
         headers: { ...cors(origin), "Content-Type": "application/json" },
@@ -220,10 +261,11 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       return new Response(JSON.stringify({ 
-        success: false, 
-        message: "Comment limit reached for this post" 
+        ok: false, 
+        code: 'LIMIT_REACHED',
+        message: 'Comment limit reached for this post'
       }), {
-        status: 200,
+        status: 429,
         headers: { ...cors(origin), "Content-Type": "application/json" },
       });
     }
@@ -250,10 +292,11 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       return new Response(JSON.stringify({ 
-        success: false, 
-        message: "User already received DM for this post" 
+        ok: false, 
+        code: 'COOLDOWN',
+        message: 'User already received DM for this post'
       }), {
-        status: 200,
+        status: 429,
         headers: { ...cors(origin), "Content-Type": "application/json" },
       });
     }
@@ -302,9 +345,13 @@ const handler = async (req: Request): Promise<Response> => {
 
       return new Response(JSON.stringify({ 
         ok: true, 
+        code: 'SANDBOX_DM_LOGGED',
         message: successMessage,
-        finalLink,
-        dmText
+        details: {
+          finalLink,
+          dmText,
+          autoEnabled
+        }
       }), {
         status: 200,
         headers: { ...cors(origin), "Content-Type": "application/json" },
@@ -324,24 +371,26 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       return new Response(JSON.stringify({ 
-        success: false, 
-        message: "Failed to send DM",
-        error: dmError.message
+        ok: false, 
+        code: 'DM_SEND_FAILED',
+        message: 'Failed to send DM',
+        details: { error: dmError.message }
       }), {
-        status: 200,
+        status: 500,
         headers: { ...cors(origin), "Content-Type": "application/json" },
       });
     }
 
   } catch (error: any) {
-    console.error("Error in comment webhook:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
-      }
-    );
+    console.error("Unexpected error in comment webhook:", error);
+    return new Response(JSON.stringify({ 
+      ok: false, 
+      code: 'UNEXPECTED',
+      message: String(error)
+    }), {
+      status: 500,
+      headers: { ...cors(origin), "Content-Type": "application/json" },
+    });
   }
 };
 
