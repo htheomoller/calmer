@@ -36,8 +36,10 @@ export const WaitlistForm = () => {
       }
 
       if (data?.ok) {
-        if (data.message === "Already on waitlist") {
-          setMessage("✅ You're already on the waitlist — welcome back!");
+        if (data.message === "already_in_list") {
+          setMessage("✅ You're already on the waitlist — all set!");
+        } else if (data.message === "newly_added" || data.message === "Already on waitlist") {
+          setMessage("✅ You're now on the waitlist — thank you!");
         } else {
           setMessage("✅ You're now on the waitlist — thank you!");
         }

@@ -83,20 +83,68 @@ const handler = async (req: Request): Promise<Response> => {
       const errorText = await brevoResponse.text();
       console.error("Brevo API error:", brevoResponse.status, errorText);
       
-      // Handle duplicate contact (this is usually not an error for waitlists)
+      // Handle duplicate contact
       if (brevoResponse.status === 400) {
         try {
           const errorData = JSON.parse(errorText);
           if (errorData.code === "duplicate_parameter") {
-            return new Response(JSON.stringify({ ok: true, message: "Already on waitlist" }), {
-              status: 200,
-              headers: { "Content-Type": "application/json", ...corsHeaders },
+            // Check if contact is already in our waitlist (list 7)
+            const contactResponse = await fetch(`https://api.brevo.com/v3/contacts/${encodeURIComponent(email)}`, {
+              method: "GET",
+              headers: {
+                "api-key": brevoApiKey,
+              },
             });
+
+            if (contactResponse.ok) {
+              const contactData = await contactResponse.json();
+              
+              // Check if contact is already in list 7
+              if (contactData.listIds && contactData.listIds.includes(LIST_ID)) {
+                return new Response(JSON.stringify({ ok: true, message: "already_in_list" }), {
+                  status: 200,
+                  headers: { "Content-Type": "application/json", ...corsHeaders },
+                });
+              }
+
+              // Contact exists but not in list 7, add them to the list
+              const addToListResponse = await fetch(`https://api.brevo.com/v3/contacts/lists/${LIST_ID}/contacts/add`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "api-key": brevoApiKey,
+                },
+                body: JSON.stringify({
+                  emails: [email],
+                }),
+              });
+
+              if (addToListResponse.ok) {
+                return new Response(JSON.stringify({ ok: true, message: "newly_added" }), {
+                  status: 200,
+                  headers: { "Content-Type": "application/json", ...corsHeaders },
+                });
+              } else {
+                const addToListError = await addToListResponse.text();
+                console.error("Failed to add contact to list:", addToListResponse.status, addToListError);
+                return new Response(JSON.stringify({ ok: false, error: "add_to_list_failed" }), {
+                  status: 500,
+                  headers: { "Content-Type": "application/json", ...corsHeaders },
+                });
+              }
+            } else {
+              console.error("Failed to fetch contact details:", contactResponse.status);
+              // Fallback to treating as already on waitlist
+              return new Response(JSON.stringify({ ok: true, message: "already_in_list" }), {
+                status: 200,
+                headers: { "Content-Type": "application/json", ...corsHeaders },
+              });
+            }
           }
         } catch (parseError) {
           // If JSON parsing fails, fall back to string check
           if (errorText.includes("Contact already exist")) {
-            return new Response(JSON.stringify({ ok: true, message: "Already on waitlist" }), {
+            return new Response(JSON.stringify({ ok: true, message: "already_in_list" }), {
               status: 200,
               headers: { "Content-Type": "application/json", ...corsHeaders },
             });
