@@ -18,7 +18,12 @@ const handler = async (req: Request): Promise<Response> => {
     const isGupshupConfigured = gupshupApiKey && gupshupAppName;
     const provider = isGupshupConfigured ? 'gupshup' : 'sandbox';
 
+    const brevoApiKey = Deno.env.get('BREVO_API_KEY');
+    const brevoWaitlistListId = Deno.env.get('BREVO_WAITLIST_LIST_ID');
+    const envListIdValid = brevoWaitlistListId && !isNaN(Number(brevoWaitlistListId));
+    
     const healthData = {
+      ok: true,
       provider,
       secrets: {
         GUPSHUP_API_KEY: !!gupshupApiKey,
@@ -26,9 +31,14 @@ const handler = async (req: Request): Promise<Response> => {
         SUPABASE_URL: !!Deno.env.get('SUPABASE_URL'),
         SUPABASE_ANON_KEY: !!Deno.env.get('SUPABASE_ANON_KEY'),
         OPENAI_API_KEY: !!Deno.env.get('OPENAI_API_KEY'),
-        BREVO_API_KEY: !!Deno.env.get('BREVO_API_KEY'),
+        BREVO_API_KEY: !!brevoApiKey,
         WAITLIST_FORM_SECRET: !!Deno.env.get('WAITLIST_FORM_SECRET'),
-        BREVO_WAITLIST_LIST_ID: !!Deno.env.get('BREVO_WAITLIST_LIST_ID')
+        BREVO_WAITLIST_LIST_ID: !!brevoWaitlistListId
+      },
+      waitlist: {
+        hasKey: !!brevoApiKey,
+        listIdSource: envListIdValid ? 'env' : 'fallback',
+        effectiveListId: envListIdValid ? Number(brevoWaitlistListId) : null
       },
       timestamp: new Date().toISOString()
     };

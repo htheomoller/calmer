@@ -117,50 +117,60 @@ export const getRecentActivity = async (minutes: number, types?: string[]): Prom
 };
 
 /**
+ * Generic edge function invoker with error handling
+ */
+export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boolean; code?: string; message?: string; details?: any }> => {
+  try {
+    const { data, error } = await supabase.functions.invoke(fnName, { body });
+    
+    if (error) {
+      const ctx = error?.context ?? error?.details ?? {};
+      let payload = ctx.body ?? ctx.response ?? null;
+      if (typeof payload === 'string') { 
+        try { 
+          payload = JSON.parse(payload); 
+        } catch {} 
+      }
+      
+      return { 
+        ok: false, 
+        code: payload?.code ?? 'INVOKE_ERROR', 
+        message: payload?.message ?? error.message ?? 'invoke failed', 
+        details: payload ?? null 
+      };
+    }
+    
+    // data is JSON from the function
+    return { 
+      ok: Boolean(data?.ok), 
+      code: data?.code ?? null, 
+      message: data?.message ?? null, 
+      details: data ?? null 
+    };
+  } catch (e) {
+    return { 
+      ok: false, 
+      code: 'EXCEPTION', 
+      message: String(e) 
+    };
+  }
+};
+
+/**
  * Invoke webhook-comments function with error handling
  */
 export const invokeWebhook = async (args: { ig_post_id: string; comment_text: string }): Promise<{ ok: boolean; code?: string; message?: string }> => {
-  try {
-    const { data, error } = await supabase.functions.invoke(WEBHOOK_COMMENTS_FN, {
-      body: {
-        provider: 'sandbox',
-        ig_post_id: args.ig_post_id,
-        comment_text: args.comment_text
-      }
-    });
-
-    if (error) {
-      // Extract error details using the same logic as Health page
-      const ctx = error?.context ?? error?.details ?? {};
-      let body = ctx.body ?? ctx.response ?? ctx.data ?? null;
-      if (typeof body === 'string') {
-        try { 
-          body = JSON.parse(body); 
-        } catch { 
-          // keep as text 
-        }
-      }
-
-      return {
-        ok: false,
-        code: body?.code ?? ctx.code ?? 'INVOKE_ERROR',
-        message: body?.message ?? error?.message ?? 'invoke failed'
-      };
-    }
-
-    // data is already the JSON from the function; it includes ok/code/message
-    return {
-      ok: Boolean(data?.ok),
-      code: data?.code ?? null,
-      message: data?.message ?? null
-    };
-  } catch (error: any) {
-    return {
-      ok: false,
-      code: 'EXCEPTION',
-      message: error?.message ?? 'Unknown error'
-    };
-  }
+  const result = await invokeEdge(WEBHOOK_COMMENTS_FN, {
+    provider: 'sandbox',
+    ig_post_id: args.ig_post_id,
+    comment_text: args.comment_text
+  });
+  
+  return {
+    ok: result.ok,
+    code: result.code,
+    message: result.message
+  };
 };
 
 /**
@@ -174,7 +184,8 @@ export const createTestContext = (log: (m: string, extra?: any) => void): TestCo
     ensureSandbox,
     ensureSandboxPost,
     getRecentActivity,
-    invokeWebhook
+    invokeWebhook,
+    invokeEdge
   };
 };
 // SANDBOX_END

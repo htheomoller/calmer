@@ -34,37 +34,30 @@ const script: TestScript = {
           };
         }
         
-        const { data, error } = await ctx.supabase.functions.invoke('add-to-waitlist', { 
-          body: { 
-            email: testEmail, 
-            listId: PUBLIC_CONFIG.BREVO_WAITLIST_LIST_ID 
-          } 
+        const resp = await ctx.invokeEdge('add-to-waitlist', { 
+          email: testEmail, 
+          listId: PUBLIC_CONFIG.BREVO_WAITLIST_LIST_ID 
         });
         
-        if (error) {
-          return { 
-            pass: false, 
-            note: `Invoke failed: ${error.message}` 
-          };
-        }
+        ctx.log('add-to-waitlist response:', resp);
         
         // Accept both success (created) and already subscribed as pass
-        if (data?.ok === true) {
-          ctx.log('Waitlist successful', data);
+        if (resp.ok === true) {
+          ctx.log('Waitlist successful', resp);
           return { 
             pass: true, 
-            note: 'Created' 
+            note: 'SUBSCRIBED' 
           };
-        } else if (data?.ok === false && data?.code === 'ALREADY_SUBSCRIBED') {
-          ctx.log('Already subscribed', data);
+        } else if (resp.code === 'ALREADY_SUBSCRIBED') {
+          ctx.log('Already subscribed', resp);
           return { 
             pass: true, 
-            note: 'Already subscribed' 
+            note: 'ALREADY_SUBSCRIBED' 
           };
         } else {
           return { 
             pass: false, 
-            note: `Unexpected response: ${data?.code || 'unknown'} - ${data?.message || 'no message'}` 
+            note: `${resp.code || 'UNKNOWN'} — ${resp.message || 'no message'}` 
           };
         }
       }
