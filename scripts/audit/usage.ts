@@ -5,6 +5,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { UsageStats } from './types';
 
+// Ensure artifact directories exist
+mkdirSync('tmp/audit', { recursive: true });
+
 const OUTPUT_DIR = path.join(__dirname, '../../tmp/audit');
 
 function ensureDir(dir: string) {

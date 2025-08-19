@@ -7,6 +7,9 @@ import { glob } from 'glob';
 import * as yaml from 'yaml';
 import { FeatureManifest, ScanResult, AuditReport } from './types';
 
+// Ensure artifact directories exist
+mkdirSync('tmp/audit', { recursive: true });
+
 const ROOT_DIR = path.resolve(__dirname, '../..');
 const MANIFEST_DIR = path.join(ROOT_DIR, 'docs/feature-manifest');
 const OUTPUT_DIR = path.join(ROOT_DIR, 'tmp/audit');

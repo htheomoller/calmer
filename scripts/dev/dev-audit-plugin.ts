@@ -19,54 +19,84 @@ function createHandlers() {
         return;
       }
 
-      console.log('[__dev] audit-run exec npm run audit:report');
+      console.log('[__dev] audit-run exec scripts via npx ts-node');
       
-      // Try real audit first
+      // Run audit scripts sequentially with npx ts-node ESM
+      const scripts = [
+        'scripts/audit/scan.ts',
+        'scripts/audit/usage.ts', 
+        'scripts/audit/plan.ts'
+      ];
+      
+      let allStdout = '';
+      let allStderr = '';
+      let finalCode = 0;
+      
       try {
-        const child = spawn(/^win/.test(process.platform) ? 'npm.cmd' : 'npm', ['run', 'audit:report'], { 
-          stdio: ['ignore', 'pipe', 'pipe'],
-          cwd: process.cwd()
-        });
-        
-        let stdout = ''; 
-        let stderr = '';
-        child.stdout.on('data', (d) => { stdout += String(d); });
-        child.stderr.on('data', (d) => { stderr += String(d); });
-        
-        child.on('close', (code) => {
-          if (code === 0) {
-            // Real audit succeeded
-            const payload = {
-              ok: true,
-              code,
-              stdout,
-              stderr,
-              artifacts: { report: 'tmp/audit/report.md', plan: 'docs/cleanup/plan.md' }
-            };
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Cache-Control', 'no-store');
-            res.end(JSON.stringify(payload));
-          } else {
-            // Real audit failed, use safety fallback
-            generateFallbackReport(stdout, stderr).then(() => {
-              const payload = {
-                ok: true,
-                code: -1,
-                stdout: 'fallback',
-                stderr,
-                artifacts: { report: 'tmp/audit/report.md', plan: 'docs/cleanup/plan.md' }
-              };
-              res.statusCode = 200;
-              res.setHeader('Content-Type', 'application/json');
-              res.setHeader('Cache-Control', 'no-store');
-              res.end(JSON.stringify(payload));
+        for (const script of scripts) {
+          console.log('[__dev] audit-run step', script);
+          
+          const result = await new Promise<{code: number, stdout: string, stderr: string}>((resolve) => {
+            const child = spawn('npx', ['--yes', 'ts-node', '--esm', '--transpile-only', script], {
+              stdio: ['ignore', 'pipe', 'pipe'],
+              cwd: process.cwd()
             });
+            
+            let stdout = '';
+            let stderr = '';
+            child.stdout.on('data', (d) => { stdout += String(d); });
+            child.stderr.on('data', (d) => { stderr += String(d); });
+            
+            child.on('close', (code) => {
+              resolve({ code: code || 0, stdout, stderr });
+            });
+            
+            child.on('error', (error) => {
+              resolve({ code: 1, stdout: '', stderr: error.message });
+            });
+          });
+          
+          allStdout += result.stdout;
+          allStderr += result.stderr;
+          
+          if (result.code !== 0) {
+            finalCode = result.code;
+            console.log(`[__dev] audit script ${script} failed with code ${result.code}`);
+            break;
           }
-        });
+        }
+        
+        if (finalCode === 0) {
+          // All scripts succeeded
+          const payload = {
+            ok: true,
+            code: finalCode,
+            stdout: allStdout,
+            stderr: allStderr,
+            artifacts: { report: 'tmp/audit/report.md', plan: 'docs/cleanup/plan.md' }
+          };
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Cache-Control', 'no-store');
+          res.end(JSON.stringify(payload));
+        } else {
+          // Some script failed, use safety fallback
+          await generateFallbackReport(allStdout, allStderr);
+          const payload = {
+            ok: true,
+            code: -1,
+            stdout: 'fallback',
+            stderr: allStderr,
+            artifacts: { report: 'tmp/audit/report.md', plan: 'docs/cleanup/plan.md' }
+          };
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Cache-Control', 'no-store');
+          res.end(JSON.stringify(payload));
+        }
       } catch (spawnError: any) {
         // Spawn failed, use safety fallback
-        console.log('[__dev] audit spawn failed, using fallback');
+        console.log('[__dev] audit spawn failed, using fallback:', spawnError.message);
         await generateFallbackReport('', spawnError.message);
         const payload = {
           ok: true,

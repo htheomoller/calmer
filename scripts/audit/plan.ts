@@ -6,6 +6,11 @@ import * as path from 'path';
 import * as yaml from 'yaml';
 import { FeatureManifest, AuditReport, UsageStats } from './types';
 
+// Ensure artifact directories exist
+mkdirSync('tmp/audit', { recursive: true });
+mkdirSync('docs/cleanup', { recursive: true });
+mkdirSync('docs/cleanup/sql', { recursive: true });
+
 const ROOT_DIR = path.resolve(__dirname, '../..');
 const MANIFEST_DIR = path.join(ROOT_DIR, 'docs/feature-manifest');
 const AUDIT_DIR = path.join(ROOT_DIR, 'tmp/audit');
