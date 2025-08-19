@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Menu, X, ChevronDown, LogOut, User } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -14,6 +14,7 @@ export function HeaderNav() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const isMobile = useIsMobile();
+  const location = useLocation();
   const { user, signOut } = useAuth();
 
   return (
@@ -88,12 +89,15 @@ export function HeaderNav() {
                 </>
               ) : (
                 <div className="flex items-center space-x-4">
-                  <Link
-                    to="/resources"
-                    className="text-foreground hover:text-muted-foreground transition-colors font-medium"
-                  >
-                    Resources
-                  </Link>
+                  {/* Only show Resources link on non-public pages when logged out */}
+                  {!['/', '/comingsoon'].includes(location.pathname) && (
+                    <Link
+                      to="/resources"
+                      className="text-foreground hover:text-muted-foreground transition-colors font-medium"
+                    >
+                      Resources
+                    </Link>
+                  )}
                   <Button asChild variant="outline" size="sm">
                     <Link to="/login">
                       <User className="h-4 w-4 mr-2" />
@@ -192,13 +196,16 @@ export function HeaderNav() {
               </>
             ) : (
               <div className="space-y-4">
-                <Link
-                  to="/resources"
-                  className="block text-foreground hover:text-muted-foreground transition-colors font-medium text-xl py-3"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Resources
-                </Link>
+                {/* Only show Resources link on non-public pages when logged out */}
+                {!['/', '/comingsoon'].includes(location.pathname) && (
+                  <Link
+                    to="/resources"
+                    className="block text-foreground hover:text-muted-foreground transition-colors font-medium text-xl py-3"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Resources
+                  </Link>
+                )}
                 <Button asChild className="w-full">
                   <Link to="/login" onClick={() => setIsMenuOpen(false)}>
                     <User className="h-4 w-4 mr-2" />
