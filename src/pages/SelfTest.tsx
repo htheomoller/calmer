@@ -20,6 +20,9 @@ export default function SelfTest() {
   const [selectedScript, setSelectedScript] = useState<string>('');
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<TestRunResult | null>(null);
+  // SANDBOX_START (polish)
+  const [lastSelectedScript, setLastSelectedScript] = useState<string>('');
+  // SANDBOX_END
 
   // Guard: only show in development
   if (import.meta.env.PROD) {
@@ -152,6 +155,18 @@ export default function SelfTest() {
     
     setResults(finalResult);
     setRunning(false);
+    
+    // SANDBOX_START (polish)
+    setLastSelectedScript(selectedScript);
+    
+    // Auto-scroll to results after completion
+    setTimeout(() => {
+      const resultsElement = document.getElementById('test-results');
+      if (resultsElement) {
+        resultsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+    // SANDBOX_END
   };
 
   return (
@@ -163,23 +178,39 @@ export default function SelfTest() {
           <p className="text-muted-foreground">Automated sandbox testing and validation</p>
         </div>
 
+        {/* SANDBOX_START (polish) */}
         {results && (
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              {results.passed ? (
-                <Badge variant="default" className="bg-green-500 hover:bg-green-600">
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  ALL PASS ✅
-                </Badge>
-              ) : (
-                <Badge variant="destructive">
-                  <XCircle className="w-4 h-4 mr-1" />
-                  FAILED ❌ at {results.failedAt}
-                </Badge>
-              )}
+          <Card className={`p-4 border-2 ${results.passed ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {results.passed ? (
+                  <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                    <CheckCircle className="w-4 h-4 mr-1" />
+                    All {results.results.length} steps passed
+                  </Badge>
+                ) : (
+                  <Badge variant="destructive">
+                    <XCircle className="w-4 h-4 mr-1" />
+                    Failed at {results.failedAt}
+                  </Badge>
+                )}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const resultsElement = document.getElementById('test-results');
+                  if (resultsElement) {
+                    resultsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+              >
+                View details
+              </Button>
             </div>
           </Card>
         )}
+        {/* SANDBOX_END */}
 
         <Card className="p-6">
           <div className="space-y-4">
@@ -219,25 +250,42 @@ export default function SelfTest() {
               </Select>
             </div>
 
-            <Button 
-              onClick={runTests} 
-              disabled={!selectedScript || running}
-              className="w-full"
-            >
-              {running ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Running Tests...
-                </>
-              ) : (
-                'Run Tests'
+            <div className="flex gap-2">
+              <Button 
+                onClick={runTests} 
+                disabled={!selectedScript || running}
+                className="flex-1"
+              >
+                {running ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Running Tests...
+                  </>
+                ) : (
+                  'Run Tests'
+                )}
+              </Button>
+              
+              {/* SANDBOX_START (polish) */}
+              {lastSelectedScript && !running && (
+                <Button
+                  onClick={() => {
+                    setSelectedScript(lastSelectedScript);
+                    setTimeout(() => runTests(), 100);
+                  }}
+                  variant="outline"
+                  disabled={running}
+                >
+                  Run again
+                </Button>
               )}
-            </Button>
+              {/* SANDBOX_END */}
+            </div>
           </div>
         </Card>
 
         {results && (
-          <Card className="p-6">
+          <Card className="p-6" id="test-results">
             <h2 className="text-xl font-semibold mb-4">Results</h2>
             <div className="space-y-2">
               <div className="grid grid-cols-3 gap-4 pb-2 border-b font-medium text-sm">

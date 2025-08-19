@@ -44,8 +44,71 @@ export default function DevBreadcrumbs() {
   const [minutes, setMinutes] = useState(() => {
     return localStorage.getItem('dev-breadcrumbs-minutes') || '10080'; // Default to 7 days
   });
+  // SANDBOX_START (polish)
+  const [scopeFilter, setScopeFilter] = useState(() => {
+    return localStorage.getItem('dev_breadcrumbs_filter') || 'all';
+  });
+  // SANDBOX_END
 
   const scopePresets = ['sandbox', 'waitlist', 'routing', 'auth', 'triggers', 'gupshup'];
+
+  // SANDBOX_START (polish)
+  const getScopeColor = (scope: string) => {
+    switch (scope.toLowerCase()) {
+      case 'sandbox': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'selftest': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'waitlist': return 'bg-sky-100 text-sky-800 border-sky-200';
+      case 'routing': return 'bg-violet-100 text-violet-800 border-violet-200';
+      case 'auth': return 'bg-rose-100 text-rose-800 border-rose-200';
+      default: return 'bg-slate-100 text-slate-800 border-slate-200';
+    }
+  };
+
+  const formatFriendlyDate = (dateString: string) => {
+    return new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).format(new Date(dateString));
+  };
+
+  const groupBreadcrumbsByDay = (breadcrumbs: Breadcrumb[]) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const groups: { [key: string]: Breadcrumb[] } = {};
+    
+    breadcrumbs.forEach(breadcrumb => {
+      const date = new Date(breadcrumb.created_at);
+      let groupKey: string;
+      
+      if (date.toDateString() === today.toDateString()) {
+        groupKey = 'Today';
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        groupKey = 'Yesterday';
+      } else {
+        groupKey = new Intl.DateTimeFormat(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        }).format(date);
+      }
+      
+      if (!groups[groupKey]) groups[groupKey] = [];
+      groups[groupKey].push(breadcrumb);
+    });
+
+    return groups;
+  };
+
+  const filteredBreadcrumbs = scopeFilter === 'all' 
+    ? breadcrumbs 
+    : breadcrumbs.filter(b => b.scope.toLowerCase() === scopeFilter.toLowerCase());
+  // SANDBOX_END
 
   const addBreadcrumb = async () => {
     if (!scope.trim() || !summary.trim()) {
@@ -160,6 +223,12 @@ export default function DevBreadcrumbs() {
     localStorage.setItem('dev-breadcrumbs-minutes', minutes);
   }, [minutes]);
 
+  // SANDBOX_START (polish)
+  useEffect(() => {
+    localStorage.setItem('dev_breadcrumbs_filter', scopeFilter);
+  }, [scopeFilter]);
+  // SANDBOX_END
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
   };
@@ -172,9 +241,16 @@ export default function DevBreadcrumbs() {
           <p className="text-muted-foreground">Track development changes and notes for easy cleanup later.</p>
         </div>
         <div className="text-right">
-          <Badge variant="outline" className="mb-2">
-            viewer: {currentUser || '(not logged in)'}
+          {/* SANDBOX_START (polish) */}
+          <Badge variant="outline" className="mb-2 text-xs">
+            viewer: {currentUser || 'anonymous'} · window: {
+              minutes === '60' ? 'last hour' :
+              minutes === '1440' ? 'last 24h' :
+              minutes === '10080' ? 'last 7 days' :
+              minutes === '43200' ? 'last 30 days' : `${minutes}min`
+            }
           </Badge>
+          {/* SANDBOX_END */}
           {currentUser && (
             <div>
               <Button 
@@ -269,17 +345,34 @@ export default function DevBreadcrumbs() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             Recent Notes
-            <Select value={minutes} onValueChange={setMinutes}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="60">Last hour</SelectItem>
-                <SelectItem value="1440">Last 24h</SelectItem>
-                <SelectItem value="10080">Last 7 days</SelectItem>
-                <SelectItem value="43200">Last 30 days</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              {/* SANDBOX_START (polish) */}
+              <Select value={scopeFilter} onValueChange={setScopeFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="sandbox">Sandbox</SelectItem>
+                  <SelectItem value="selftest">SelfTest</SelectItem>
+                  <SelectItem value="waitlist">Waitlist</SelectItem>
+                  <SelectItem value="routing">Routing</SelectItem>
+                  <SelectItem value="auth">Auth</SelectItem>
+                </SelectContent>
+              </Select>
+              {/* SANDBOX_END */}
+              <Select value={minutes} onValueChange={setMinutes}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="60">Last hour</SelectItem>
+                  <SelectItem value="1440">Last 24h</SelectItem>
+                  <SelectItem value="10080">Last 7 days</SelectItem>
+                  <SelectItem value="43200">Last 30 days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -287,61 +380,74 @@ export default function DevBreadcrumbs() {
             <p className="text-muted-foreground text-center py-4">
               Please log in to view breadcrumbs.
             </p>
-          ) : breadcrumbs.length === 0 ? (
+          ) : filteredBreadcrumbs.length === 0 ? (
             <p className="text-muted-foreground text-center py-4">
-              No breadcrumbs found for the selected time period.
+              No breadcrumbs found for the selected filters.
             </p>
           ) : (
-            <div className="space-y-4">
-              {breadcrumbs.map((breadcrumb) => (
-                <div key={breadcrumb.id} className="border rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline">{breadcrumb.scope}</Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {formatDate(breadcrumb.created_at)}
-                        </span>
-                      </div>
-                      <h3 className="font-medium">{breadcrumb.summary}</h3>
-                      {breadcrumb.tags.length > 0 && (
-                        <div className="flex gap-1 mt-2">
-                          {breadcrumb.tags.map((tag, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
+            /* SANDBOX_START (polish) */
+            <div className="space-y-6">
+              {Object.entries(groupBreadcrumbsByDay(filteredBreadcrumbs)).map(([dayGroup, dayBreadcrumbs]) => (
+                <div key={dayGroup}>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3 border-b pb-1">
+                    {dayGroup}
+                  </h3>
+                  <div className="space-y-4">
+                    {dayBreadcrumbs.map((breadcrumb) => (
+                      <div key={breadcrumb.id} className="border rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge className={getScopeColor(breadcrumb.scope)}>
+                                {breadcrumb.scope}
+                              </Badge>
+                              <span className="text-sm text-muted-foreground">
+                                {formatFriendlyDate(breadcrumb.created_at)}
+                              </span>
+                            </div>
+                            <h3 className="font-medium">{breadcrumb.summary}</h3>
+                            {breadcrumb.tags.length > 0 && (
+                              <div className="flex gap-1 mt-2">
+                                {breadcrumb.tags.map((tag, index) => (
+                                  <Badge key={index} variant="secondary" className="text-xs">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          {breadcrumb.details && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  View
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                  <DialogTitle>{breadcrumb.summary}</DialogTitle>
+                                  <DialogDescription>
+                                    {breadcrumb.scope} • {formatFriendlyDate(breadcrumb.created_at)}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                 <div className="mt-4">
+                                   <pre className="whitespace-pre-wrap text-sm">
+                                     {typeof breadcrumb.details === 'string' 
+                                       ? breadcrumb.details 
+                                       : JSON.stringify(breadcrumb.details, null, 2)}
+                                   </pre>
+                                 </div>
+                              </DialogContent>
+                            </Dialog>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    {breadcrumb.details && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            View
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>{breadcrumb.summary}</DialogTitle>
-                            <DialogDescription>
-                              {breadcrumb.scope} • {formatDate(breadcrumb.created_at)}
-                            </DialogDescription>
-                          </DialogHeader>
-                           <div className="mt-4">
-                             <pre className="whitespace-pre-wrap text-sm">
-                               {typeof breadcrumb.details === 'string' 
-                                 ? breadcrumb.details 
-                                 : JSON.stringify(breadcrumb.details, null, 2)}
-                             </pre>
-                           </div>
-                        </DialogContent>
-                      </Dialog>
-                    )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
             </div>
+            /* SANDBOX_END */
           )}
         </CardContent>
       </Card>

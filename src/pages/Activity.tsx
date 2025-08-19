@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -24,6 +26,9 @@ export default function Activity() {
   const [loading, setLoading] = useState(true);
   const [postIdFilter, setPostIdFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
+  // SANDBOX_START (polish)
+  const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
+  // SANDBOX_END
   const { toast } = useToast();
 
   useEffect(() => {
@@ -62,29 +67,68 @@ export default function Activity() {
     }
   };
 
+  // SANDBOX_START (polish)
+  const getFriendlyEventLabel = (eventType: string | null) => {
+    switch (eventType) {
+      case 'sandbox_no_match': return 'NO_MATCH';
+      case 'sandbox_dm': return 'DM_LOGGED';
+      default: return eventType || 'Unknown';
+    }
+  };
+
+  const formatFriendlyTimestamp = (dateString: string) => {
+    return new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).format(new Date(dateString));
+  };
+
+  const toggleEventExpansion = (eventId: string) => {
+    const newExpanded = new Set(expandedEvents);
+    if (newExpanded.has(eventId)) {
+      newExpanded.delete(eventId);
+    } else {
+      newExpanded.add(eventId);
+    }
+    setExpandedEvents(newExpanded);
+  };
+  // SANDBOX_END
+
   const getEventBadge = (event: Event) => {
+    // SANDBOX_START (polish)
+    const friendlyLabel = getFriendlyEventLabel(event.type);
+    const originalType = event.type;
+    // SANDBOX_END
+    
     if (event.type === 'dm_sent' && event.sent_dm) {
-      return <Badge className="bg-green-100 text-green-800">DM Sent</Badge>;
+      return <Badge className="bg-green-100 text-green-800" title={originalType || undefined}>DM Sent</Badge>;
     }
     if (event.type === 'sandbox_dm' && event.sent_dm) {
-      return <Badge className="bg-purple-100 text-purple-800">Sandbox DM</Badge>;
+      return <Badge className="bg-purple-100 text-purple-800" title={originalType || undefined}>DM_LOGGED</Badge>;
+    }
+    if (event.type === 'sandbox_no_match') {
+      return <Badge className="bg-orange-100 text-orange-800" title={originalType || undefined}>NO_MATCH</Badge>;
     }
     if (event.type === 'sandbox_simulate_attempt') {
-      return <Badge className="bg-orange-100 text-orange-800">Simulate Attempt</Badge>;
+      return <Badge className="bg-orange-100 text-orange-800" title={originalType || undefined}>Simulate Attempt</Badge>;
     }
     if (event.type === 'comment' && event.matched) {
-      return <Badge className="bg-blue-100 text-blue-800">Matched</Badge>;
+      return <Badge className="bg-blue-100 text-blue-800" title={originalType || undefined}>Matched</Badge>;
     }
     if (event.type === 'comment' && !event.matched) {
-      return <Badge variant="secondary">No Match</Badge>;
+      return <Badge variant="secondary" title={originalType || undefined}>No Match</Badge>;
     }
     if (event.type === 'limit_hit') {
-      return <Badge variant="destructive">Limit Hit</Badge>;
+      return <Badge variant="destructive" title={originalType || undefined}>Limit Hit</Badge>;
     }
     if (event.type === 'no_link') {
-      return <Badge variant="outline">No Link</Badge>;
+      return <Badge variant="outline" title={originalType || undefined}>No Link</Badge>;
     }
-    return <Badge variant="outline">{event.type || 'Unknown'}</Badge>;
+    return <Badge variant="outline" title={originalType || undefined}>{friendlyLabel}</Badge>;
   };
 
   if (loading) {
@@ -185,11 +229,41 @@ export default function Activity() {
                       </div>
                     </div>
                     
-                    <div className="text-right text-sm text-muted-foreground">
-                      <p>{new Date(event.created_at).toLocaleDateString()}</p>
-                      <p>{new Date(event.created_at).toLocaleTimeString()}</p>
+                    <div className="flex items-center gap-4">
+                      {/* SANDBOX_START (polish) */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleEventExpansion(event.id)}
+                        className="flex items-center gap-1"
+                      >
+                        {expandedEvents.has(event.id) ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                        Details
+                      </Button>
+                      {/* SANDBOX_END */}
+                      
+                      <div className="text-right text-sm text-muted-foreground">
+                        {/* SANDBOX_START (polish) */}
+                        <p>{formatFriendlyTimestamp(event.created_at)}</p>
+                        {/* SANDBOX_END */}
+                      </div>
                     </div>
                   </div>
+                  
+                  {/* SANDBOX_START (polish) */}
+                  {expandedEvents.has(event.id) && (
+                    <div className="mt-4 pt-4 border-t">
+                      <h4 className="text-sm font-medium mb-2">Raw Event Data:</h4>
+                      <pre className="text-xs bg-muted p-3 rounded overflow-auto max-h-60">
+                        {JSON.stringify(event, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  {/* SANDBOX_END */}
                 </CardContent>
               </Card>
             ))}
