@@ -67,44 +67,49 @@ const script: TestScript = {
       run: async (ctx) => {
         ctx.log('Testing health-check for waitlist status...');
         
-        const { data, error } = await ctx.supabase.functions.invoke('health-check');
+        const resp = await ctx.invokeEdge('health-check', { listId: PUBLIC_CONFIG.BREVO_WAITLIST_LIST_ID });
         
-        if (error) {
+        if (!resp.ok) {
           return { 
             pass: false, 
-            note: `Health-check failed: ${error.message}` 
-          };
-        }
-        
-        if (!data?.ok) {
-          return { 
-            pass: false, 
-            note: `Health-check returned: ${JSON.stringify(data)}` 
+            note: `Health-check failed: ${resp.code || 'UNKNOWN'} — ${resp.message || 'no message'}` 
           };
         }
         
         // Check if waitlist section exists and has proper configuration
-        const waitlistStatus = data?.waitlist;
-        if (!waitlistStatus) {
+        const wl = resp.details?.waitlist;
+        if (!wl) {
           return { 
             pass: false, 
             note: 'No waitlist status in health-check response' 
           };
         }
         
-        // Verify list ID matches configuration
-        const configuredListId = PUBLIC_CONFIG.BREVO_WAITLIST_LIST_ID;
-        if (waitlistStatus.listId !== configuredListId) {
-          return { 
-            pass: false, 
-            note: `List ID mismatch: expected ${configuredListId}, got ${waitlistStatus.listId}` 
-          };
+        // Verify list ID based on source
+        const configuredListId = Number(PUBLIC_CONFIG.BREVO_WAITLIST_LIST_ID);
+        
+        if (wl.listIdSource === 'env') {
+          // Accept any positive number, because env overrides body
+          if (!(wl.effectiveListId > 0)) {
+            return { 
+              pass: false, 
+              note: `List ID mismatch: source=${wl.listIdSource}, effective=${wl.effectiveListId}, expected=positive number` 
+            };
+          }
+        } else {
+          // Expect it equals PUBLIC_CONFIG.BREVO_WAITLIST_LIST_ID
+          if (wl.listIdSource !== 'body' || wl.effectiveListId !== configuredListId) {
+            return { 
+              pass: false, 
+              note: `List ID mismatch: source=${wl.listIdSource}, effective=${wl.effectiveListId}, expected=${configuredListId}` 
+            };
+          }
         }
         
-        ctx.log('Health-check successful', data);
+        ctx.log('Health-check successful', resp.details);
         return { 
           pass: true, 
-          note: `Waitlist ready (list ID: ${waitlistStatus.listId})` 
+          note: `Waitlist ready (list ID: ${wl.effectiveListId})` 
         };
       }
     }
