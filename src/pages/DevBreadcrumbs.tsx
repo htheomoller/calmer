@@ -10,6 +10,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { logBreadcrumb } from '@/lib/devlog';
+// SANDBOX_START (audit)
+import { MarkdownModal } from '@/components/dev/MarkdownModal';
+// SANDBOX_END
 
 interface Breadcrumb {
   id: string;
@@ -48,6 +51,9 @@ export default function DevBreadcrumbs() {
   const [scopeFilter, setScopeFilter] = useState(() => {
     return localStorage.getItem('dev_breadcrumbs_filter') || 'all';
   });
+  // SANDBOX_END
+  // SANDBOX_START (audit)
+  const [modalPath, setModalPath] = useState<string>('');
   // SANDBOX_END
 
   const scopePresets = ['sandbox', 'waitlist', 'routing', 'auth', 'triggers', 'gupshup'];
@@ -447,12 +453,22 @@ export default function DevBreadcrumbs() {
                             {!import.meta.env.PROD && breadcrumb.scope === 'audit' && breadcrumb.details?.artifacts && (
                               <>
                                 {breadcrumb.details.artifacts.report && (
-                                  <Button variant="outline" size="sm" className="text-indigo-600">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-indigo-600"
+                                    onClick={() => setModalPath(breadcrumb.details.artifacts.report)}
+                                  >
                                     Open report
                                   </Button>
                                 )}
                                 {breadcrumb.details.artifacts.plan && (
-                                  <Button variant="outline" size="sm" className="text-indigo-600">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-indigo-600"
+                                    onClick={() => setModalPath(breadcrumb.details.artifacts.plan)}
+                                  >
                                     Open plan
                                   </Button>
                                 )}
@@ -471,6 +487,16 @@ export default function DevBreadcrumbs() {
           )}
         </CardContent>
       </Card>
+      
+      {/* SANDBOX_START (audit) */}
+      {modalPath && (
+        <MarkdownModal 
+          path={modalPath} 
+          onClose={() => setModalPath('')}
+          title={modalPath.includes('report') ? 'Audit Report' : 'Cleanup Plan'}
+        />
+      )}
+      {/* SANDBOX_END */}
     </div>
   );
 }

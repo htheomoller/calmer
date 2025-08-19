@@ -13,7 +13,8 @@ import { WEBHOOK_COMMENTS_FN } from "@/config/functions";
 import { logBreadcrumb } from "@/lib/devlog";
 // SANDBOX_END
 // SANDBOX_START (audit)
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { MarkdownModal } from "@/components/dev/MarkdownModal";
+import { Badge } from "@/components/ui/badge";
 // SANDBOX_END
 
 // Expected secrets for the application
@@ -34,12 +35,24 @@ export default function Health() {
   const { toast } = useToast();
   // SANDBOX_START (audit)
   const [auditLoading, setAuditLoading] = useState(false);
-  const [auditReport, setAuditReport] = useState<string>('');
-  const [showAuditModal, setShowAuditModal] = useState(false);
+  const [auditAvailable, setAuditAvailable] = useState(false);
+  const [modalPath, setModalPath] = useState<string>('');
+  const [reportPath, setReportPath] = useState<string>('');
+  const [planPath, setPlanPath] = useState<string>('');
   // SANDBOX_END
 
   useEffect(() => {
     getCurrentProvider().then(setProvider);
+    
+    // SANDBOX_START (audit)
+    // Check if audit middleware is available (DEV only)
+    if (!import.meta.env.PROD) {
+      fetch('/__dev/audit-run?ping=1')
+        .then(res => res.json())
+        .then(data => setAuditAvailable(!!data?.ok))
+        .catch(() => setAuditAvailable(false));
+    }
+    // SANDBOX_END
   }, []);
 
   // Only show in development
@@ -165,59 +178,40 @@ export default function Health() {
   };
 
   // SANDBOX_START (audit)
-  const generateAuditReport = async () => {
+  const runAuditReport = async () => {
     setAuditLoading(true);
     try {
-      // In a real implementation, this would call a dev-only endpoint
-      // For now, we'll simulate the report generation
-      const mockReport = `# Audit Report (Local Dev)
-Generated: ${new Date().toISOString()}
+      const response = await fetch('/__dev/audit-run');
+      const res = await response.json();
+      
+      if (res.ok) {
+        setReportPath(res.artifacts?.report || '');
+        setPlanPath(res.artifacts?.plan || '');
+        toast({
+          title: "Audit report generated",
+          description: "Real audit report completed successfully",
+        });
+      } else {
+        toast({
+          title: "Audit run failed",
+          description: `Exit code ${res.code}: ${res.stderr?.slice(0, 100) || 'Unknown error'}`,
+          variant: "destructive",
+        });
+      }
 
-## Summary
-- Features scanned: 4
-- Files with issues: 0
-- Sandbox blocks found: 15+
-
-## Next Steps
-- Run \`npm run audit:report\` for full analysis
-- Check docs/cleanup/plan.md for cleanup guidance
-- Review feature manifests in docs/feature-manifest/
-
-*This is a development-only feature.*`;
-
-      setAuditReport(mockReport);
-      setShowAuditModal(true);
-
-      // Simulate audit response for breadcrumb logging
-      const auditResult = {
-        ok: true,
-        code: 0,
-        stdout: "Audit completed successfully\nFeatures scanned: 4\nFiles processed: 50+",
-        stderr: "",
-        artifacts: {
-          report: 'tmp/audit/report.md',
-          plan: 'docs/cleanup/plan.md'
-        }
-      };
-
-      // Log the audit run with artifacts
+      // Fire-and-forget breadcrumb logging
       logBreadcrumb({
         scope: 'audit',
-        summary: auditResult.ok ? 'Audit report generated' : 'Audit run failed',
+        summary: res.ok ? 'Audit report generated' : 'Audit run failed',
         details: {
-          ok: auditResult.ok,
-          code: auditResult.code,
-          artifacts: auditResult.artifacts,
-          stdout_head: (auditResult.stdout || '').slice(0, 800),
-          stderr_head: (auditResult.stderr || '').slice(0, 800),
+          ok: !!res.ok,
+          code: res.code,
+          artifacts: res.artifacts || null,
+          stdout_head: (res.stdout || '').slice(0, 800),
+          stderr_head: (res.stderr || '').slice(0, 800),
           at: new Date().toISOString()
         },
-        tags: auditResult.ok ? ['audit', 'success'] : ['audit', 'error']
-      });
-
-      toast({
-        title: "Audit report generated",
-        description: "Local audit report is ready for review",
+        tags: res.ok ? ['audit', 'success'] : ['audit', 'error']
       });
     } catch (error: any) {
       // Log failed audit run
@@ -250,9 +244,14 @@ Generated: ${new Date().toISOString()}
     <div className="min-h-screen p-8">
       <meta name="robots" content="noindex,nofollow" />
       <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Application Health</h1>
-          <p className="text-muted-foreground">Configuration and secrets status</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Application Health</h1>
+            <p className="text-muted-foreground">Configuration and secrets status</p>
+          </div>
+          <Badge variant="outline" className="text-xs">
+            ENV: {import.meta.env.PROD ? 'PROD' : 'DEV'}
+          </Badge>
         </div>
 
         <Card className="p-6">
@@ -460,35 +459,65 @@ Generated: ${new Date().toISOString()}
           <p className="text-sm text-muted-foreground mb-4">
             Development-only audit and cleanup tools
           </p>
-          <div className="flex gap-2">
-            <Dialog open={showAuditModal} onOpenChange={setShowAuditModal}>
-              <DialogTrigger asChild>
-                <Button 
-                  onClick={generateAuditReport}
-                  disabled={auditLoading}
-                  variant="outline"
-                >
-                  {auditLoading ? "Generating..." : "Generate Audit Report (Local)"}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Audit Report</DialogTitle>
-                  <DialogDescription>
-                    Local development audit report
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="mt-4">
-                  <pre className="whitespace-pre-wrap text-sm bg-muted p-4 rounded-lg">
-                    {auditReport}
-                  </pre>
+          
+          {!import.meta.env.PROD ? (
+            <>
+              {auditAvailable ? (
+                <div className="space-y-4">
+                  <Button 
+                    onClick={runAuditReport}
+                    disabled={auditLoading}
+                    variant="default"
+                  >
+                    {auditLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Running audit...
+                      </>
+                    ) : (
+                      "Run audit report"
+                    )}
+                  </Button>
+                  
+                  {(reportPath || planPath) && (
+                    <div className="flex gap-2">
+                      {reportPath && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setModalPath(reportPath)}
+                        >
+                          Open report
+                        </Button>
+                      )}
+                      {planPath && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setModalPath(planPath)}
+                        >
+                          Open plan
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </DialogContent>
-            </Dialog>
-            <p className="text-xs text-muted-foreground self-center">
-              Run <code>npm run audit:report</code> for complete analysis
+              ) : (
+                <div className="space-y-2">
+                  <Button disabled variant="outline">
+                    Run audit report
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Dev middleware not active. Restart dev preview or run <code>npm run audit:report</code>.
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Run locally: <code>npm run audit:report</code>
             </p>
-          </div>
+          )}
         </Card>
         {/* SANDBOX_END */}
 
@@ -503,6 +532,16 @@ Generated: ${new Date().toISOString()}
           </ul>
         </Card>
       </div>
+      
+      {/* SANDBOX_START (audit) */}
+      {modalPath && (
+        <MarkdownModal 
+          path={modalPath} 
+          onClose={() => setModalPath('')}
+          title={modalPath.includes('report') ? 'Audit Report' : 'Cleanup Plan'}
+        />
+      )}
+      {/* SANDBOX_END */}
     </div>
   );
 }
