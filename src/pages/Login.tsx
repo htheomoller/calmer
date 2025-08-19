@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,12 +14,22 @@ export default function Login() {
   const { signIn, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      // Get the redirect destination
+      const from = searchParams.get('from');
+      const allowedRoutes = ['/posts', '/settings', '/activity', '/simulate', '/health', '/home-legacy'];
+      
+      // Validate the "from" parameter and redirect accordingly
+      if (from && allowedRoutes.some(route => from.startsWith(route))) {
+        navigate(from, { replace: true });
+      } else {
+        navigate('/posts', { replace: true });
+      }
     }
-  }, [user, navigate]);
+  }, [user, navigate, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +49,17 @@ export default function Login() {
           title: "Welcome back!",
           description: "You have successfully logged in."
         });
-        navigate('/');
+        
+        // Get the redirect destination
+        const from = searchParams.get('from');
+        const allowedRoutes = ['/posts', '/settings', '/activity', '/simulate', '/health', '/home-legacy'];
+        
+        // Validate the "from" parameter and redirect accordingly
+        if (from && allowedRoutes.some(route => from.startsWith(route))) {
+          navigate(from, { replace: true });
+        } else {
+          navigate('/posts', { replace: true });
+        }
       }
     } catch (error) {
       toast({

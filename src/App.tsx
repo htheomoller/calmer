@@ -21,8 +21,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { LockdownRedirect } from "./components/LockdownRedirect";
+import { AuthGate } from "./components/AuthGate";
 
 const queryClient = new QueryClient();
 
@@ -45,7 +44,7 @@ function AppContent() {
   }, [pathname]);
 
   return (
-    <LockdownRedirect>
+    <AuthGate>
       <Routes>
         <Route path="/" element={<ComingSoon />} />
         <Route path="/comingsoon" element={<ComingSoon />} />
@@ -53,18 +52,18 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/health" element={<Health />} />
-        <Route path="/settings" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
-        <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
-        <Route path="/posts/:id" element={<ProtectedRoute><PostDetails /></ProtectedRoute>} />
-        <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
-        <Route path="/simulate" element={<ProtectedRoute><SimulateComment /></ProtectedRoute>} />
+        <Route path="/settings" element={<AccountSettings />} />
+        <Route path="/posts" element={<Posts />} />
+        <Route path="/posts/:id" element={<PostDetails />} />
+        <Route path="/activity" element={<Activity />} />
+        <Route path="/simulate" element={<SimulateComment />} />
         <Route path="/resources" element={<Resources />} />
         <Route path="/resources/:slug" element={<ResourcePost />} />
         <Route path="/resources/category/:category" element={<ResourceCategory />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </LockdownRedirect>
+    </AuthGate>
   );
 }
 

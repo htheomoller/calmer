@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { WaitlistForm } from "@/components/WaitlistForm";
+import { HeaderNav } from "@/components/layout/header-nav";
 const ComingSoon = () => {
   useEffect(() => {
     // Add noindex meta tag for this page only
@@ -13,7 +14,9 @@ const ComingSoon = () => {
       document.head.removeChild(metaRobots);
     };
   }, []);
-  return <div className="min-h-screen bg-[#fafafa] flex flex-col justify-center">
+  return (
+    <div className="min-h-screen bg-[#fafafa] flex flex-col justify-center">
+      <HeaderNav />
       <main className="px-[clamp(25px,4vw,64px)] flex-1 flex items-center py-[64px]">
         <div className="max-w-2xl mx-auto">
           <h1 data-anim className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6">
@@ -67,6 +70,7 @@ const ComingSoon = () => {
           </p>
         </div>
       </footer>
-    </div>;
+    </div>
+  );
 };
 export default ComingSoon;
