@@ -60,6 +60,7 @@ export default function DevBreadcrumbs() {
       case 'waitlist': return 'bg-sky-100 text-sky-800 border-sky-200';
       case 'routing': return 'bg-violet-100 text-violet-800 border-violet-200';
       case 'auth': return 'bg-rose-100 text-rose-800 border-rose-200';
+      case 'audit': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
       default: return 'bg-slate-100 text-slate-800 border-slate-200';
     }
   };
@@ -358,6 +359,7 @@ export default function DevBreadcrumbs() {
                   <SelectItem value="waitlist">Waitlist</SelectItem>
                   <SelectItem value="routing">Routing</SelectItem>
                   <SelectItem value="auth">Auth</SelectItem>
+                  <SelectItem value="audit">Audit</SelectItem>
                 </SelectContent>
               </Select>
               {/* SANDBOX_END */}
@@ -416,30 +418,48 @@ export default function DevBreadcrumbs() {
                               </div>
                             )}
                           </div>
-                          {breadcrumb.details && (
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  View
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-2xl">
-                                <DialogHeader>
-                                  <DialogTitle>{breadcrumb.summary}</DialogTitle>
-                                  <DialogDescription>
-                                    {breadcrumb.scope} • {formatFriendlyDate(breadcrumb.created_at)}
-                                  </DialogDescription>
-                                </DialogHeader>
-                                 <div className="mt-4">
-                                   <pre className="whitespace-pre-wrap text-sm">
-                                     {typeof breadcrumb.details === 'string' 
-                                       ? breadcrumb.details 
-                                       : JSON.stringify(breadcrumb.details, null, 2)}
-                                   </pre>
-                                 </div>
-                              </DialogContent>
-                            </Dialog>
-                          )}
+                          <div className="flex gap-2">
+                            {breadcrumb.details && (
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    View
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl">
+                                  <DialogHeader>
+                                    <DialogTitle>{breadcrumb.summary}</DialogTitle>
+                                    <DialogDescription>
+                                      {breadcrumb.scope} • {formatFriendlyDate(breadcrumb.created_at)}
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                   <div className="mt-4">
+                                     <pre className="whitespace-pre-wrap text-sm">
+                                       {typeof breadcrumb.details === 'string' 
+                                         ? breadcrumb.details 
+                                         : JSON.stringify(breadcrumb.details, null, 2)}
+                                     </pre>
+                                   </div>
+                                </DialogContent>
+                              </Dialog>
+                            )}
+                            {/* SANDBOX_START (audit) */}
+                            {!import.meta.env.PROD && breadcrumb.scope === 'audit' && breadcrumb.details?.artifacts && (
+                              <>
+                                {breadcrumb.details.artifacts.report && (
+                                  <Button variant="outline" size="sm" className="text-indigo-600">
+                                    Open report
+                                  </Button>
+                                )}
+                                {breadcrumb.details.artifacts.plan && (
+                                  <Button variant="outline" size="sm" className="text-indigo-600">
+                                    Open plan
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                            {/* SANDBOX_END */}
+                          </div>
                         </div>
                       </div>
                     ))}

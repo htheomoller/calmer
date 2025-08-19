@@ -188,12 +188,31 @@ Generated: ${new Date().toISOString()}
       setAuditReport(mockReport);
       setShowAuditModal(true);
 
-      // Log the audit run
-      await logBreadcrumb({
+      // Simulate audit response for breadcrumb logging
+      const auditResult = {
+        ok: true,
+        code: 0,
+        stdout: "Audit completed successfully\nFeatures scanned: 4\nFiles processed: 50+",
+        stderr: "",
+        artifacts: {
+          report: 'tmp/audit/report.md',
+          plan: 'docs/cleanup/plan.md'
+        }
+      };
+
+      // Log the audit run with artifacts
+      logBreadcrumb({
         scope: 'audit',
-        summary: 'Audit report generated (dev)',
-        details: { timestamp: new Date().toISOString() },
-        tags: ['dev', 'audit']
+        summary: auditResult.ok ? 'Audit report generated' : 'Audit run failed',
+        details: {
+          ok: auditResult.ok,
+          code: auditResult.code,
+          artifacts: auditResult.artifacts,
+          stdout_head: (auditResult.stdout || '').slice(0, 800),
+          stderr_head: (auditResult.stderr || '').slice(0, 800),
+          at: new Date().toISOString()
+        },
+        tags: auditResult.ok ? ['audit', 'success'] : ['audit', 'error']
       });
 
       toast({
@@ -201,6 +220,21 @@ Generated: ${new Date().toISOString()}
         description: "Local audit report is ready for review",
       });
     } catch (error: any) {
+      // Log failed audit run
+      logBreadcrumb({
+        scope: 'audit',
+        summary: 'Audit run failed',
+        details: {
+          ok: false,
+          code: 1,
+          artifacts: null,
+          stdout_head: '',
+          stderr_head: error.message?.slice(0, 800) || '',
+          at: new Date().toISOString()
+        },
+        tags: ['audit', 'error']
+      });
+
       toast({
         title: "Audit generation failed",
         description: error.message,
