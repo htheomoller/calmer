@@ -18,8 +18,18 @@ export const AuthGate = ({ children }: AuthGateProps) => {
 
     // Emergency kill-switch: force everyone to /comingsoon if site is locked down
     // EXCEPT allow /login and /signup even during lockdown
+    // AND allow authenticated users full access to protected routes
     if (SITE_LOCKDOWN) {
       const allowedDuringLockdown = ['/comingsoon', '/login', '/signup'];
+      const protectedRoutes = ['/posts', '/settings', '/activity', '/simulate', '/health', '/home-legacy'];
+      const isProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route));
+      
+      // If it's a protected route and user is authenticated, allow access
+      if (isProtectedRoute && user) {
+        return;
+      }
+      
+      // For all other cases, check if route is allowed during lockdown
       if (!allowedDuringLockdown.includes(location.pathname)) {
         navigate('/comingsoon', { replace: true });
       }
