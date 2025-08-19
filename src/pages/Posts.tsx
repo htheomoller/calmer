@@ -13,6 +13,7 @@ import { getCurrentProvider, setProviderOverride, getProviderOverride, type Mess
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { WEBHOOK_COMMENTS_FN } from "@/config/functions";
+import { CommentTestDialog } from "@/components/ui/comment-test-dialog";
 
 interface Post {
   id: string;
@@ -34,6 +35,7 @@ export default function Posts() {
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentProvider, setCurrentProvider] = useState<MessagingProvider>('sandbox');
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [availableProvider, setAvailableProvider] = useState<MessagingProvider>('sandbox');
   const { toast } = useToast();
 
@@ -109,6 +111,62 @@ export default function Posts() {
       code: body?.code ?? ctx.code ?? 'UNKNOWN',
       raw: { err }
     };
+  };
+
+  const handleCommentTest = async ({ postId, userHandle, commentText }: { 
+    postId: string; 
+    userHandle: string; 
+    commentText: string; 
+  }) => {
+    try {
+      console.log('Testing comment → DM flow with custom input...');
+      
+      const targetPost = posts.find(p => p.id === postId);
+      if (!targetPost) {
+        toast({
+          title: "Error",
+          description: "Selected post not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Simulate webhook call for comment → DM with custom comment
+      const { data, error } = await supabase.functions.invoke('webhook-comments', {
+        body: {
+          provider: 'sandbox',
+          ig_post_id: targetPost.ig_post_id,
+          comment_text: commentText,
+        },
+      });
+
+      if (error) {
+        const e = extractInvokeError(error);
+        console.log('invoke:webhook-comments:error', e);
+        toast({
+          title: `Edge ${e.status}: ${e.code}`,
+          description: e.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('invoke:webhook-comments:ok', data);
+      toast({
+        title: "Success",
+        description: data?.message ?? 'Sandbox test completed',
+      });
+
+      // Refresh data to show new activity
+      await loadData();
+    } catch (error) {
+      console.error('Error testing comment flow:', error);
+      toast({
+        title: "Error",
+        description: "Failed to test comment flow",
+        variant: "destructive",
+      });
+    }
   };
 
   const simulateGupshupComment = async () => {
@@ -471,7 +529,7 @@ export default function Posts() {
               </Button>
               <Button 
                 variant="outline"
-                onClick={simulateGupshupComment}
+                onClick={() => setCommentDialogOpen(true)}
               >
                 <Eye className="w-4 h-4 mr-2" />
                 Test Comments
@@ -568,6 +626,14 @@ export default function Posts() {
           </div>
         )}
       </div>
+
+      <CommentTestDialog
+        open={commentDialogOpen}
+        onOpenChange={setCommentDialogOpen}
+        posts={posts}
+        onTest={handleCommentTest}
+        onCreatePost={getOrCreateTestPost}
+      />
     </>
   );
 }
