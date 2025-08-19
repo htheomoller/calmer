@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HeaderNav } from "@/components/layout/header-nav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SimulateComment() {
   const [formData, setFormData] = useState({
@@ -16,7 +17,38 @@ export default function SimulateComment() {
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [availablePost, setAvailablePost] = useState<any>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadAvailablePost();
+  }, []);
+
+  const loadAvailablePost = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: posts } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('account_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (posts && posts.length > 0) {
+        const post = posts[0];
+        setAvailablePost(post);
+        setFormData(prev => ({
+          ...prev,
+          ig_post_id: post.ig_post_id || '',
+          comment_text: post.code ? `Cool post! ${post.code}` : 'Cool post! LINK'
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading posts:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,27 +56,31 @@ export default function SimulateComment() {
     setResult(null);
 
     try {
-      const response = await fetch('https://upzjnifdcmevsdfmzwzw.supabase.co/functions/v1/simulate-comment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwempuaWZkY21ldnNkZm16d3p3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjc5MDUsImV4cCI6MjA3MDYwMzkwNX0.s136RNSm8DfsE_qC_llnaQY2nmbwH0vxhYq84MypTg0`
-        },
-        body: JSON.stringify(formData)
+      const { data, error } = await supabase.functions.invoke('simulate-comment', {
+        body: formData
       });
 
-      const data = await response.json();
+      if (error) throw error;
       setResult(data);
 
       if (data.success) {
         toast({
-          title: "Comment simulated",
+          title: "Sandbox DM generated (logged)",
           description: data.message || "Comment processed successfully"
         });
       } else {
+        const errorMsg = data.error || "Failed to process comment";
+        let toastTitle = "Simulation failed";
+        
+        if (errorMsg.includes("No post found") || errorMsg.includes("automation disabled")) {
+          toastTitle = "Automation disabled or link missing";
+        } else if (errorMsg.includes("No match") || errorMsg.includes("keyword")) {
+          toastTitle = "No code match in comment";
+        }
+        
         toast({
-          title: "Simulation failed",
-          description: data.error || "Failed to process comment",
+          title: toastTitle,
+          description: errorMsg,
           variant: "destructive"
         });
       }
@@ -69,6 +105,11 @@ export default function SimulateComment() {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Test Comment Processing</CardTitle>
+            {availablePost && (
+              <p className="text-sm text-muted-foreground">
+                Using post: {availablePost.ig_post_id} | Code: "{availablePost.code || 'LINK'}"
+              </p>
+            )}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">

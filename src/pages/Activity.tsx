@@ -66,6 +66,9 @@ export default function Activity() {
     if (event.type === 'dm_sent' && event.sent_dm) {
       return <Badge className="bg-green-100 text-green-800">DM Sent</Badge>;
     }
+    if (event.type === 'sandbox_dm' && event.sent_dm) {
+      return <Badge className="bg-purple-100 text-purple-800">Sandbox DM</Badge>;
+    }
     if (event.type === 'comment' && event.matched) {
       return <Badge className="bg-blue-100 text-blue-800">Matched</Badge>;
     }
@@ -132,6 +135,7 @@ export default function Activity() {
                     <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="comment">Comments</SelectItem>
                     <SelectItem value="dm_sent">DM Sent</SelectItem>
+                    <SelectItem value="sandbox_dm">Sandbox DM</SelectItem>
                     <SelectItem value="limit_hit">Limit Hit</SelectItem>
                     <SelectItem value="no_link">No Link</SelectItem>
                   </SelectContent>

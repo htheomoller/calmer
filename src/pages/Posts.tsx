@@ -152,6 +152,71 @@ export default function Posts() {
     }
   };
 
+  const createSandboxPost = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('posts')
+        .insert({
+          ig_post_id: `sandbox-post-${Date.now()}`,
+          caption: 'Test post for sandbox',
+          code: 'LINK',
+          link: null,
+          automation_enabled: true,
+          account_id: user.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Sandbox post created",
+        description: "Test post added successfully"
+      });
+
+      await loadData(); // Refresh the list
+    } catch (error: any) {
+      console.error('Error creating sandbox post:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create sandbox post",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const ensurePostForTesting = async () => {
+    if (posts.length === 0) {
+      await createSandboxPost();
+      return;
+    }
+
+    // Enable automation on first post if disabled
+    const firstPost = posts[0];
+    if (!firstPost.automation_enabled) {
+      try {
+        const { error } = await supabase
+          .from('posts')
+          .update({ automation_enabled: true })
+          .eq('id', firstPost.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Automation enabled",
+          description: "Post automation turned on for testing"
+        });
+
+        await loadData(); // Refresh
+      } catch (error: any) {
+        console.error('Error enabling automation:', error);
+      }
+    }
+  };
+
   const handleProviderChange = (provider: MessagingProvider) => {
     setProviderOverride(provider);
     setCurrentProvider(provider);
@@ -217,14 +282,27 @@ export default function Posts() {
               <Button 
                 variant="outline"
                 size="sm"
-                onClick={() => simulateSandboxDM()}
+                onClick={createSandboxPost}
+              >
+                Create Sandbox Post
+              </Button>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  await ensurePostForTesting();
+                  simulateSandboxDM();
+                }}
               >
                 <Eye className="w-4 h-4 mr-2" />
                 Test {currentProvider} DM
               </Button>
               <Button 
                 variant="outline"
-                onClick={() => simulateGupshupComment()}
+                onClick={async () => {
+                  await ensurePostForTesting();
+                  simulateGupshupComment();
+                }}
               >
                 <Eye className="w-4 h-4 mr-2" />
                 Test Webhook
@@ -242,7 +320,8 @@ export default function Posts() {
         {posts.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
-              <p className="text-muted-foreground">No posts found. Posts will appear here when you connect your Instagram account.</p>
+              <p className="text-muted-foreground mb-4">No posts yet. Click 'Create Sandbox Post' to add a test post.</p>
+              <Button onClick={createSandboxPost}>Create Sandbox Post</Button>
             </CardContent>
           </Card>
         ) : (
