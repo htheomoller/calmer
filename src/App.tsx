@@ -50,7 +50,7 @@ function AppContent() {
         <Route path="/comingsoon" element={<ComingSoon />} />
         <Route path="/home-legacy" element={<Index />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        {/* Signup disabled - redirects to comingsoon via AuthGate */}
         <Route path="/health" element={<Health />} />
         <Route path="/settings" element={<AccountSettings />} />
         <Route path="/posts" element={<Posts />} />

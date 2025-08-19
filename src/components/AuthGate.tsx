@@ -17,10 +17,10 @@ export const AuthGate = ({ children }: AuthGateProps) => {
     if (loading) return;
 
     // Emergency kill-switch: force everyone to /comingsoon if site is locked down
-    // EXCEPT allow /login and /signup even during lockdown
+    // EXCEPT allow /login even during lockdown
     // AND allow authenticated users full access to protected routes
     if (SITE_LOCKDOWN) {
-      const allowedDuringLockdown = ['/comingsoon', '/login', '/signup'];
+      const allowedDuringLockdown = ['/comingsoon', '/login'];
       const protectedRoutes = ['/posts', '/settings', '/activity', '/simulate', '/health', '/home-legacy'];
       const isProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route));
       
@@ -37,7 +37,7 @@ export const AuthGate = ({ children }: AuthGateProps) => {
     }
 
     // Define route categories
-    const publicRoutes = ['/', '/comingsoon', '/login', '/signup'];
+    const publicRoutes = ['/', '/comingsoon', '/login'];
     const resourceRoutes = ['/resources'];
     const protectedRoutes = ['/posts', '/settings', '/activity', '/simulate', '/health', '/home-legacy'];
 
@@ -50,8 +50,9 @@ export const AuthGate = ({ children }: AuthGateProps) => {
 
     // Public and resource routes are always accessible
     if (isPublicRoute || isResourceRoute) {
-      // Special case: if already logged in and visiting /login or /signup, redirect to /posts
-      if (user && (currentPath === '/login' || currentPath === '/signup')) {
+      // Special case: if already logged in and visiting /login, redirect to /posts
+      // Note: /signup is no longer a public route, so it will be blocked
+      if (user && currentPath === '/login') {
         navigate('/posts', { replace: true });
       }
       return;
@@ -66,7 +67,10 @@ export const AuthGate = ({ children }: AuthGateProps) => {
       return;
     }
 
-    // For any other routes (like 404), let them through
+    // For any other routes (like 404, /signup), redirect to /comingsoon
+    if (currentPath === '/signup' || !isPublicRoute && !isResourceRoute && !isProtectedRoute) {
+      navigate('/comingsoon', { replace: true });
+    }
   }, [user, loading, location.pathname, navigate]);
 
   // Show nothing while loading to prevent flicker/loops
