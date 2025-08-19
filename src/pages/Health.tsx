@@ -154,6 +154,7 @@ export default function Health() {
 
   return (
     <div className="min-h-screen p-8">
+      <meta name="robots" content="noindex,nofollow" />
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Application Health</h1>

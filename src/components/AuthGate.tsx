@@ -3,6 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { SITE_LOCKDOWN } from '@/config/public';
 
+const isDev = !import.meta.env.PROD;
+const DEV_TOOL_ROUTES = ['/self-test', '/health']; // add more later if needed
+
 interface AuthGateProps {
   children: React.ReactNode;
 }
@@ -19,19 +22,28 @@ export const AuthGate = ({ children }: AuthGateProps) => {
     // Emergency kill-switch: force everyone to /comingsoon if site is locked down
     // EXCEPT allow /login even during lockdown
     // AND allow authenticated users full access to protected routes
+    // AND allow dev tools in development
     if (SITE_LOCKDOWN) {
-      const allowedDuringLockdown = ['/comingsoon', '/login'];
-      const protectedRoutes = ['/posts', '/settings', '/activity', '/simulate', '/health', '/home-legacy'];
-      const isProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route));
-      
-      // If it's a protected route and user is authenticated, allow access
+      const pathname = location.pathname;
+      const isPublic =
+        pathname === '/' ||
+        pathname === '/comingsoon' ||
+        pathname === '/login' ||
+        pathname === '/signup' ||
+        pathname.startsWith('/resources');
+
+      const isDevTool = isDev && DEV_TOOL_ROUTES.some(p => pathname.startsWith(p));
+
+      // Allow authenticated users full access to protected routes
+      const protectedRoutes = ['/posts', '/settings', '/activity', '/simulate', '/home-legacy'];
+      const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
       if (isProtectedRoute && user) {
         return;
       }
-      
-      // For all other cases, check if route is allowed during lockdown
-      if (!allowedDuringLockdown.includes(location.pathname)) {
-        navigate('/comingsoon', { replace: true });
+
+      if (!isPublic && !isDevTool) {
+        const from = encodeURIComponent(pathname + location.search);
+        navigate(`/comingsoon?from=${from}`, { replace: true });
       }
       return;
     }
