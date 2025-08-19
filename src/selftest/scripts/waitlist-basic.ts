@@ -120,11 +120,12 @@ const script: TestScript = {
         
         // Optional: Log success to breadcrumbs
         try {
-          const { logDevNote } = await import('@/dev/breadcrumbs');
-          await logDevNote({
-            scope: 'sandbox',
-            summary: 'Self-Test: Waitlist Basic Flow passes',
-            details: `All green on ${new Date().toLocaleString()}. Email: ${ctx['email']}`
+          const { logBreadcrumb } = await import('@/lib/devlog');
+          logBreadcrumb({
+            scope: 'selftest',
+            summary: 'Waitlist Basic Flow - ALL PASS',
+            details: { status: 'passed', email: ctx['email'], timestamp: new Date().toISOString() },
+            tags: ['pass', 'automated']
           });
           ctx.log('Success logged to breadcrumbs');
         } catch (e) {

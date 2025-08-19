@@ -93,7 +93,7 @@ export type Database = {
         Row: {
           author_email: string
           created_at: string
-          details: string | null
+          details: Json | null
           id: string
           scope: string
           summary: string
@@ -102,7 +102,7 @@ export type Database = {
         Insert: {
           author_email: string
           created_at?: string
-          details?: string | null
+          details?: Json | null
           id?: string
           scope: string
           summary: string
@@ -111,7 +111,7 @@ export type Database = {
         Update: {
           author_email?: string
           created_at?: string
-          details?: string | null
+          details?: Json | null
           id?: string
           scope?: string
           summary?: string

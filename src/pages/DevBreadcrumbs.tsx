@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { logBreadcrumb } from '@/lib/devlog';
 
 interface Breadcrumb {
   id: string;
@@ -16,7 +17,7 @@ interface Breadcrumb {
   author_email: string;
   scope: string;
   summary: string;
-  details: string | null;
+  details: any;
   tags: string[];
 }
 
@@ -39,8 +40,9 @@ export default function DevBreadcrumbs() {
   const [tags, setTags] = useState('');
   const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string>('');
   const [minutes, setMinutes] = useState(() => {
-    return localStorage.getItem('dev-breadcrumbs-minutes') || '1440';
+    return localStorage.getItem('dev-breadcrumbs-minutes') || '10080'; // Default to 7 days
   });
 
   const scopePresets = ['sandbox', 'waitlist', 'routing', 'auth', 'triggers', 'gupshup'];
@@ -55,23 +57,29 @@ export default function DevBreadcrumbs() {
       return;
     }
 
+    if (!currentUser) {
+      toast({
+        title: "Error",
+        description: "Must be logged in to add breadcrumbs",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('dev-breadcrumbs/add', {
-        body: {
-          scope: scope.trim(),
-          summary: summary.trim(),
-          details: details.trim() || null,
-          tags: tags.trim() ? tags.split(',').map(t => t.trim()).filter(Boolean) : []
-        }
-      });
+      const row = {
+        author_email: currentUser,
+        scope: scope.trim(),
+        summary: summary.trim(),
+        details: details.trim() || null,
+        tags: tags.trim() ? tags.split(',').map(t => t.trim()).filter(Boolean) : []
+      };
+
+      const { error } = await supabase.from('dev_breadcrumbs').insert(row);
 
       if (error) {
         throw error;
-      }
-
-      if (!data?.ok) {
-        throw new Error(data?.message || 'Failed to add breadcrumb');
       }
 
       toast({
@@ -98,23 +106,43 @@ export default function DevBreadcrumbs() {
     }
   };
 
+  const testInsert = async () => {
+    logBreadcrumb({
+      scope: 'selftest',
+      summary: 'UI test note',
+      details: { t: Date.now(), from: 'test-button' },
+      tags: ['debug']
+    });
+    // Wait a moment then refresh
+    setTimeout(loadBreadcrumbs, 500);
+  };
+
   const loadBreadcrumbs = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('dev-breadcrumbs/list', {
-        body: {
-          minutes: parseInt(minutes)
-        }
-      });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        setBreadcrumbs([]);
+        setCurrentUser('');
+        return;
+      }
+
+      setCurrentUser(user.email);
+
+      const now = new Date();
+      const since = new Date(now.getTime() - parseInt(minutes) * 60 * 1000).toISOString();
+      
+      const { data, error } = await supabase
+        .from('dev_breadcrumbs')
+        .select('*')
+        .eq('author_email', user.email)
+        .gte('created_at', since)
+        .order('created_at', { ascending: false });
 
       if (error) {
         throw error;
       }
 
-      if (!data?.ok) {
-        throw new Error(data?.message || 'Failed to load breadcrumbs');
-      }
-
-      setBreadcrumbs(data.rows || []);
+      setBreadcrumbs(data || []);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -138,9 +166,35 @@ export default function DevBreadcrumbs() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Breadcrumbs (Build Log)</h1>
-        <p className="text-muted-foreground">Track development changes and notes for easy cleanup later.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Breadcrumbs (Build Log)</h1>
+          <p className="text-muted-foreground">Track development changes and notes for easy cleanup later.</p>
+        </div>
+        <div className="text-right">
+          <Badge variant="outline" className="mb-2">
+            viewer: {currentUser || '(not logged in)'}
+          </Badge>
+          {currentUser && (
+            <div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={testInsert}
+                className="mr-2"
+              >
+                Test Insert
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={loadBreadcrumbs}
+              >
+                Refresh
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Add Note Form */}
@@ -229,7 +283,11 @@ export default function DevBreadcrumbs() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {breadcrumbs.length === 0 ? (
+          {!currentUser ? (
+            <p className="text-muted-foreground text-center py-4">
+              Please log in to view breadcrumbs.
+            </p>
+          ) : breadcrumbs.length === 0 ? (
             <p className="text-muted-foreground text-center py-4">
               No breadcrumbs found for the selected time period.
             </p>
@@ -270,11 +328,13 @@ export default function DevBreadcrumbs() {
                               {breadcrumb.scope} • {formatDate(breadcrumb.created_at)}
                             </DialogDescription>
                           </DialogHeader>
-                          <div className="mt-4">
-                            <pre className="whitespace-pre-wrap text-sm">
-                              {breadcrumb.details}
-                            </pre>
-                          </div>
+                           <div className="mt-4">
+                             <pre className="whitespace-pre-wrap text-sm">
+                               {typeof breadcrumb.details === 'string' 
+                                 ? breadcrumb.details 
+                                 : JSON.stringify(breadcrumb.details, null, 2)}
+                             </pre>
+                           </div>
                         </DialogContent>
                       </Dialog>
                     )}
