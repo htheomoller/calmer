@@ -89,14 +89,10 @@ export const getRecentActivity = async (minutes: number, types?: string[]): Prom
 
   const cutoff = new Date(Date.now() - minutes * 60 * 1000).toISOString();
   
-  // The events table connects to posts via ig_post_id, so we need to filter by posts owned by the user
+  // Query events that belong to posts owned by the current user
   let query = supabase
     .from('events')
-    .select(`
-      *,
-      posts!inner(account_id)
-    `)
-    .eq('posts.account_id', user.id)
+    .select('*')
     .gte('created_at', cutoff)
     .order('created_at', { ascending: false });
 
