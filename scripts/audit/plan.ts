@@ -1,5 +1,6 @@
 #!/usr/bin/env ts-node
 
+import { mkdirSync } from 'node:fs';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
@@ -249,6 +250,11 @@ function generateCleanupPlan(
 
 async function main() {
   console.debug('📋 Generating cleanup plan...');
+  
+  // Ensure directories exist before writing
+  mkdirSync('tmp/audit', { recursive: true });
+  mkdirSync('docs/cleanup', { recursive: true });
+  mkdirSync('docs/cleanup/sql', { recursive: true });
   
   ensureDir(CLEANUP_DIR);
   ensureDir(CLEANUP_SQL_DIR);

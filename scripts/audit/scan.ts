@@ -1,5 +1,6 @@
 #!/usr/bin/env ts-node
 
+import { mkdirSync } from 'node:fs';
 import * as fs from 'fs';
 import * as path from 'path';
 import { glob } from 'glob';
@@ -183,6 +184,8 @@ function generateMarkdownReport(report: AuditReport): string {
 async function main() {
   console.debug('🔍 Starting audit scan...');
   
+  // Ensure tmp/audit directory exists before writing
+  mkdirSync('tmp/audit', { recursive: true });
   ensureDir(OUTPUT_DIR);
   
   const manifests = loadManifests();

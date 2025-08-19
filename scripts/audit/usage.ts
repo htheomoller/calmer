@@ -1,5 +1,6 @@
 #!/usr/bin/env ts-node
 
+import { mkdirSync } from 'node:fs';
 import * as fs from 'fs';
 import * as path from 'path';
 import { UsageStats } from './types';
@@ -123,6 +124,8 @@ async function queryUsage(): Promise<UsageStats[]> {
 async function main() {
   console.debug('📊 Analyzing usage patterns...');
   
+  // Ensure tmp/audit directory exists before writing
+  mkdirSync('tmp/audit', { recursive: true });
   ensureDir(OUTPUT_DIR);
   
   const usage = await queryUsage();
