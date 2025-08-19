@@ -122,17 +122,15 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     // SANDBOX_START (audit)
     // Add dev middleware for audit functionality
-    ...(mode === 'development' && {
-      configureServer(server: ViteDevServer) {
-        const { auditRunHandler, readFileHandler } = createAuditMiddleware();
-        
-        // GET /__dev/audit-run - run npm audit:report or ping check
-        server.middlewares.use('/__dev/audit-run', auditRunHandler);
-        
-        // GET /__dev/read-file?path=<path> - read audit files
-        server.middlewares.use('/__dev/read-file', readFileHandler);
-      }
-    })
+    configureServer(server: ViteDevServer) {
+      const { auditRunHandler, readFileHandler } = createAuditMiddleware();
+      
+      // GET /__dev/audit-run - run npm audit:report or ping check
+      server.middlewares.use('/__dev/audit-run', auditRunHandler);
+      
+      // GET /__dev/read-file?path=<path> - read audit files
+      server.middlewares.use('/__dev/read-file', readFileHandler);
+    }
     // SANDBOX_END
   },
   // SANDBOX_START (audit)
