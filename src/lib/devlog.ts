@@ -1,3 +1,4 @@
+// FEATURE:sandbox
 // SANDBOX_START: automatic breadcrumbs (client direct insert)
 import { supabase } from '@/integrations/supabase/client';
 

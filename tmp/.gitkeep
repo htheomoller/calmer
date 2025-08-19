@@ -1,0 +1,2 @@
+# This file ensures the tmp directory is tracked by git
+# Actual audit output files in tmp/audit/ will be gitignored

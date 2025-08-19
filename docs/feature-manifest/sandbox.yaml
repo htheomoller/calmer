@@ -1,0 +1,45 @@
+slug: sandbox
+name: Sandbox Mode
+description: Development testing infrastructure with provider overrides and debugging tools
+flags:
+  - SITE_LOCKDOWN
+  - MESSAGING_PROVIDER_OVERRIDE
+routes:
+  - /health
+  - /self-test
+  - /dev/breadcrumbs
+files:
+  - src/selftest/**
+  - src/pages/Health.tsx
+  - src/pages/DevBreadcrumbs.tsx
+  - src/pages/SelfTest.tsx
+  - src/lib/devlog.ts
+  - src/components/ui/comment-test-dialog.tsx
+  - supabase/functions/simulate-comment/**
+  - supabase/functions/dev-breadcrumbs/**
+edge_functions:
+  - dev-breadcrumbs
+  - simulate-comment
+  - ping
+  - health-check
+db:
+  tables:
+    - dev_breadcrumbs
+    - events (sandbox events)
+  policies:
+    - dev_breadcrumbs_select_own
+    - dev_breadcrumbs_insert_own
+    - dev_breadcrumbs_update_own
+    - events_insert_service
+env:
+  - SUPABASE_URL
+  - SUPABASE_ANON_KEY
+  - SUPABASE_SERVICE_ROLE_KEY
+cleanup_ready_when:
+  - "Gupshup provider live and stable for 7+ days"
+  - "No sandbox activity in events table for 7+ days"
+  - "All tests passing with real provider"
+notes:
+  - "Temporary code wrapped in // SANDBOX_START/END blocks"
+  - "Dev-only routes behind import.meta.env.PROD guards"
+  - "Provider override stored in localStorage"

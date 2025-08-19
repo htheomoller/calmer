@@ -1,0 +1,32 @@
+slug: waitlist
+name: Waitlist Collection
+description: Email collection and Brevo integration for pre-launch signups
+flags:
+  - SITE_LOCKDOWN
+routes:
+  - /
+  - /coming-soon
+files:
+  - src/components/WaitlistForm.tsx
+  - src/pages/ComingSoon.tsx
+  - src/pages/Index.tsx
+  - supabase/functions/add-to-waitlist/**
+edge_functions:
+  - add-to-waitlist
+db:
+  tables:
+    - events (waitlist events)
+  policies:
+    - events_insert_service
+env:
+  - BREVO_API_KEY
+  - BREVO_WAITLIST_LIST_ID
+  - WAITLIST_FORM_SECRET
+  - SUPABASE_URL
+  - SUPABASE_ANON_KEY
+cleanup_ready_when:
+  - "Product launched and waitlist no longer needed"
+  - "Migration to main signup flow complete"
+notes:
+  - "Integrates with Brevo email service"
+  - "Form validation and duplicate handling"

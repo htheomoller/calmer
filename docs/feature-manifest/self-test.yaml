@@ -1,0 +1,28 @@
+slug: self-test
+name: Self-Test Framework
+description: Automated testing framework for edge functions and integrations
+flags: []
+routes:
+  - /self-test
+files:
+  - src/selftest/**
+  - src/pages/SelfTest.tsx
+edge_functions:
+  - add-to-waitlist (tested)
+  - webhook-comments (tested)
+db:
+  tables:
+    - events (test events)
+  policies:
+    - events_insert_service
+env:
+  - SUPABASE_URL
+  - SUPABASE_ANON_KEY
+  - BREVO_API_KEY
+  - WAITLIST_FORM_SECRET
+cleanup_ready_when:
+  - "All tests migrated to proper CI/CD pipeline"
+  - "No longer needed for manual validation"
+notes:
+  - "Script registry system for test organization"
+  - "Supports parameterized test execution"

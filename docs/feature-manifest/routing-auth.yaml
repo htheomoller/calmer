@@ -1,0 +1,45 @@
+slug: routing-auth
+name: Authentication & Routing
+description: User authentication, protected routes, and account management
+flags:
+  - SITE_LOCKDOWN
+routes:
+  - /login
+  - /signup
+  - /account-settings
+  - /posts
+  - /activity
+files:
+  - src/contexts/AuthContext.tsx
+  - src/components/AuthGate.tsx
+  - src/pages/Login.tsx
+  - src/pages/Signup.tsx
+  - src/pages/AccountSettings.tsx
+  - src/components/layout/header-nav.tsx
+  - src/components/layout/mobile-nav.tsx
+edge_functions: []
+db:
+  tables:
+    - accounts
+    - social_accounts
+    - posts
+    - events
+    - reply_logs
+    - reply_rules
+    - reply_templates
+  policies:
+    - Users can view own accounts
+    - Users can insert own accounts
+    - Users can update own accounts
+    - Users can delete own accounts
+    - Users can view own social accounts
+    - posts_select_own
+    - events_select_own
+env:
+  - SUPABASE_URL
+  - SUPABASE_ANON_KEY
+cleanup_ready_when:
+  - "Core feature - should not be removed"
+notes:
+  - "Core authentication system"
+  - "Row-level security policies for user data"

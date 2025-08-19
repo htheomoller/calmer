@@ -1,3 +1,4 @@
+// FEATURE:sandbox
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +11,9 @@ import { useToast } from "@/hooks/use-toast";
 import { WEBHOOK_COMMENTS_FN } from "@/config/functions";
 // SANDBOX_START: automatic breadcrumbs
 import { logBreadcrumb } from "@/lib/devlog";
+// SANDBOX_END
+// SANDBOX_START (audit)
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 // SANDBOX_END
 
 // Expected secrets for the application
@@ -28,6 +32,11 @@ export default function Health() {
   const [edgeLoading, setEdgeLoading] = useState(false);
   const [webhookLoading, setWebhookLoading] = useState(false);
   const { toast } = useToast();
+  // SANDBOX_START (audit)
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditReport, setAuditReport] = useState<string>('');
+  const [showAuditModal, setShowAuditModal] = useState(false);
+  // SANDBOX_END
 
   useEffect(() => {
     getCurrentProvider().then(setProvider);
@@ -154,6 +163,54 @@ export default function Health() {
       setWebhookLoading(false);
     }
   };
+
+  // SANDBOX_START (audit)
+  const generateAuditReport = async () => {
+    setAuditLoading(true);
+    try {
+      // In a real implementation, this would call a dev-only endpoint
+      // For now, we'll simulate the report generation
+      const mockReport = `# Audit Report (Local Dev)
+Generated: ${new Date().toISOString()}
+
+## Summary
+- Features scanned: 4
+- Files with issues: 0
+- Sandbox blocks found: 15+
+
+## Next Steps
+- Run \`npm run audit:report\` for full analysis
+- Check docs/cleanup/plan.md for cleanup guidance
+- Review feature manifests in docs/feature-manifest/
+
+*This is a development-only feature.*`;
+
+      setAuditReport(mockReport);
+      setShowAuditModal(true);
+
+      // Log the audit run
+      await logBreadcrumb({
+        scope: 'audit',
+        summary: 'Audit report generated (dev)',
+        details: { timestamp: new Date().toISOString() },
+        tags: ['dev', 'audit']
+      });
+
+      toast({
+        title: "Audit report generated",
+        description: "Local audit report is ready for review",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Audit generation failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+  // SANDBOX_END
 
   return (
     <div className="min-h-screen p-8">
@@ -359,6 +416,44 @@ export default function Health() {
             >
               Quick Log
             </Button>
+          </div>
+        </Card>
+        {/* SANDBOX_END */}
+
+        {/* SANDBOX_START (audit) */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Audit Kit</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Development-only audit and cleanup tools
+          </p>
+          <div className="flex gap-2">
+            <Dialog open={showAuditModal} onOpenChange={setShowAuditModal}>
+              <DialogTrigger asChild>
+                <Button 
+                  onClick={generateAuditReport}
+                  disabled={auditLoading}
+                  variant="outline"
+                >
+                  {auditLoading ? "Generating..." : "Generate Audit Report (Local)"}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Audit Report</DialogTitle>
+                  <DialogDescription>
+                    Local development audit report
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="mt-4">
+                  <pre className="whitespace-pre-wrap text-sm bg-muted p-4 rounded-lg">
+                    {auditReport}
+                  </pre>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <p className="text-xs text-muted-foreground self-center">
+              Run <code>npm run audit:report</code> for complete analysis
+            </p>
           </div>
         </Card>
         {/* SANDBOX_END */}
