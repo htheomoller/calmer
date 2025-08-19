@@ -2,6 +2,125 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendInstagramDM, sendInstagramDMSandbox } from "../utils/gupshup-client.ts";
 
+// Normalization and matching utilities
+function normalize(s: string): string {
+  return s?.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/\s+/g, ' ').trim() ?? '';
+}
+
+function tokens(s: string): string[] {
+  return normalize(s).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function levenshtein1(a: string, b: string): boolean {
+  if (Math.abs(a.length - b.length) > 1) return false;
+  if (a === b) return true;
+  
+  const [shorter, longer] = a.length <= b.length ? [a, b] : [b, a];
+  let differences = 0;
+  let i = 0, j = 0;
+  
+  while (i < shorter.length && j < longer.length) {
+    if (shorter[i] === longer[j]) {
+      i++;
+      j++;
+    } else {
+      differences++;
+      if (differences > 1) return false;
+      
+      if (shorter.length === longer.length) {
+        i++;
+        j++;
+      } else {
+        j++;
+      }
+    }
+  }
+  
+  return differences + (longer.length - j) <= 1;
+}
+
+function matchesTriggers(
+  commentText: string,
+  triggerMode: string,
+  triggerList: string[],
+  typoTolerance: boolean
+): { matched: boolean; matchedRule?: string } {
+  const normalizedComment = normalize(commentText);
+  const commentTokens = tokens(commentText);
+  
+  // Filter valid triggers (min 2 chars, max 10 items)
+  const validTriggers = triggerList
+    .filter(t => t && t.trim().length >= 2)
+    .slice(0, 10)
+    .map(t => t.trim());
+    
+  if (validTriggers.length === 0) {
+    return { matched: false };
+  }
+  
+  switch (triggerMode) {
+    case 'exact_phrase':
+      for (const trigger of validTriggers) {
+        const normalizedTrigger = normalize(trigger);
+        // Word boundary match
+        const regex = new RegExp(`(^|\\W)${escapeRegex(normalizedTrigger)}(\\W|$)`, 'i');
+        if (regex.test(normalizedComment)) {
+          return { matched: true, matchedRule: `exact_phrase:${trigger}` };
+        }
+        
+        // Typo tolerance for single words
+        if (typoTolerance && !normalizedTrigger.includes(' ')) {
+          const triggerTokens = tokens(trigger);
+          for (const token of commentTokens) {
+            if (triggerTokens.some(tt => levenshtein1(token, tt))) {
+              return { matched: true, matchedRule: `exact_phrase_typo:${trigger}` };
+            }
+          }
+        }
+      }
+      return { matched: false };
+      
+    case 'any_keywords':
+      for (const trigger of validTriggers) {
+        const normalizedTrigger = normalize(trigger);
+        if (normalizedComment.includes(normalizedTrigger)) {
+          return { matched: true, matchedRule: `any_keywords:${trigger}` };
+        }
+        
+        if (typoTolerance) {
+          const triggerTokens = tokens(trigger);
+          for (const token of commentTokens) {
+            if (triggerTokens.some(tt => levenshtein1(token, tt))) {
+              return { matched: true, matchedRule: `any_keywords_typo:${trigger}` };
+            }
+          }
+        }
+      }
+      return { matched: false };
+      
+    case 'all_words':
+      const allTriggerTokens = validTriggers.flatMap(t => tokens(t));
+      const matchedTokens = allTriggerTokens.filter(triggerToken => {
+        return commentTokens.some(commentToken => {
+          if (commentToken === triggerToken) return true;
+          return typoTolerance && levenshtein1(commentToken, triggerToken);
+        });
+      });
+      
+      if (matchedTokens.length === allTriggerTokens.length) {
+        return { matched: true, matchedRule: `all_words:${validTriggers.join(',')}` };
+      }
+      return { matched: false };
+      
+    default:
+      return { matched: false };
+  }
+}
+
 export const cors = (origin: string | null) => ({
   'Access-Control-Allow-Origin': origin ?? '*',
   'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
@@ -61,10 +180,6 @@ const handler = async (req: Request): Promise<Response> => {
     }
     // SANDBOX_END
 
-    // Helper function to escape regex special characters
-    function escapeRegex(s: string): string {
-      return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
 
     // Validate required fields
     const provider = body?.provider;
@@ -97,7 +212,10 @@ const handler = async (req: Request): Promise<Response> => {
           default_link,
           reply_to_comments,
           comment_limit,
-          dm_template
+          dm_template,
+          default_trigger_mode,
+          default_trigger_list,
+          default_typo_tolerance
         )
       `)
       .eq('ig_post_id', ig_post_id)
@@ -132,24 +250,32 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const post = posts[0];
+    const account = post.accounts;
     let autoEnabled = false;
 
-    // Determine the code to match (source of truth priority)
-    const code = post.code || 'LINK'; // fallback to 'LINK' since DEFAULT_CODE is not available in edge function
+    // Determine trigger settings with fallback hierarchy
+    const triggerMode = post.trigger_mode || account?.default_trigger_mode || 'exact_phrase';
+    const triggerList = post.trigger_list || account?.default_trigger_list || ['LINK'];
+    const typoTolerance = post.typo_tolerance !== undefined ? post.typo_tolerance : 
+                         (account?.default_typo_tolerance !== undefined ? account.default_typo_tolerance : false);
 
-    // Perform strict code matching (case-insensitive, word-boundary)
-    const codeMatches = new RegExp(`(^|\\W)${escapeRegex(code)}(\\W|$)`, 'i').test(comment_text || '');
+    // Perform trigger matching
+    const matchResult = matchesTriggers(comment_text, triggerMode, triggerList, typoTolerance);
     
-    console.log('webhook-comments:code_match', {
-      code,
+    console.log('webhook-comments:trigger_match', {
+      triggerMode,
+      triggerList,
+      typoTolerance,
       comment_text,
-      matches: codeMatches
+      matched: matchResult.matched,
+      matchedRule: matchResult.matchedRule
     });
 
-    if (!codeMatches) {
+    if (!matchResult.matched) {
       // No match - log activity and return NO_MATCH
+      const eventType = provider === 'sandbox' ? 'sandbox_no_match' : 'no_match';
       await client.from('events').insert({
-        type: 'sandbox_no_match',
+        type: eventType,
         ig_user: `test_user_${Date.now()}`,
         ig_post_id,
         comment_text,
@@ -160,8 +286,13 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(JSON.stringify({ 
         ok: false, 
         code: 'NO_MATCH',
-        message: 'Comment does not include the code',
-        details: { code }
+        message: 'Comment does not include the trigger',
+        details: { 
+          triggerMode,
+          triggerList,
+          typoTolerance,
+          matchedRule: null
+        }
       }), {
         status: 200,
         headers: { 'Content-Type': 'application/json', ...cors(origin) },
@@ -190,7 +321,6 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    const account = post.accounts;
     if (!account) {
       return new Response(JSON.stringify({ 
         ok: false, 
@@ -232,7 +362,11 @@ const handler = async (req: Request): Promise<Response> => {
       message: autoEnabled ? 'Automation was off; enabled and simulated' : 'Sandbox DM generated (logged)',
       details: {
         link,
-        autoEnabled
+        autoEnabled,
+        triggerMode,
+        triggerList,
+        typoTolerance,
+        matchedRule: matchResult.matchedRule
       }
     }), {
       status: 200,

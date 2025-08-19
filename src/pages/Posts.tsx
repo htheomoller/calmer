@@ -154,9 +154,14 @@ export default function Posts() {
       console.log('invoke:webhook-comments:ok', data);
       
       if (data?.code === 'NO_MATCH') {
+        const details = data?.details;
+        const triggerInfo = details?.triggerList ? 
+          `Expected: ${details.triggerList.join(', ')} (mode: ${details.triggerMode})` :
+          `Expected: ${details?.code || 'trigger'}`;
+        
         toast({
-          title: "No code match — DM not sent",
-          description: `Expected "${data?.details?.code}" in comment`,
+          title: "No trigger match — DM not sent",
+          description: triggerInfo,
         });
       } else {
         toast({

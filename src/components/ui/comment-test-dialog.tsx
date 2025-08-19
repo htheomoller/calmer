@@ -23,6 +23,9 @@ interface Post {
   ig_post_id: string;
   caption?: string;
   automation_enabled: boolean;
+  trigger_mode?: string;
+  trigger_list?: string[];
+  typo_tolerance?: boolean;
 }
 
 interface CommentTestDialogProps {
@@ -91,6 +94,22 @@ export function CommentTestDialog({
 
   const selectedPost = posts.find(p => p.id === selectedPostId);
 
+  const getTriggerSummary = () => {
+    if (!selectedPost) return '';
+    
+    const mode = selectedPost.trigger_mode || 'exact_phrase';
+    const triggers = selectedPost.trigger_list || ['LINK'];
+    const typos = selectedPost.typo_tolerance || false;
+    
+    const modeText = {
+      exact_phrase: 'Exact phrase',
+      any_keywords: 'Any keywords',
+      all_words: 'All words'
+    }[mode] || mode;
+    
+    return `Mode: ${modeText} · Triggers: ${triggers.join(', ')} · Typos: ${typos ? 'on' : 'off'}`;
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -153,6 +172,13 @@ export function CommentTestDialog({
               Try "hello" (no match) or "please LINK" (match)
             </p>
           </div>
+
+          {selectedPost && (
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Current trigger rules:</p>
+              <p className="text-xs text-muted-foreground">{getTriggerSummary()}</p>
+            </div>
+          )}
         </div>
 
         <DialogFooter>

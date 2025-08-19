@@ -7,7 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, ExternalLink, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { parseCaption } from "@/lib/caption-parser";
@@ -20,10 +23,16 @@ interface Post {
   link: string | null;
   automation_enabled: boolean;
   account_id: string;
+  trigger_mode: string;
+  trigger_list: string[];
+  typo_tolerance: boolean;
 }
 
 interface Account {
   default_link: string | null;
+  default_trigger_mode: string;
+  default_trigger_list: string[];
+  default_typo_tolerance: boolean;
 }
 
 export default function PostDetails() {
@@ -49,7 +58,7 @@ export default function PostDetails() {
       // Load account
       const { data: accountData } = await supabase
         .from('accounts')
-        .select('default_link')
+        .select('default_link, default_trigger_mode, default_trigger_list, default_typo_tolerance')
         .eq('id', user.id)
         .maybeSingle();
       
@@ -97,7 +106,10 @@ export default function PostDetails() {
         .update({
           code: post.code,
           link: post.link,
-          automation_enabled: post.automation_enabled
+          automation_enabled: post.automation_enabled,
+          trigger_mode: post.trigger_mode,
+          trigger_list: post.trigger_list,
+          typo_tolerance: post.typo_tolerance
         })
         .eq('id', post.id);
 
@@ -137,6 +149,25 @@ export default function PostDetails() {
 
   const getEffectiveLink = () => {
     return post?.link || account?.default_link || null;
+  };
+
+  const updateTriggerList = (value: string) => {
+    if (!post) return;
+    const triggers = value.split(',').map(t => t.trim()).filter(t => t.length >= 2).slice(0, 10);
+    setPost({ ...post, trigger_list: triggers });
+  };
+
+  const getTriggerModeTooltip = (mode: string) => {
+    switch (mode) {
+      case 'exact_phrase':
+        return 'Match exact phrases with word boundaries. Example: "LINK" matches "please LINK me" but not "linking"';
+      case 'any_keywords': 
+        return 'Match if ANY of the keywords are present. Example: ["link", "guide"] matches "send link" or "need guide"';
+      case 'all_words':
+        return 'Match only if ALL words are present (any order). Example: ["give", "link"] matches "give me link" and "link please give"';
+      default:
+        return '';
+    }
   };
 
   if (loading) {
@@ -221,17 +252,102 @@ export default function PostDetails() {
                 <Label htmlFor="automation_enabled">Enable automation for this post</Label>
               </div>
 
-              <div>
-                <Label htmlFor="code">Comment Code</Label>
-                <Input
-                  id="code"
-                  value={post.code || ''}
-                  onChange={(e) => setPost({...post, code: e.target.value || null})}
-                  placeholder="e.g., LINK, GUIDE, DOWNLOAD"
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  When someone comments with this word, they'll get a DM
-                </p>
+              {/* Trigger Configuration */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Label>Trigger Configuration</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm">
+                        <p>Configure how comments trigger DMs. Choose from exact phrase matching, keyword matching, or requiring all words.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+
+                <div>
+                  <Label htmlFor="trigger_mode">Trigger Mode</Label>
+                  <Select 
+                    value={post.trigger_mode || account?.default_trigger_mode || 'exact_phrase'} 
+                    onValueChange={(value) => setPost({...post, trigger_mode: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="exact_phrase">
+                        <div className="flex items-center gap-2">
+                          <span>Exact phrase</span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <HelpCircle className="w-3 h-3 text-muted-foreground" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{getTriggerModeTooltip('exact_phrase')}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="any_keywords">
+                        <div className="flex items-center gap-2">
+                          <span>Any of these keywords</span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <HelpCircle className="w-3 h-3 text-muted-foreground" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{getTriggerModeTooltip('any_keywords')}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="all_words">
+                        <div className="flex items-center gap-2">
+                          <span>All of these words (any order)</span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <HelpCircle className="w-3 h-3 text-muted-foreground" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{getTriggerModeTooltip('all_words')}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="trigger_list">Trigger Words/Phrases</Label>
+                  <Input
+                    id="trigger_list"
+                    value={(post.trigger_list || account?.default_trigger_list || ['LINK']).join(', ')}
+                    onChange={(e) => updateTriggerList(e.target.value)}
+                    placeholder="LINK, GUIDE, DOWNLOAD"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Comma-separated list. Min 2 chars each, max 10 entries.
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="typo_tolerance"
+                    checked={post.typo_tolerance !== undefined ? post.typo_tolerance : (account?.default_typo_tolerance || false)}
+                    onCheckedChange={(checked) => setPost({...post, typo_tolerance: !!checked})}
+                  />
+                  <Label htmlFor="typo_tolerance">Allow 1 typo (Levenshtein distance ≤ 1)</Label>
+                </div>
               </div>
 
               <div>

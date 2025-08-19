@@ -19,6 +19,9 @@ export type Database = {
           comment_limit: number | null
           created_at: string | null
           default_link: string | null
+          default_trigger_list: string[] | null
+          default_trigger_mode: string | null
+          default_typo_tolerance: boolean | null
           dm_template: string | null
           id: string
           reply_to_comments: boolean | null
@@ -27,6 +30,9 @@ export type Database = {
           comment_limit?: number | null
           created_at?: string | null
           default_link?: string | null
+          default_trigger_list?: string[] | null
+          default_trigger_mode?: string | null
+          default_typo_tolerance?: boolean | null
           dm_template?: string | null
           id?: string
           reply_to_comments?: boolean | null
@@ -35,6 +41,9 @@ export type Database = {
           comment_limit?: number | null
           created_at?: string | null
           default_link?: string | null
+          default_trigger_list?: string[] | null
+          default_trigger_mode?: string | null
+          default_typo_tolerance?: boolean | null
           dm_template?: string | null
           id?: string
           reply_to_comments?: boolean | null
@@ -123,6 +132,9 @@ export type Database = {
           id: string
           ig_post_id: string | null
           link: string | null
+          trigger_list: string[] | null
+          trigger_mode: string | null
+          typo_tolerance: boolean | null
         }
         Insert: {
           account_id?: string | null
@@ -133,6 +145,9 @@ export type Database = {
           id?: string
           ig_post_id?: string | null
           link?: string | null
+          trigger_list?: string[] | null
+          trigger_mode?: string | null
+          typo_tolerance?: boolean | null
         }
         Update: {
           account_id?: string | null
@@ -143,6 +158,9 @@ export type Database = {
           id?: string
           ig_post_id?: string | null
           link?: string | null
+          trigger_list?: string[] | null
+          trigger_mode?: string | null
+          typo_tolerance?: boolean | null
         }
         Relationships: [
           {
