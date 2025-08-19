@@ -56,26 +56,15 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Robust list ID selection: secret → body → error
-    const rawSecret = Deno.env.get('BREVO_WAITLIST_LIST_ID') ?? '';
-    const secretId = Number(rawSecret);
-    const bodyId = Number(bodyListId);
-
-    function valid(n: number) { return Number.isFinite(n) && n > 0; }
-
-    const LIST_ID = valid(secretId) ? secretId
-                  : valid(bodyId)   ? bodyId
-                  : NaN;
-
-    if (!valid(LIST_ID)) {
-      console.error(`Invalid list id. secret=${rawSecret} body=${bodyListId}`);
+    // Validate list ID from request body
+    const LIST_ID = Number(bodyListId);
+    const valid = Number.isFinite(LIST_ID) && LIST_ID > 0;
+    if (!valid) {
       return new Response(JSON.stringify({ ok: false, error: 'BAD_LIST_ID' }), { 
-        status: 500,
+        status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
-
-    console.log("Adding email to Brevo list:", email, "listId:", LIST_ID, "type:", typeof LIST_ID);
 
     // Call Brevo API to add contact
     const brevoResponse = await fetch("https://api.brevo.com/v3/contacts", {
