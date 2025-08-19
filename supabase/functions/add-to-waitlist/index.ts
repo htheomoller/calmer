@@ -55,6 +55,20 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Get list ID and ensure it's a number
+    const listIdString = Deno.env.get("BREVO_WAITLIST_LIST_ID") || "7";
+    const listId = Number(listIdString);
+    
+    if (isNaN(listId)) {
+      console.error("Invalid BREVO_WAITLIST_LIST_ID:", listIdString);
+      return new Response(JSON.stringify({ ok: false, error: "Configuration error" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    console.log("Adding email to Brevo list:", email, "listId:", listId, "type:", typeof listId);
+
     // Call Brevo API to add contact
     const brevoResponse = await fetch("https://api.brevo.com/v3/contacts", {
       method: "POST",
@@ -64,7 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         email: email,
-        listIds: [parseInt(Deno.env.get("BREVO_WAITLIST_LIST_ID") || "2")],
+        listIds: [listId],
       }),
     });
 
