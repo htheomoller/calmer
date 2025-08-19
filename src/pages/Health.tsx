@@ -62,10 +62,15 @@ export default function Health() {
           pingOk = res.ok && text.includes('"ok":true');
         }
         
+        let diagMsg = `${res.status} – ${text.slice(0, 200)}`;
+        if (res.status === 200 && text.includes('<html')) {
+          diagMsg = 'Ping returned HTML — SPA fallback intercepted. Try running anyway.';
+        }
+        
         const diag = { 
           status: res.status, 
           ok: pingOk, 
-          head: text.slice(0, 200) 
+          head: diagMsg
         };
         
         setPingDiag(diag);
