@@ -158,28 +158,13 @@ export default function AccountSettings() {
               </p>
             </div>
 
-            <div>
-              <Label htmlFor="comment_limit">Comment Limit per Post</Label>
-              <Input
-                id="comment_limit"
-                type="number"
-                value={account.comment_limit}
-                onChange={(e) => setAccount({...account, comment_limit: parseInt(e.target.value) || 200})}
-                min={1}
-                max={1000}
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Maximum DMs to send per post
-              </p>
-            </div>
-
             <div className="flex items-center space-x-2">
               <Switch
                 id="reply_to_comments"
                 checked={account.reply_to_comments}
                 onCheckedChange={(checked) => setAccount({...account, reply_to_comments: checked})}
               />
-              <Label htmlFor="reply_to_comments">Reply to comments publicly</Label>
+              <Label htmlFor="reply_to_comments">Reply with Direct Message</Label>
             </div>
 
             <Button 
