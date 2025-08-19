@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { SITE_LOCKDOWN } from '@/config/public';
 
 const isDev = !import.meta.env.PROD;
-const DEV_TOOL_ROUTES = ['/self-test', '/health']; // add more later if needed
+const DEV_TOOL_ROUTES = ['/self-test', '/health', '/dev/breadcrumbs'];
 
 interface AuthGateProps {
   children: React.ReactNode;
