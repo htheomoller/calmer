@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, TestTube } from "lucide-react";
+import { Link } from "react-router-dom";
 import { PUBLIC_CONFIG } from "@/config/public";
 import { getCurrentProvider, type MessagingProvider } from "@/config/provider";
 import { supabase } from "@/integrations/supabase/client";
@@ -283,6 +284,25 @@ export default function Health() {
             ))}
           </div>
         </Card>
+
+        {/* SANDBOX_START: self-test integration */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <TestTube className="w-5 h-5" />
+            Self‑Test
+          </h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Automated sandbox testing and validation system
+          </p>
+          <div className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link to="/self-test">
+                Open /self-test
+              </Link>
+            </Button>
+          </div>
+        </Card>
+        {/* SANDBOX_END */}
 
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Notes</h2>
