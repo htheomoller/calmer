@@ -126,10 +126,16 @@ export default defineConfig(({ mode }) => ({
       const { auditRunHandler, readFileHandler } = createAuditMiddleware();
       
       // GET /__dev/audit-run - run npm audit:report or ping check
-      server.middlewares.use('/__dev/audit-run', auditRunHandler);
+      server.middlewares.use('/__dev/audit-run', (req, res, next) => {
+        console.log('[__dev] audit-run hit', req.url);
+        auditRunHandler(req, res);
+      });
       
       // GET /__dev/read-file?path=<path> - read audit files
-      server.middlewares.use('/__dev/read-file', readFileHandler);
+      server.middlewares.use('/__dev/read-file', (req, res, next) => {
+        console.log('[__dev] read-file hit', req.url);
+        readFileHandler(req, res);
+      });
     }
     // SANDBOX_END
   },
@@ -142,10 +148,16 @@ export default defineConfig(({ mode }) => ({
       const { auditRunHandler, readFileHandler } = createAuditMiddleware();
       
       // GET /__dev/audit-run - run npm audit:report or ping check
-      server.middlewares.use('/__dev/audit-run', auditRunHandler);
+      server.middlewares.use('/__dev/audit-run', (req, res, next) => {
+        console.log('[__dev] audit-run hit', req.url);
+        auditRunHandler(req, res);
+      });
       
       // GET /__dev/read-file?path=<path> - read audit files
-      server.middlewares.use('/__dev/read-file', readFileHandler);
+      server.middlewares.use('/__dev/read-file', (req, res, next) => {
+        console.log('[__dev] read-file hit', req.url);
+        readFileHandler(req, res);
+      });
     }
   },
   // SANDBOX_END

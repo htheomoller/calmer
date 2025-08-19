@@ -36,6 +36,7 @@ export default function Health() {
   // SANDBOX_START (audit)
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditAvailable, setAuditAvailable] = useState(false);
+  const [pingDiag, setPingDiag] = useState<{status: number, ok: boolean, head: string} | null>(null);
   const [modalPath, setModalPath] = useState<string>('');
   const [reportPath, setReportPath] = useState<string>('');
   const [planPath, setPlanPath] = useState<string>('');
@@ -45,11 +46,42 @@ export default function Health() {
     getCurrentProvider().then(setProvider);
     
     // SANDBOX_START (audit)
-    // Check if audit middleware is available (DEV or PREVIEW)
-    fetch('/__dev/audit-run?ping=1')
-        .then(res => res.json())
-        .then(data => setAuditAvailable(!!data?.ok))
-        .catch(() => setAuditAvailable(false));
+    // Check if audit middleware is available (DEV or PREVIEW) with robust diagnostics
+    const checkAuditPing = async () => {
+      try {
+        const res = await fetch('/__dev/audit-run?ping=1', { 
+          headers: { 'X-Dev-Ping': '1' } 
+        });
+        const text = await res.text();
+        let pingOk = false;
+        
+        try {
+          pingOk = res.ok && JSON.parse(text)?.ok === true;
+        } catch {
+          // Fallback heuristic: if res.ok && text.includes('"ok":true') then pingOk = true
+          pingOk = res.ok && text.includes('"ok":true');
+        }
+        
+        const diag = { 
+          status: res.status, 
+          ok: pingOk, 
+          head: text.slice(0, 200) 
+        };
+        
+        setPingDiag(diag);
+        setAuditAvailable(pingOk);
+      } catch (error: any) {
+        const diag = { 
+          status: 0, 
+          ok: false, 
+          head: `Fetch failed: ${error.message?.slice(0, 150) || 'unknown'}` 
+        };
+        setPingDiag(diag);
+        setAuditAvailable(false);
+      }
+    };
+    
+    checkAuditPing();
     // SANDBOX_END
   }, []);
 
@@ -180,7 +212,20 @@ export default function Health() {
     setAuditLoading(true);
     try {
       const response = await fetch('/__dev/audit-run');
-      const res = await response.json();
+      const text = await response.text();
+      
+      let res: any;
+      try {
+        res = JSON.parse(text);
+      } catch {
+        // Not JSON response
+        toast({
+          title: "Audit runner not reachable",
+          description: `Preview middleware? Response: ${text.slice(0, 200)}`,
+          variant: "destructive",
+        });
+        return;
+      }
       
       if (res.ok) {
         setReportPath(res.artifacts?.report || '');
@@ -476,38 +521,56 @@ export default function Health() {
                       "Run audit report"
                     )}
                   </Button>
-                  
-                  {(reportPath || planPath) && (
-                    <div className="flex gap-2">
-                      {reportPath && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setModalPath(reportPath)}
-                        >
-                          Open report
-                        </Button>
-                      )}
-                      {planPath && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setModalPath(planPath)}
-                        >
-                          Open plan
-                        </Button>
-                      )}
-                    </div>
-                  )}
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <Button disabled variant="outline">
+                <div className="space-y-3">
+                  <Button 
+                    disabled={true}
+                    variant="outline"
+                  >
                     Run audit report
                   </Button>
-                  <p className="text-xs text-muted-foreground">
-                    Dev middleware not active. Restart dev preview or run <code>npm run audit:report</code>.
-                  </p>
+                  
+                  {pingDiag && (
+                    <div className="text-xs text-muted-foreground">
+                      Ping failed: {pingDiag.status} – {pingDiag.head}
+                    </div>
+                  )}
+                  
+                  {import.meta.env.DEV && (
+                    <Button 
+                      onClick={runAuditReport}
+                      disabled={auditLoading}
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 text-xs underline"
+                    >
+                      {auditLoading ? "Running..." : "Try anyway (DEV)"}
+                    </Button>
+                  )}
+                </div>
+              )}
+              
+              {(reportPath || planPath) && (
+                <div className="flex gap-2">
+                  {reportPath && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setModalPath(reportPath)}
+                    >
+                      Open report
+                    </Button>
+                  )}
+                  {planPath && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setModalPath(planPath)}
+                    >
+                      Open plan
+                    </Button>
+                  )}
                 </div>
               )}
             </>
