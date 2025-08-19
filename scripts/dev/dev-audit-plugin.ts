@@ -34,7 +34,8 @@ function createHandlers() {
       
       try {
         for (const script of scripts) {
-          console.log('[__dev] audit-run step', script);
+          console.log('[__dev] CWD', process.cwd());
+          console.log('[__dev] audit step', ['npx', '--yes', 'ts-node', '--esm', '--transpile-only', script].join(' '));
           
           const result = await new Promise<{code: number, stdout: string, stderr: string}>((resolve) => {
             const child = spawn('npx', ['--yes', 'ts-node', '--esm', '--transpile-only', script], {
@@ -62,6 +63,8 @@ function createHandlers() {
           if (result.code !== 0) {
             finalCode = result.code;
             console.log(`[__dev] audit script ${script} failed with code ${result.code}`);
+            console.log(`[__dev] stderr preview:`, result.stderr.slice(0, 400));
+            console.log(`[__dev] stdout preview:`, result.stdout.slice(0, 400));
             break;
           }
         }
@@ -80,13 +83,20 @@ function createHandlers() {
           res.setHeader('Cache-Control', 'no-store');
           res.end(JSON.stringify(payload));
         } else {
-          // Some script failed, use safety fallback
+          // Some script failed, use safety fallback with diagnostics
+          const diagnostics = {
+            stdout_preview: allStdout.slice(0, 400),
+            stderr_preview: allStderr.slice(0, 400),
+            failed_script: scripts.find((script, index) => index < scripts.length && finalCode !== 0) || 'unknown'
+          };
+          
           await generateFallbackReport(allStdout, allStderr);
           const payload = {
             ok: true,
             code: -1,
             stdout: 'fallback',
             stderr: allStderr,
+            diagnostics,
             artifacts: { report: 'tmp/audit/report.md', plan: 'docs/cleanup/plan.md' }
           };
           res.statusCode = 200;

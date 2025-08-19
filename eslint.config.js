@@ -25,5 +25,22 @@ export default tseslint.config(
       ],
       "@typescript-eslint/no-unused-vars": "off",
     },
+  },
+  // Audit scripts: prevent absolute dev-server imports
+  {
+    files: ["scripts/audit/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["^/dev-server/.*", "^dev-server/.*"],
+              message: "Audit scripts must use relative imports; absolute dev-server paths break preview"
+            }
+          ]
+        }
+      ]
+    }
   }
 );
