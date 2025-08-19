@@ -61,10 +61,15 @@ const handler = async (req: Request): Promise<Response> => {
     }
     // SANDBOX_END
 
+    // Helper function to escape regex special characters
+    function escapeRegex(s: string): string {
+      return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
     // Validate required fields
     const provider = body?.provider;
     const ig_post_id = body?.ig_post_id;
-    const comment_text = body?.comment_text ?? 'LINK';
+    const comment_text = body?.comment_text ?? '';
 
     if (!ig_post_id) {
       return new Response(JSON.stringify({ 
@@ -128,6 +133,40 @@ const handler = async (req: Request): Promise<Response> => {
 
     const post = posts[0];
     let autoEnabled = false;
+
+    // Determine the code to match (source of truth priority)
+    const code = post.code || 'LINK'; // fallback to 'LINK' since DEFAULT_CODE is not available in edge function
+
+    // Perform strict code matching (case-insensitive, word-boundary)
+    const codeMatches = new RegExp(`(^|\\W)${escapeRegex(code)}(\\W|$)`, 'i').test(comment_text || '');
+    
+    console.log('webhook-comments:code_match', {
+      code,
+      comment_text,
+      matches: codeMatches
+    });
+
+    if (!codeMatches) {
+      // No match - log activity and return NO_MATCH
+      await client.from('events').insert({
+        type: 'sandbox_no_match',
+        ig_user: `test_user_${Date.now()}`,
+        ig_post_id,
+        comment_text,
+        matched: false,
+        sent_dm: false
+      });
+
+      return new Response(JSON.stringify({ 
+        ok: false, 
+        code: 'NO_MATCH',
+        message: 'Comment does not include the code',
+        details: { code }
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
+      });
+    }
 
     // Automation handling
     if (post.automation_enabled !== true) {

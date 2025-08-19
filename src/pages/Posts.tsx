@@ -152,10 +152,18 @@ export default function Posts() {
       }
 
       console.log('invoke:webhook-comments:ok', data);
-      toast({
-        title: "Success",
-        description: data?.message ?? 'Sandbox test completed',
-      });
+      
+      if (data?.code === 'NO_MATCH') {
+        toast({
+          title: "No code match — DM not sent",
+          description: `Expected "${data?.details?.code}" in comment`,
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: data?.message ?? 'Sandbox test completed',
+        });
+      }
 
       // Refresh data to show new activity
       await loadData();
