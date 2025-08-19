@@ -1,4 +1,4 @@
-// SANDBOX_START: automatic breadcrumbs (client)
+// SANDBOX_START: automatic breadcrumbs (client direct insert)
 import { supabase } from '@/integrations/supabase/client';
 
 type LogArgs = {
@@ -8,28 +8,25 @@ type LogArgs = {
   tags?: string[];         // optional labels
 };
 
-const isDev = !import.meta.env.PROD;
-
 export async function logBreadcrumb(args: LogArgs) {
   try {
-    if (!isDev) return; // dev/preview only
+    if (import.meta.env.PROD) return; // dev only
     
-    // No toasts, no blocking: fire and forget style with timeout
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('timeout')), 2500)
-    );
-    
-    const invokePromise = supabase.functions.invoke('dev-breadcrumbs', {
-      body: { action: 'add', ...args },
-    });
-    
-    const { data, error } = await Promise.race([invokePromise, timeoutPromise]) as any;
-    
-    // swallow errors silently; console only
-    if (error) console.debug('devlog:invoke error', error);
-    else console.debug('devlog:ok', data?.id);
-  } catch (e) {
-    console.debug('devlog:fail', e);
-  }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email) return; // must be logged in
+
+    const row = {
+      author_email: user.email,
+      scope: args.scope,
+      summary: args.summary,
+      details: args.details ?? null,
+      tags: args.tags ?? null,
+    };
+
+    // fire-and-forget: don't block UI, swallow errors
+    const { error } = await supabase.from("dev_breadcrumbs").insert(row);
+    if (error) console.debug("devlog insert error", error);
+    else console.debug("devlog:ok");
+  } catch {}
 }
 // SANDBOX_END
