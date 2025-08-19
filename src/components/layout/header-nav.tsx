@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, ChevronDown, LogOut, User } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -15,6 +15,7 @@ export function HeaderNav() {
   const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
   return (
@@ -98,8 +99,13 @@ export function HeaderNav() {
                       Resources
                     </Link>
                   )}
-                  <Button asChild variant="outline" size="sm">
-                    <Link to="/login">
+                  <Button 
+                    asChild 
+                    variant="outline" 
+                    size="sm"
+                    onClick={(e) => { e.preventDefault(); navigate("/login"); }}
+                  >
+                    <Link to="/login" aria-label="Log in">
                       <User className="h-4 w-4 mr-2" />
                       Login
                     </Link>
@@ -206,8 +212,12 @@ export function HeaderNav() {
                     Resources
                   </Link>
                 )}
-                <Button asChild className="w-full">
-                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                <Button 
+                  asChild 
+                  className="w-full"
+                  onClick={(e) => { e.preventDefault(); navigate("/login"); setIsMenuOpen(false); }}
+                >
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)} aria-label="Log in">
                     <User className="h-4 w-4 mr-2" />
                     Login
                   </Link>

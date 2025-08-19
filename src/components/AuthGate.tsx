@@ -17,8 +17,10 @@ export const AuthGate = ({ children }: AuthGateProps) => {
     if (loading) return;
 
     // Emergency kill-switch: force everyone to /comingsoon if site is locked down
+    // EXCEPT allow /login and /signup even during lockdown
     if (SITE_LOCKDOWN) {
-      if (location.pathname !== '/comingsoon') {
+      const allowedDuringLockdown = ['/comingsoon', '/login', '/signup'];
+      if (!allowedDuringLockdown.includes(location.pathname)) {
         navigate('/comingsoon', { replace: true });
       }
       return;

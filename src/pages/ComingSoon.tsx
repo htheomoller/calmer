@@ -15,9 +15,11 @@ const ComingSoon = () => {
     };
   }, []);
   return (
-    <div className="min-h-screen bg-[#fafafa] flex flex-col justify-center">
-      <HeaderNav />
-      <main className="px-[clamp(25px,4vw,64px)] flex-1 flex items-center py-[64px] pt-[120px]">
+    <div className="min-h-screen bg-[#fafafa] flex flex-col justify-center relative z-0">
+      <div className="relative z-50 pointer-events-auto">
+        <HeaderNav />
+      </div>
+      <main className="px-[clamp(25px,4vw,64px)] flex-1 flex items-center pt-[120px] relative z-0">
         <div className="max-w-2xl mx-auto">
           <h1 data-anim className="text-6xl md:text-8xl font-medium leading-none tracking-tight mb-6">
             Stop letting Instagram
