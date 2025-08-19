@@ -21,11 +21,18 @@ export const ensureSandbox = async (): Promise<void> => {
  * Create or find a sandbox post with automation enabled
  */
 export const ensureSandboxPost = async (): Promise<{ ig_post_id: string }> => {
-  // Look for existing sandbox post with automation enabled
+  // Get current user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    throw new Error(`Authentication required: ${userError?.message || 'No user found'}`);
+  }
+
+  // Look for existing sandbox post with automation enabled for this user
   const { data: posts, error: queryError } = await supabase
     .from('posts')
     .select('*')
     .eq('automation_enabled', true)
+    .eq('account_id', user.id)
     .limit(1);
 
   if (queryError) {
@@ -41,6 +48,7 @@ export const ensureSandboxPost = async (): Promise<{ ig_post_id: string }> => {
   const { data: newPost, error: insertError } = await supabase
     .from('posts')
     .insert({
+      account_id: user.id,
       ig_post_id: sandboxPostId,
       caption: 'Test post for sandbox',
       automation_enabled: true,
@@ -55,6 +63,17 @@ export const ensureSandboxPost = async (): Promise<{ ig_post_id: string }> => {
     throw new Error(`Failed to create sandbox post: ${insertError.message}`);
   }
 
+  // Verify we can read it back
+  const { data: verifyPost, error: verifyError } = await supabase
+    .from('posts')
+    .select('ig_post_id')
+    .eq('id', newPost.id)
+    .single();
+
+  if (verifyError || !verifyPost) {
+    throw new Error(`Failed to verify sandbox post: ${verifyError?.message || 'Post not found'}`);
+  }
+
   return { ig_post_id: newPost.ig_post_id };
 };
 
@@ -62,11 +81,22 @@ export const ensureSandboxPost = async (): Promise<{ ig_post_id: string }> => {
  * Query recent activity from events table
  */
 export const getRecentActivity = async (minutes: number, types?: string[]): Promise<any[]> => {
+  // Get current user
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    throw new Error(`Authentication required: ${userError?.message || 'No user found'}`);
+  }
+
   const cutoff = new Date(Date.now() - minutes * 60 * 1000).toISOString();
   
+  // The events table connects to posts via ig_post_id, so we need to filter by posts owned by the user
   let query = supabase
     .from('events')
-    .select('*')
+    .select(`
+      *,
+      posts!inner(account_id)
+    `)
+    .eq('posts.account_id', user.id)
     .gte('created_at', cutoff)
     .order('created_at', { ascending: false });
 

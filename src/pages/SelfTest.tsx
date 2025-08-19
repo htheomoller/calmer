@@ -1,15 +1,19 @@
 // SANDBOX_START: self-test runner page
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, LogIn } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { SCRIPTS } from "@/selftest/registry";
 import { createTestContext } from "@/selftest/helpers";
 import type { TestScript, TestResult, TestRunResult } from "@/selftest/types";
 
 export default function SelfTest() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [selectedScript, setSelectedScript] = useState<string>('');
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<TestRunResult | null>(null);
@@ -20,6 +24,43 @@ export default function SelfTest() {
       <div className="min-h-screen flex items-center justify-center">
         <Card className="p-6">
           <p className="text-muted-foreground">Self-Test page is only available in development.</p>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="text-muted-foreground">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Require authentication
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-6 max-w-md">
+          <div className="text-center space-y-4">
+            <LogIn className="h-12 w-12 mx-auto text-muted-foreground" />
+            <div>
+              <h2 className="text-xl font-semibold">Sign in to run tests</h2>
+              <p className="text-muted-foreground mt-2">
+                The test robot needs a user to create sandbox posts.
+              </p>
+            </div>
+            <Button 
+              onClick={() => navigate('/login?from=/self-test')}
+              className="w-full"
+            >
+              Log in
+            </Button>
+          </div>
         </Card>
       </div>
     );
