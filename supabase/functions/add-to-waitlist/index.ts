@@ -84,11 +84,24 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Brevo API error:", brevoResponse.status, errorText);
       
       // Handle duplicate contact (this is usually not an error for waitlists)
-      if (brevoResponse.status === 400 && errorText.includes("Contact already exist")) {
-        return new Response(JSON.stringify({ ok: true, message: "Already subscribed" }), {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        });
+      if (brevoResponse.status === 400) {
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.code === "duplicate_parameter") {
+            return new Response(JSON.stringify({ ok: true, message: "Already on waitlist" }), {
+              status: 200,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            });
+          }
+        } catch (parseError) {
+          // If JSON parsing fails, fall back to string check
+          if (errorText.includes("Contact already exist")) {
+            return new Response(JSON.stringify({ ok: true, message: "Already on waitlist" }), {
+              status: 200,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            });
+          }
+        }
       }
       
       return new Response(JSON.stringify({ ok: false, error: "Failed to add to waitlist" }), {
