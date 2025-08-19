@@ -78,6 +78,22 @@ export default function Health() {
     }
   };
 
+  const extractInvokeError = (err: any) => {
+    // Supabase packs the function response under err.context or err.details
+    const ctx = err?.context ?? err?.details ?? {};
+    // Try to parse any string body as JSON; fall back to text
+    let body = ctx.body ?? ctx.response ?? ctx.data ?? null;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch { /* keep as text */ }
+    }
+    return {
+      status: err?.status ?? ctx.status ?? 'unknown',
+      message: err?.message ?? body?.message ?? 'invoke failed',
+      code: body?.code ?? ctx.code ?? 'UNKNOWN',
+      raw: { err }
+    };
+  };
+
   const testWebhookFunction = async () => {
     setWebhookLoading(true);
     try {
@@ -106,39 +122,23 @@ export default function Health() {
         }
       });
 
-      console.log('webhook:test ->', { data, error });
-
       if (error) {
-        console.log('invoke:webhook-comments:error', { error });
-        
-        let errorBody = null;
-        try {
-          // Try to get the actual error body from the function
-          errorBody = error?.context?.body;
-          if (typeof errorBody === 'string') {
-            errorBody = JSON.parse(errorBody);
-          }
-        } catch {
-          // Fallback to error message
-          errorBody = null;
-        }
-
-        const errorDescription = errorBody 
-          ? JSON.stringify(errorBody, null, 2)
-          : error.message || "Unknown error";
-
+        const e = extractInvokeError(error);
+        console.log('invoke:webhook-comments:error', e);
         toast({
-          title: `Edge ${error?.status ?? 'error'}`,
-          description: errorDescription,
+          title: `Edge ${e.status}: ${e.code}`,
+          description: e.message,
           variant: "destructive"
         });
-      } else {
-        toast({
-          title: "Webhook Test Result",
-          description: `Result: ${JSON.stringify(data, null, 2)}`,
-          variant: "default"
-        });
+        return;
       }
+
+      console.log('invoke:webhook-comments:ok', data);
+      toast({
+        title: "Webhook Test Result",
+        description: data?.message ?? 'OK',
+        variant: "default"
+      });
     } catch (error: any) {
       console.error('Webhook test failed:', error);
       toast({

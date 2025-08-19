@@ -15,11 +15,11 @@ interface CommentWebhookPayload {
   comment_text: string;
   created_at?: string;
   provider?: string;
+  debug?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
   const origin = req.headers.get('Origin');
-  console.log('webhook-comments:start', { method: req.method, origin });
   
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -38,7 +38,24 @@ const handler = async (req: Request): Promise<Response> => {
       body = {};
     }
     
-    console.log('webhook-comments:input', { provider: body?.provider, ig_post_id: body?.ig_post_id });
+    console.log('webhook-comments:start', { 
+      origin: req.headers.get('Origin'), 
+      bodyKeys: Object.keys(body || {})
+    });
+
+    // SANDBOX_START - Debug switch for testing
+    if (body.debug === true) {
+      return new Response(JSON.stringify({ 
+        ok: true, 
+        code: 'ECHO', 
+        message: 'echo', 
+        details: { received: body } 
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
+      });
+    }
+    // SANDBOX_END
 
     const { ig_post_id, ig_user = `test_user_${Date.now()}`, comment_text, provider } = body as CommentWebhookPayload;
 
@@ -50,7 +67,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: 'ig_post_id required' 
       }), {
         status: 400,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
       });
     }
 
@@ -61,7 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: 'comment_text required' 
       }), {
         status: 400,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
       });
     }
 
@@ -102,7 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
         details: { error: postError.message }
       }), {
         status: 500,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
       });
     }
 
@@ -154,7 +171,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: 'No post for ig_post_id'
       }), {
         status: 404,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
       });
     }
 
@@ -175,7 +192,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: 'Enable automation'
       }), {
         status: 409,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
       });
     }
 
@@ -187,7 +204,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: 'Account not found for post'
       }), {
         status: 404,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
       });
     }
 
@@ -210,7 +227,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: 'Add a link in Settings or Post'
       }), {
         status: 422,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
       });
     }
 
@@ -237,7 +254,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: "Comment doesn't match trigger code"
       }), {
         status: 200,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
       });
     }
 
@@ -266,7 +283,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: 'Comment limit reached for this post'
       }), {
         status: 429,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
       });
     }
 
@@ -297,7 +314,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: 'User already received DM for this post'
       }), {
         status: 429,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
       });
     }
 
@@ -341,7 +358,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       const successMessage = autoEnabled 
         ? "Automation was off; enabled and simulated"
-        : (dmProvider === 'sandbox' ? "SANDBOX_DM_LOGGED" : "DM sent successfully");
+        : "Sandbox DM generated (logged)";
 
       return new Response(JSON.stringify({ 
         ok: true, 
@@ -354,7 +371,7 @@ const handler = async (req: Request): Promise<Response> => {
         }
       }), {
         status: 200,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
       });
 
     } catch (dmError) {
@@ -377,7 +394,7 @@ const handler = async (req: Request): Promise<Response> => {
         details: { error: dmError.message }
       }), {
         status: 500,
-        headers: { ...cors(origin), "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json', ...cors(origin) },
       });
     }
 
@@ -389,7 +406,7 @@ const handler = async (req: Request): Promise<Response> => {
       message: String(error)
     }), {
       status: 500,
-      headers: { ...cors(origin), "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json', ...cors(origin) },
     });
   }
 };

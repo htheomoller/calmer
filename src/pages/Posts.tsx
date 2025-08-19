@@ -95,6 +95,22 @@ export default function Posts() {
     return { status: 'default', text: 'Default link' };
   };
 
+  const extractInvokeError = (err: any) => {
+    // Supabase packs the function response under err.context or err.details
+    const ctx = err?.context ?? err?.details ?? {};
+    // Try to parse any string body as JSON; fall back to text
+    let body = ctx.body ?? ctx.response ?? ctx.data ?? null;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch { /* keep as text */ }
+    }
+    return {
+      status: err?.status ?? ctx.status ?? 'unknown',
+      message: err?.message ?? body?.message ?? 'invoke failed',
+      code: body?.code ?? ctx.code ?? 'UNKNOWN',
+      raw: { err }
+    };
+  };
+
   const simulateGupshupComment = async () => {
     try {
       console.log('Testing comment → DM flow...');
@@ -131,27 +147,18 @@ export default function Posts() {
         }
       });
 
-      console.log('simulate:invoke', { fn: WEBHOOK_COMMENTS_FN, ig_post_id: targetPost.ig_post_id }, { data, error });
-
       if (error) {
-        console.log('invoke:webhook-comments:error', { error });
-        
-        let errorBody = null;
-        try {
-          errorBody = error?.context?.body;
-          if (typeof errorBody === 'string') {
-            errorBody = JSON.parse(errorBody);
-          }
-        } catch {
-          errorBody = null;
-        }
-
-        const errorDescription = errorBody 
-          ? JSON.stringify(errorBody, null, 2)
-          : error.message || "Unknown error";
-
-        throw new Error(errorDescription);
+        const e = extractInvokeError(error);
+        console.log('invoke:webhook-comments:error', e);
+        toast({
+          title: `Edge ${e.status}: ${e.code}`,
+          description: e.message,
+          variant: "destructive"
+        });
+        return;
       }
+
+      console.log('invoke:webhook-comments:ok', data);
 
       // If function returns structured error, show that
       if (data && !data.ok) {
@@ -218,27 +225,18 @@ export default function Posts() {
         }
       });
 
-      console.log('simulate:invoke', { fn: WEBHOOK_COMMENTS_FN, ig_post_id: targetPost.ig_post_id }, { data, error });
-
       if (error) {
-        console.log('invoke:webhook-comments:error', { error });
-        
-        let errorBody = null;
-        try {
-          errorBody = error?.context?.body;
-          if (typeof errorBody === 'string') {
-            errorBody = JSON.parse(errorBody);
-          }
-        } catch {
-          errorBody = null;
-        }
-
-        const errorDescription = errorBody 
-          ? JSON.stringify(errorBody, null, 2)
-          : error.message || "Unknown error";
-
-        throw new Error(errorDescription);
+        const e = extractInvokeError(error);
+        console.log('invoke:webhook-comments:error', e);
+        toast({
+          title: `Edge ${e.status}: ${e.code}`,
+          description: e.message,
+          variant: "destructive"
+        });
+        return;
       }
+
+      console.log('invoke:webhook-comments:ok', data);
 
       if (data && !data.ok) {
         toast({
