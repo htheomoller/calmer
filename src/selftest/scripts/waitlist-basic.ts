@@ -112,6 +112,31 @@ const script: TestScript = {
           note: `Waitlist ready (list ID: ${wl.effectiveListId})` 
         };
       }
+    },
+    {
+      name: 'Log success (optional)',
+      run: async (ctx) => {
+        ctx.log('All tests passed!');
+        
+        // Optional: Log success to breadcrumbs
+        try {
+          const { logDevNote } = await import('@/dev/breadcrumbs');
+          await logDevNote({
+            scope: 'sandbox',
+            summary: 'Self-Test: Waitlist Basic Flow passes',
+            details: `All green on ${new Date().toLocaleString()}. Email: ${ctx['email']}`
+          });
+          ctx.log('Success logged to breadcrumbs');
+        } catch (e) {
+          // Ignore breadcrumb errors
+          ctx.log('Breadcrumb logging skipped (not critical)');
+        }
+        
+        return { 
+          pass: true, 
+          note: 'All waitlist functionality verified' 
+        };
+      }
     }
   ]
 };

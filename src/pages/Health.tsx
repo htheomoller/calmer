@@ -305,6 +305,34 @@ export default function Health() {
         </Card>
         {/* SANDBOX_END */}
 
+        {/* SANDBOX_START: Dev tools card */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Development Tools</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Development-only tools and utilities
+          </p>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => window.open('/dev/breadcrumbs', '_blank')}
+              variant="outline"
+            >
+              Open Breadcrumbs
+            </Button>
+            <Button 
+              onClick={() => {
+                const scope = 'sandbox';
+                const url = `/dev/breadcrumbs?scope=${scope}`;
+                window.open(url, '_blank');
+              }}
+              variant="outline"
+              size="sm"
+            >
+              Quick Log
+            </Button>
+          </div>
+        </Card>
+        {/* SANDBOX_END */}
+
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Notes</h2>
           <ul className="text-sm text-muted-foreground space-y-2">

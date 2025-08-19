@@ -18,6 +18,7 @@ import ResourcePost from "./pages/ResourcePost";
 import ResourceCategory from "./pages/ResourceCategory";
 import Health from "./pages/Health";
 import SelfTest from "./pages/SelfTest";
+import DevBreadcrumbs from "./pages/DevBreadcrumbs";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
@@ -53,7 +54,8 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         {/* Signup disabled - redirects to comingsoon via AuthGate */}
         <Route path="/health" element={<Health />} />
-        <Route path="/self-test" element={<SelfTest />} />
+          <Route path="/self-test" element={<SelfTest />} />
+          <Route path="/dev/breadcrumbs" element={<DevBreadcrumbs />} />
         <Route path="/settings" element={<AccountSettings />} />
         <Route path="/posts" element={<Posts />} />
         <Route path="/posts/:id" element={<PostDetails />} />

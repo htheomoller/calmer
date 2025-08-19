@@ -89,6 +89,36 @@ export type Database = {
         }
         Relationships: []
       }
+      dev_breadcrumbs: {
+        Row: {
+          author_email: string
+          created_at: string
+          details: string | null
+          id: string
+          scope: string
+          summary: string
+          tags: string[] | null
+        }
+        Insert: {
+          author_email: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          scope: string
+          summary: string
+          tags?: string[] | null
+        }
+        Update: {
+          author_email?: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          scope?: string
+          summary?: string
+          tags?: string[] | null
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           comment_text: string | null
