@@ -64,7 +64,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         email: email,
-        listIds: [2], // This will be configurable via public config
+        listIds: [parseInt(Deno.env.get("BREVO_WAITLIST_LIST_ID") || "2")],
       }),
     });
 

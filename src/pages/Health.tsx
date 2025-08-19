@@ -9,7 +9,10 @@ const EXPECTED_SECRETS = [
   { name: "SUPABASE_ANON_KEY", current: true },
   { name: "OPENAI_API_KEY", current: true },
   { name: "GUPSHUP_API_KEY", current: false },
-  { name: "GUPSHUP_APP_NAME", current: false }
+  { name: "GUPSHUP_APP_NAME", current: false },
+  { name: "BREVO_API_KEY", current: true },
+  { name: "WAITLIST_FORM_SECRET", current: true },
+  { name: "BREVO_WAITLIST_LIST_ID", current: true }
 ];
 
 export default function Health() {
@@ -103,6 +106,10 @@ export default function Health() {
             <div className="flex justify-between">
               <span>SUPABASE_ANON_KEY</span>
               <span>{checkPublicConfig("SUPABASE_ANON_KEY")}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>BREVO_WAITLIST_LIST_ID</span>
+              <span>{checkPublicConfig("BREVO_WAITLIST_LIST_ID")} (List ID: {PUBLIC_CONFIG.BREVO_WAITLIST_LIST_ID})</span>
             </div>
           </div>
         </Card>

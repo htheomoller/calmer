@@ -25,7 +25,10 @@ const handler = async (req: Request): Promise<Response> => {
         GUPSHUP_APP_NAME: !!gupshupAppName,
         SUPABASE_URL: !!Deno.env.get('SUPABASE_URL'),
         SUPABASE_ANON_KEY: !!Deno.env.get('SUPABASE_ANON_KEY'),
-        OPENAI_API_KEY: !!Deno.env.get('OPENAI_API_KEY')
+        OPENAI_API_KEY: !!Deno.env.get('OPENAI_API_KEY'),
+        BREVO_API_KEY: !!Deno.env.get('BREVO_API_KEY'),
+        WAITLIST_FORM_SECRET: !!Deno.env.get('WAITLIST_FORM_SECRET'),
+        BREVO_WAITLIST_LIST_ID: !!Deno.env.get('BREVO_WAITLIST_LIST_ID')
       },
       timestamp: new Date().toISOString()
     };
