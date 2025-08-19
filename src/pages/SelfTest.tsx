@@ -10,6 +10,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SCRIPTS } from "@/selftest/registry";
 import { createTestContext } from "@/selftest/helpers";
 import type { TestScript, TestResult, TestRunResult } from "@/selftest/types";
+// SANDBOX_START: automatic breadcrumbs
+import { logBreadcrumb } from "@/lib/devlog";
+// SANDBOX_END
 
 export default function SelfTest() {
   const { user, loading } = useAuth();
@@ -136,6 +139,17 @@ export default function SelfTest() {
 
     console.log(`🤖 Self-Test Robot: Completed "${script.title}" - ${passed ? 'ALL PASS ✅' : `FAILED ❌ at ${failedAt}`}`);
     
+    // SANDBOX_START: automatic breadcrumbs
+    const result = { ok: passed, steps: testResults }; // minimal JSON
+    const failedIndex = testResults.findIndex(r => r.status === 'fail');
+    logBreadcrumb({
+      scope: 'selftest',
+      summary: passed ? 'Self‑Test: ALL PASS' : `Self‑Test: FAIL at step ${failedIndex + 1}`,
+      details: result,
+      tags: passed ? ['pass'] : ['fail'],
+    });
+    // SANDBOX_END
+    
     setResults(finalResult);
     setRunning(false);
   };
@@ -169,6 +183,25 @@ export default function SelfTest() {
 
         <Card className="p-6">
           <div className="space-y-4">
+            {/* SANDBOX_START: Quick log button */}
+            {results && !import.meta.env.PROD && (
+              <Button 
+                onClick={() => {
+                  logBreadcrumb({
+                    scope: 'selftest',
+                    summary: `Self‑Test manual log: ${results.passed ? 'PASS' : 'FAIL'}`,
+                    details: { manual: true, timestamp: new Date().toISOString() },
+                    tags: ['manual', results.passed ? 'pass' : 'fail'],
+                  });
+                }}
+                variant="outline"
+                size="sm"
+              >
+                Log last run result
+              </Button>
+            )}
+            {/* SANDBOX_END */}
+            
             <div>
               <label className="text-sm font-medium">Test script:</label>
               <Select value={selectedScript} onValueChange={setSelectedScript}>

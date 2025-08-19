@@ -8,6 +8,9 @@ import { getCurrentProvider, type MessagingProvider } from "@/config/provider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { WEBHOOK_COMMENTS_FN } from "@/config/functions";
+// SANDBOX_START: automatic breadcrumbs
+import { logBreadcrumb } from "@/lib/devlog";
+// SANDBOX_END
 
 // Expected secrets for the application
 const EXPECTED_SECRETS = [
@@ -181,7 +184,16 @@ export default function Health() {
             <div className="flex gap-2 flex-wrap">
               <button 
                 onClick={() => {
+                  const oldValue = localStorage.getItem('providerOverride') || provider;
                   localStorage.setItem('providerOverride', 'sandbox');
+                  // SANDBOX_START: automatic breadcrumbs
+                  logBreadcrumb({
+                    scope: 'routing',
+                    summary: 'Provider override: sandbox',
+                    details: { from: oldValue, to: 'sandbox', at: new Date().toISOString() },
+                    tags: ['provider'],
+                  });
+                  // SANDBOX_END
                   window.location.reload();
                 }}
                 className="px-3 py-1 text-xs bg-secondary text-secondary-foreground rounded"
@@ -190,7 +202,16 @@ export default function Health() {
               </button>
               <button 
                 onClick={() => {
+                  const oldValue = localStorage.getItem('providerOverride') || provider;
                   localStorage.setItem('providerOverride', 'gupshup');
+                  // SANDBOX_START: automatic breadcrumbs
+                  logBreadcrumb({
+                    scope: 'routing',
+                    summary: 'Provider override: gupshup',
+                    details: { from: oldValue, to: 'gupshup', at: new Date().toISOString() },
+                    tags: ['provider'],
+                  });
+                  // SANDBOX_END
                   window.location.reload();
                 }}
                 className="px-3 py-1 text-xs bg-secondary text-secondary-foreground rounded"
@@ -200,7 +221,16 @@ export default function Health() {
               {localStorage.getItem('providerOverride') && (
                 <button 
                   onClick={() => {
+                    const oldValue = localStorage.getItem('providerOverride');
                     localStorage.removeItem('providerOverride');
+                    // SANDBOX_START: automatic breadcrumbs
+                    logBreadcrumb({
+                      scope: 'routing',
+                      summary: 'Provider override: cleared',
+                      details: { from: oldValue, to: null, at: new Date().toISOString() },
+                      tags: ['provider'],
+                    });
+                    // SANDBOX_END
                     window.location.reload();
                   }}
                   className="px-3 py-1 text-xs text-muted-foreground underline"

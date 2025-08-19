@@ -1,4 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+// SANDBOX_START: automatic breadcrumbs
+import { edgeLogBreadcrumb } from '../_shared/edge-log.ts';
+// SANDBOX_END
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -80,6 +83,16 @@ const handler = async (req: Request): Promise<Response> => {
     const brevoApiKey = Deno.env.get("BREVO_API_KEY");
     if (!brevoApiKey) {
       console.error("BREVO_API_KEY not configured");
+      
+      // SANDBOX_START: automatic breadcrumbs
+      await edgeLogBreadcrumb({
+        scope: 'waitlist',
+        summary: 'Waitlist error: MISSING_BREVO_KEY',
+        details: { code: 'MISSING_BREVO_KEY', message: 'BREVO_API_KEY missing' },
+        tags: ['error']
+      });
+      // SANDBOX_END
+      
       return new Response(JSON.stringify({ 
         ok: false, 
         code: 'MISSING_BREVO_KEY', 
@@ -131,6 +144,16 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (brevoResponse.ok) {
       console.log("Successfully added email to waitlist:", body.email);
+      
+      // SANDBOX_START: automatic breadcrumbs
+      await edgeLogBreadcrumb({
+        scope: 'waitlist',
+        summary: 'Waitlist SUBSCRIBED',
+        details: { emailHash: body.email.split('@')[0] + '@***', listId: listIdNumber },
+        tags: ['ok']
+      });
+      // SANDBOX_END
+      
       return new Response(JSON.stringify({ 
         ok: true, 
         code: 'SUBSCRIBED', 
@@ -147,6 +170,16 @@ const handler = async (req: Request): Promise<Response> => {
       if (responseData?.code === "duplicate_parameter" || 
           responseText.includes("already associated") ||
           responseText.includes("Contact already exist")) {
+        
+        // SANDBOX_START: automatic breadcrumbs
+        await edgeLogBreadcrumb({
+          scope: 'waitlist',
+          summary: 'Waitlist ALREADY_SUBSCRIBED',
+          details: { emailHash: body.email.split('@')[0] + '@***', listId: listIdNumber },
+          tags: ['dup']
+        });
+        // SANDBOX_END
+        
         return new Response(JSON.stringify({ 
           ok: false, 
           code: 'ALREADY_SUBSCRIBED', 
@@ -159,6 +192,15 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.error("Brevo API error:", brevoResponse.status, responseText);
+    
+    // SANDBOX_START: automatic breadcrumbs
+    await edgeLogBreadcrumb({
+      scope: 'waitlist',
+      summary: `Waitlist error: BREVO_ERROR`,
+      details: { code: 'BREVO_ERROR', message: responseData?.message || `Brevo API error: ${brevoResponse.status}` },
+      tags: ['error']
+    });
+    // SANDBOX_END
     
     return new Response(JSON.stringify({ 
       ok: false, 

@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PUBLIC_CONFIG } from "@/config/public";
 import { supabase } from "@/integrations/supabase/client";
+// SANDBOX_START: automatic breadcrumbs
+import { logBreadcrumb } from "@/lib/devlog";
+// SANDBOX_END
 
 export const WaitlistForm = () => {
   const [email, setEmail] = useState("");
@@ -44,6 +47,16 @@ export const WaitlistForm = () => {
           setMessage("✅ You're now on the waitlist — thank you!");
         }
         setIsSuccess(true);
+        
+        // SANDBOX_START: automatic breadcrumbs
+        logBreadcrumb({
+          scope: 'waitlist',
+          summary: 'Waitlist submit (client)',
+          details: { status: data.code || 'OK', email: email.split('@')[0] + '@***' }, // partial email for privacy
+          tags: ['ui'],
+        });
+        // SANDBOX_END
+        
         setEmail("");
       } else {
         setMessage("⚠️ Try again later.");
