@@ -45,13 +45,11 @@ export default function Health() {
     getCurrentProvider().then(setProvider);
     
     // SANDBOX_START (audit)
-    // Check if audit middleware is available (DEV only)
-    if (!import.meta.env.PROD) {
-      fetch('/__dev/audit-run?ping=1')
+    // Check if audit middleware is available (DEV or PREVIEW)
+    fetch('/__dev/audit-run?ping=1')
         .then(res => res.json())
         .then(data => setAuditAvailable(!!data?.ok))
         .catch(() => setAuditAvailable(false));
-    }
     // SANDBOX_END
   }, []);
 
@@ -250,7 +248,7 @@ export default function Health() {
             <p className="text-muted-foreground">Configuration and secrets status</p>
           </div>
           <Badge variant="outline" className="text-xs">
-            ENV: {import.meta.env.PROD ? 'PROD' : 'DEV'}
+            {import.meta.env.DEV ? 'ENV: DEV' : auditAvailable ? 'ENV: PREVIEW' : 'ENV: PROD'}
           </Badge>
         </div>
 
