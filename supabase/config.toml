@@ -1,5 +1,8 @@
 project_id = "upzjnifdcmevsdfmzwzw"
 
+[functions.ping]
+verify_jwt = false
+
 [functions.webhook-comments]
 verify_jwt = false
 

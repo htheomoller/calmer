@@ -132,20 +132,28 @@ export default function Posts() {
         }
       });
 
-      console.log('simulate:invoke ->', { ig_post_id: targetPost.ig_post_id, provider: 'sandbox' }, { data, error });
+      console.log('simulate:invoke', { ig_post_id: targetPost.ig_post_id, provider: 'sandbox' }, { data, error });
 
       if (error) {
-        // Determine error type for better user messaging
-        const errorMessage = error.message?.includes('CORS') || error.message?.includes('fetch') 
-          ? "Edge function blocked by CORS or wrong origin"
-          : error.message || "Unknown error occurred";
+        // Surface the exact error message from the function
+        const errorMessage = error.message || "Unknown error occurred";
         throw new Error(errorMessage);
       }
 
+      // If function returns structured error, show that
+      if (data && !data.success) {
+        toast({
+          title: "Simulation Result",
+          description: data.message || "Test failed",
+          variant: "destructive"
+        });
+        return;
+      }
+
       toast({
-        title: data.success ? "Simulation Complete" : "Simulation Result",
-        description: data.message || "Test completed",
-        variant: data.success ? "default" : "destructive"
+        title: "Simulation Complete",
+        description: data?.message || "Test completed successfully",
+        variant: "default"
       });
 
       // Refresh activity to show new events
@@ -199,19 +207,26 @@ export default function Posts() {
         }
       });
 
-      console.log('simulate:invoke ->', { ig_post_id: targetPost.ig_post_id, provider: 'sandbox' }, { data, error });
+      console.log('simulate:invoke', { ig_post_id: targetPost.ig_post_id, provider: 'sandbox' }, { data, error });
 
       if (error) {
-        const errorMessage = error.message?.includes('CORS') || error.message?.includes('fetch') 
-          ? "Edge function blocked by CORS or wrong origin"
-          : error.message || "Unknown error occurred";
+        const errorMessage = error.message || "Unknown error occurred";
         throw new Error(errorMessage);
       }
 
+      if (data && !data.success) {
+        toast({
+          title: "Simulation Result",
+          description: data.message || "Test failed",
+          variant: "destructive"
+        });
+        return;
+      }
+
       toast({
-        title: data.success ? "Simulation Complete" : "Simulation Result",
-        description: data.message || "Test completed",
-        variant: data.success ? "default" : "destructive"
+        title: "Simulation Complete",
+        description: data?.message || "Test completed successfully",
+        variant: "default"
       });
 
       // Refresh activity to show new events

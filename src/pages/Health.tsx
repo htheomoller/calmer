@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 import { PUBLIC_CONFIG } from "@/config/public";
 import { getCurrentProvider, type MessagingProvider } from "@/config/provider";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 // Expected secrets for the application
 const EXPECTED_SECRETS = [
@@ -16,6 +20,8 @@ const EXPECTED_SECRETS = [
 
 export default function Health() {
   const [provider, setProvider] = useState<MessagingProvider>('sandbox');
+  const [edgeLoading, setEdgeLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     getCurrentProvider().then(setProvider);
@@ -34,6 +40,40 @@ export default function Health() {
 
   const checkPublicConfig = (key: keyof typeof PUBLIC_CONFIG) => {
     return PUBLIC_CONFIG[key] ? "✅" : "❌";
+  };
+
+  const testEdgeFunction = async () => {
+    setEdgeLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ping', { 
+        body: { hello: 'world' } 
+      });
+      
+      console.log('edge:ping ->', { data, error });
+      
+      if (error) {
+        toast({
+          title: "Edge Error",
+          description: `Edge error: ${error?.message ?? 'unknown'}`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Edge Function Test",
+          description: `Edge OK: ${new Date(data.time).toISOString()}`,
+          variant: "default"
+        });
+      }
+    } catch (error: any) {
+      console.error('Edge test failed:', error);
+      toast({
+        title: "Edge Test Failed",
+        description: error.message || "Unknown error",
+        variant: "destructive"
+      });
+    } finally {
+      setEdgeLoading(false);
+    }
   };
 
   return (
@@ -92,6 +132,22 @@ export default function Health() {
                 </button>
               )}
             </div>
+            
+            <Button 
+              onClick={testEdgeFunction} 
+              disabled={edgeLoading}
+              variant="outline"
+              className="w-full"
+            >
+              {edgeLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Testing...
+                </>
+              ) : (
+                "Test Edge Function"
+              )}
+            </Button>
           </div>
         </Card>
 
