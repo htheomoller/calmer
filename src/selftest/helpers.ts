@@ -43,7 +43,7 @@ export const ensureSandboxPost = async (): Promise<{ ig_post_id: string }> => {
     return { ig_post_id: posts[0].ig_post_id };
   }
 
-  // Create a new sandbox post
+  // Create a new sandbox post with explicit triggers
   const sandboxPostId = `sandbox-post-${Date.now()}`;
   const { data: newPost, error: insertError } = await supabase
     .from('posts')
@@ -62,6 +62,13 @@ export const ensureSandboxPost = async (): Promise<{ ig_post_id: string }> => {
   if (insertError) {
     throw new Error(`Failed to create sandbox post: ${insertError.message}`);
   }
+
+  // Log the stored trigger fields for verification
+  console.log('Created sandbox post with triggers:', {
+    trigger_mode: newPost.trigger_mode,
+    trigger_list: newPost.trigger_list,
+    typo_tolerance: newPost.typo_tolerance
+  });
 
   // Verify we can read it back
   const { data: verifyPost, error: verifyError } = await supabase
