@@ -2,10 +2,31 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendInstagramDM, sendInstagramDMSandbox } from "../utils/gupshup-client.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = [
+  'https://calmer.social',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://34f936bc-a8d5-475f-898c-52017c9fe402.lovableproject.com',
+  'https://lovableproject.com',
+  'https://lovable.dev',
+  'https://lovable.app'
+];
+
+function corsHeaders(origin: string | null) {
+  const isAllowed = origin && ALLOWED_ORIGINS.some(allowed => 
+    origin.includes(allowed.replace('*.', '')) || 
+    origin.includes('lovableproject.com') ||
+    origin.includes('lovable.dev') ||
+    origin.includes('lovable.app')
+  );
+  
+  return {
+    'Access-Control-Allow-Origin': isAllowed ? origin : 'https://calmer.social',
+    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Form-Secret, Authorization, apikey, x-client-info',
+    'Vary': 'Origin'
+  };
+}
 
 interface CommentWebhookPayload {
   ig_post_id: string;
@@ -15,15 +36,28 @@ interface CommentWebhookPayload {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  const origin = req.headers.get('Origin');
+  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      status: 204, 
+      headers: corsHeaders(origin) 
+    });
   }
 
   try {
     const { ig_post_id, ig_user, comment_text, created_at, provider }: CommentWebhookPayload & { provider?: string } = await req.json();
 
     console.log("simulate:input", { ig_post_id, provider, ig_user, comment_text });
+
+    // Check origin in development vs production
+    const isDev = Deno.env.get('DENO_DEPLOYMENT_ID') === undefined;
+    if (!isDev && origin && !ALLOWED_ORIGINS.some(allowed => origin.includes(allowed.replace('*.', '')))) {
+      console.warn('Origin not in allowlist:', origin);
+    } else if (isDev && origin) {
+      console.warn('DEV: origin not in allowlist', origin);
+    }
 
     // Initialize Supabase client with service role for RLS bypass
     const supabaseClient = createClient(
@@ -105,7 +139,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: "No sandbox post with this id" 
       }), {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -125,7 +159,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: "Automation disabled for this post" 
       }), {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -152,7 +186,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: "No link configured" 
       }), {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -178,7 +212,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: "Comment doesn't match trigger code" 
       }), {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -206,7 +240,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: "Comment limit reached for this post" 
       }), {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -236,7 +270,7 @@ const handler = async (req: Request): Promise<Response> => {
         message: "User already received DM for this post" 
       }), {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -289,7 +323,7 @@ const handler = async (req: Request): Promise<Response> => {
         dmText
       }), {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
 
     } catch (dmError) {
@@ -311,7 +345,7 @@ const handler = async (req: Request): Promise<Response> => {
         error: dmError.message
       }), {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       });
     }
 
@@ -321,7 +355,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ error: error.message }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
       }
     );
   }

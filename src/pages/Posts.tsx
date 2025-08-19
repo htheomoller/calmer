@@ -132,7 +132,15 @@ export default function Posts() {
         }
       });
 
-      if (error) throw error;
+      console.log('simulate:invoke ->', { ig_post_id: targetPost.ig_post_id, provider: 'sandbox' }, { data, error });
+
+      if (error) {
+        // Determine error type for better user messaging
+        const errorMessage = error.message?.includes('CORS') || error.message?.includes('fetch') 
+          ? "Edge function blocked by CORS or wrong origin"
+          : error.message || "Unknown error occurred";
+        throw new Error(errorMessage);
+      }
 
       toast({
         title: data.success ? "Simulation Complete" : "Simulation Result",
@@ -191,7 +199,14 @@ export default function Posts() {
         }
       });
 
-      if (error) throw error;
+      console.log('simulate:invoke ->', { ig_post_id: targetPost.ig_post_id, provider: 'sandbox' }, { data, error });
+
+      if (error) {
+        const errorMessage = error.message?.includes('CORS') || error.message?.includes('fetch') 
+          ? "Edge function blocked by CORS or wrong origin"
+          : error.message || "Unknown error occurred";
+        throw new Error(errorMessage);
+      }
 
       toast({
         title: data.success ? "Simulation Complete" : "Simulation Result",

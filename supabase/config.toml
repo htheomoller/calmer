@@ -1,5 +1,8 @@
 project_id = "upzjnifdcmevsdfmzwzw"
 
+[functions.webhook-comments]
+verify_jwt = false
+
 [functions.webhooks-gupshup]
 verify_jwt = false
 
@@ -7,4 +10,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.add-to-waitlist]
+verify_jwt = false
+
+[functions.chat]
+verify_jwt = false
+
+[functions.simulate-comment]
 verify_jwt = false
