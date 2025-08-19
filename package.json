@@ -9,6 +9,10 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
+    "audit:scan": "ts-node scripts/audit/scan.ts",
+    "audit:usage": "ts-node scripts/audit/usage.ts",
+    "audit:plan": "ts-node scripts/audit/plan.ts",
+    "audit:report": "npm run audit:scan && npm run audit:usage && npm run audit:plan"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
