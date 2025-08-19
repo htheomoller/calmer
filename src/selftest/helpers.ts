@@ -143,15 +143,16 @@ export const invokeWebhook = async (args: { ig_post_id: string; comment_text: st
 
       return {
         ok: false,
-        code: body?.code ?? ctx.code ?? 'UNKNOWN',
+        code: body?.code ?? ctx.code ?? 'INVOKE_ERROR',
         message: body?.message ?? error?.message ?? 'invoke failed'
       };
     }
 
+    // data is already the JSON from the function; it includes ok/code/message
     return {
-      ok: true,
-      code: data?.code,
-      message: data?.message
+      ok: Boolean(data?.ok),
+      code: data?.code ?? null,
+      message: data?.message ?? null
     };
   } catch (error: any) {
     return {

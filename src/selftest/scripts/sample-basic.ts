@@ -92,17 +92,12 @@ const script: TestScript = {
           comment_text: 'hello'
         });
         
-        if (webhookResult.ok) {
-          return { 
-            pass: false, 
-            note: `Expected failure, got success: ${webhookResult.message}` 
-          };
-        }
+        console.log('no-match:resp', webhookResult);
         
-        if (webhookResult.code !== 'NO_MATCH') {
+        if (webhookResult.ok !== false || webhookResult.code !== 'NO_MATCH') {
           return { 
             pass: false, 
-            note: `Expected NO_MATCH, got: ${webhookResult.code} - ${webhookResult.message}` 
+            note: `Expected NO_MATCH, got ${webhookResult.code || 'unknown'}: ${webhookResult.message || ''}` 
           };
         }
         
@@ -136,17 +131,12 @@ const script: TestScript = {
           comment_text: 'please LINK'
         });
         
-        if (!webhookResult.ok) {
-          return { 
-            pass: false, 
-            note: `Expected success, got failure: ${webhookResult.code} - ${webhookResult.message}` 
-          };
-        }
+        console.log('match:resp', webhookResult);
         
-        if (webhookResult.code !== 'SANDBOX_DM_LOGGED') {
+        if (webhookResult.ok !== true || webhookResult.code !== 'SANDBOX_DM_LOGGED') {
           return { 
             pass: false, 
-            note: `Expected SANDBOX_DM_LOGGED, got: ${webhookResult.code} - ${webhookResult.message}` 
+            note: `Expected SANDBOX_DM_LOGGED, got ${webhookResult.code || 'unknown'}: ${webhookResult.message || ''}` 
           };
         }
         
