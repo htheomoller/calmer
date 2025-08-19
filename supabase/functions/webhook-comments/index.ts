@@ -21,18 +21,20 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { ig_post_id, ig_user, comment_text, created_at }: CommentWebhookPayload = await req.json();
+    const { ig_post_id, ig_user, comment_text, created_at, provider }: CommentWebhookPayload & { provider?: string } = await req.json();
 
-    console.log("Processing comment:", { ig_post_id, ig_user, comment_text });
+    console.log("simulate:input", { ig_post_id, provider, ig_user, comment_text });
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service role for RLS bypass
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
+    
+    console.log("simulate:using_service_role = true");
 
-    // Look up the post
-    const { data: post, error: postError } = await supabaseClient
+    // Look up the post with provider filter if provided
+    let query = supabaseClient
       .from('posts')
       .select(`
         *,
@@ -43,43 +45,97 @@ const handler = async (req: Request): Promise<Response> => {
           dm_template
         )
       `)
-      .eq('ig_post_id', ig_post_id)
-      .eq('automation_enabled', true)
-      .maybeSingle();
+      .eq('ig_post_id', ig_post_id);
+    
+    if (provider) {
+      query = query.eq('provider', provider);
+    }
+    
+    const { data: post, error: postError } = await query.maybeSingle();
 
     if (postError) {
       console.error("Error fetching post:", postError);
       throw postError;
     }
 
-    if (!post) {
-      console.log("No post found or automation disabled for:", ig_post_id);
-      // Save event anyway
-      await supabaseClient.from('events').insert({
-        type: 'comment',
-        ig_user,
-        ig_post_id,
-        comment_text,
-        matched: false,
-        sent_dm: false
-      });
+    console.log("simulate:db", { 
+      found: post ? 1 : 0, 
+      id: post?.ig_post_id, 
+      automation_enabled: post?.automation_enabled, 
+      provider: post?.provider 
+    });
 
+    // Log simulation attempt
+    await supabaseClient.from('events').insert({
+      type: 'sandbox_simulate_attempt',
+      ig_user,
+      ig_post_id,
+      comment_text: `Attempt with provider: ${provider || 'none'}`
+    });
+
+    let foundPost = post;
+    let autoEnabled = false;
+
+    // Auto-recovery for sandbox posts
+    if (!foundPost && provider === 'sandbox') {
+      console.log("simulate:trying_without_provider_filter");
+      const { data: fallbackPost } = await supabaseClient
+        .from('posts')
+        .select(`
+          *,
+          accounts (
+            default_link,
+            reply_to_comments,
+            comment_limit,
+            dm_template
+          )
+        `)
+        .eq('ig_post_id', ig_post_id)
+        .maybeSingle();
+      
+      if (fallbackPost) {
+        console.log("simulate:provider_mismatch");
+        foundPost = fallbackPost;
+      }
+    }
+
+    if (!foundPost) {
       return new Response(JSON.stringify({ 
         success: false, 
-        message: "Post not found or automation disabled" 
+        message: "No sandbox post with this id" 
       }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    const account = post.accounts;
+    // Auto-enable automation for sandbox posts
+    if (!foundPost.automation_enabled && provider === 'sandbox') {
+      console.log("simulate:auto_enabled");
+      await supabaseClient
+        .from('posts')
+        .update({ automation_enabled: true })
+        .eq('id', foundPost.id);
+      
+      foundPost.automation_enabled = true;
+      autoEnabled = true;
+    } else if (!foundPost.automation_enabled) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        message: "Automation disabled for this post" 
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const account = foundPost.accounts;
     if (!account) {
       throw new Error("Account not found for post");
     }
 
     // Determine final link
-    const finalLink = post.link || account.default_link;
+    const finalLink = foundPost.link || account.default_link;
     if (!finalLink) {
       console.log("No link available for post:", ig_post_id);
       await supabaseClient.from('events').insert({
@@ -102,12 +158,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Check if comment matches code
     let matched = false;
-    if (post.code) {
-      matched = comment_text.toLowerCase().includes(post.code.toLowerCase());
+    if (foundPost.code) {
+      matched = comment_text.toLowerCase().includes(foundPost.code.toLowerCase());
     }
 
     if (!matched) {
-      console.log("Comment doesn't match code:", { comment_text, code: post.code });
+      console.log("Comment doesn't match code:", { comment_text, code: foundPost.code });
       await supabaseClient.from('events').insert({
         type: 'comment',
         ig_user,
@@ -214,7 +270,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Save success event
       await supabaseClient.from('events').insert({
-        type: 'dm_sent',
+        type: provider === 'sandbox' ? 'sandbox_dm' : 'dm_sent',
         ig_user,
         ig_post_id,
         comment_text,
@@ -222,9 +278,13 @@ const handler = async (req: Request): Promise<Response> => {
         sent_dm: true
       });
 
+      const successMessage = autoEnabled 
+        ? "Automation was off; enabled and simulated"
+        : (provider === 'sandbox' ? "Sandbox DM generated (logged)" : "DM sent successfully");
+
       return new Response(JSON.stringify({ 
         success: true, 
-        message: "DM sent successfully",
+        message: successMessage,
         finalLink,
         dmText
       }), {

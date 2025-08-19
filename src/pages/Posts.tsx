@@ -21,6 +21,7 @@ interface Post {
   link: string | null;
   automation_enabled: boolean;
   created_at: string;
+  provider?: string | null;
 }
 
 interface Account {
@@ -97,9 +98,17 @@ export default function Posts() {
     try {
       console.log('Testing comment → DM flow...');
       
-      // Get or create a sandbox post for testing
-      const testPost = await getOrCreateTestPost();
-      if (!testPost) {
+      // Select post: find first enabled sandbox post or create new
+      let targetPost = posts.find(p => 
+        p.ig_post_id?.includes('sandbox-post-') && p.automation_enabled === true
+      );
+      
+      if (!targetPost) {
+        // Create new sandbox post
+        targetPost = await getOrCreateTestPost();
+      }
+      
+      if (!targetPost) {
         toast({
           title: "No sandbox post available",
           description: "Click 'Create Sandbox Post' first.",
@@ -108,30 +117,17 @@ export default function Posts() {
         return;
       }
 
-      const commentText = `test comment ${testPost.code || 'LINK'}`;
+      const commentText = `test comment ${targetPost.code || 'LINK'}`;
       const testUser = 'test_user_' + Date.now();
 
-      console.log('Simulate details:', { 
-        stage: 'simulate', 
-        pickedId: testPost.ig_post_id, 
-        provider: currentProvider,
-        automationEnabled: testPost.automation_enabled,
-        commentText 
-      });
-
-      // Log simulation attempt
-      await supabase.from('events').insert({
-        type: 'sandbox_simulate_attempt',
-        ig_post_id: testPost.ig_post_id,
-        ig_user: testUser,
-        comment_text: `Attempt: ${commentText}`
-      });
+      console.log({ stage:"simulate:request", ig_post_id: targetPost.ig_post_id, provider: "sandbox" });
 
       const { data, error } = await supabase.functions.invoke('webhook-comments', {
         body: {
-          ig_post_id: testPost.ig_post_id,
+          ig_post_id: targetPost.ig_post_id,
           ig_user: testUser,
           comment_text: commentText,
+          provider: "sandbox",
           created_at: new Date().toISOString()
         }
       });
@@ -161,9 +157,17 @@ export default function Posts() {
 
   const simulateSandboxDM = async () => {
     try {
-      // Get or create a sandbox post for testing
-      const testPost = await getOrCreateTestPost();
-      if (!testPost) {
+      // Select post: find first enabled sandbox post or create new
+      let targetPost = posts.find(p => 
+        p.ig_post_id?.includes('sandbox-post-') && p.automation_enabled === true
+      );
+      
+      if (!targetPost) {
+        // Create new sandbox post
+        targetPost = await getOrCreateTestPost();
+      }
+      
+      if (!targetPost) {
         toast({
           title: "No sandbox post available",
           description: "Click 'Create Sandbox Post' first.",
@@ -173,6 +177,46 @@ export default function Posts() {
       }
 
       const testUser = 'test_user_' + Date.now();
+      const commentText = `test comment ${targetPost.code || 'LINK'}`;
+
+      console.log({ stage:"simulate:request", ig_post_id: targetPost.ig_post_id, provider: "sandbox" });
+
+      const { data, error } = await supabase.functions.invoke('webhook-comments', {
+        body: {
+          ig_post_id: targetPost.ig_post_id,
+          ig_user: testUser,
+          comment_text: commentText,
+          provider: "sandbox",
+          created_at: new Date().toISOString()
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: data.success ? "Simulation Complete" : "Simulation Result",
+        description: data.message || "Test completed",
+        variant: data.success ? "default" : "destructive"
+      });
+
+      // Refresh activity to show new events
+      if (data.success) {
+        setTimeout(() => window.location.reload(), 1000);
+      }
+
+    } catch (error: any) {
+      console.error('Simulation failed:', error);
+      toast({
+        title: "Test Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const simulateDirectDM = async () => {
+    try {
+      const testUser = 'test_user_' + Date.now();
       let success = false;
       
       if (currentProvider === 'sandbox') {
@@ -181,13 +225,16 @@ export default function Posts() {
         success = await sendGupshupDM(testUser, "Hello from Gupshup!");
       }
 
-      // Log simulation attempt
-      await supabase.from('events').insert({
-        type: 'sandbox_simulate_attempt',
-        ig_post_id: testPost.ig_post_id,
-        ig_user: testUser,
-        comment_text: `Direct DM test via ${currentProvider}`
-      });
+      // Log simulation attempt (only if we have a sandbox post)
+      const firstSandboxPost = posts.find(p => p.ig_post_id?.includes('sandbox-post-'));
+      if (firstSandboxPost) {
+        await supabase.from('events').insert({
+          type: 'sandbox_simulate_attempt',
+          ig_post_id: firstSandboxPost.ig_post_id,
+          ig_user: testUser,
+          comment_text: `Direct DM test via ${currentProvider}`
+        });
+      }
       
       toast({
         title: `${currentProvider === 'sandbox' ? 'Sandbox' : 'Gupshup'} DM Sent`,
