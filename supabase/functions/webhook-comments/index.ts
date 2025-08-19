@@ -11,15 +11,16 @@ export const cors = (origin: string | null) => ({
 
 interface CommentWebhookPayload {
   ig_post_id: string;
-  ig_user: string;
+  ig_user?: string;
   comment_text: string;
   created_at?: string;
+  provider?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
   const origin = req.headers.get('Origin');
   
-  console.log('webhook-comments: start', { method: req.method, origin });
+  console.log('webhook-comments:start', { method: req.method, origin });
   
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -30,9 +31,17 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { ig_post_id, ig_user, comment_text, created_at, provider }: CommentWebhookPayload & { provider?: string } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    console.log('webhook-comments:input', { provider: body?.provider, ig_post_id: body?.ig_post_id });
 
-    console.log("simulate:input", { ig_post_id, provider, ig_user, comment_text });
+    const { ig_post_id, ig_user = `test_user_${Date.now()}`, comment_text, provider } = body as CommentWebhookPayload;
+
+    if (!ig_post_id || !comment_text) {
+      return new Response(JSON.stringify({ ok: false, error: 'MISSING_FIELDS' }), {
+        status: 400,
+        headers: { ...cors(origin), "Content-Type": "application/json" },
+      });
+    }
 
     // Initialize Supabase client with service role for RLS bypass
     const supabaseClient = createClient(
@@ -40,7 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
     
-    console.log("simulate:using_service_role = true");
+    console.log("webhook-comments:using_service_role = true");
 
     // Look up the post with provider filter if provided
     let query = supabaseClient
@@ -67,7 +76,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw postError;
     }
 
-    console.log("simulate:db", { 
+    console.log("webhook-comments:db", { 
       found: post ? 1 : 0, 
       id: post?.ig_post_id, 
       automation_enabled: post?.automation_enabled, 
@@ -110,8 +119,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!foundPost) {
       return new Response(JSON.stringify({ 
-        success: false, 
-        message: "No sandbox post with this id" 
+        ok: false, 
+        error: "POST_NOT_FOUND" 
       }), {
         status: 200,
         headers: { ...cors(origin), "Content-Type": "application/json" },
@@ -120,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Auto-enable automation for sandbox posts
     if (!foundPost.automation_enabled && provider === 'sandbox') {
-      console.log("simulate:auto_enabled");
+      console.log("webhook-comments:auto_enabled");
       await supabaseClient
         .from('posts')
         .update({ automation_enabled: true })
@@ -130,8 +139,8 @@ const handler = async (req: Request): Promise<Response> => {
       autoEnabled = true;
     } else if (!foundPost.automation_enabled) {
       return new Response(JSON.stringify({ 
-        success: false, 
-        message: "Automation disabled for this post" 
+        ok: false, 
+        error: "AUTOMATION_DISABLED" 
       }), {
         status: 200,
         headers: { ...cors(origin), "Content-Type": "application/json" },
@@ -256,12 +265,12 @@ const handler = async (req: Request): Promise<Response> => {
     const gupshupApiKey = Deno.env.get('GUPSHUP_API_KEY');
     const gupshupAppName = Deno.env.get('GUPSHUP_APP_NAME');
     const isGupshupConfigured = gupshupApiKey && gupshupAppName;
-    const provider = isGupshupConfigured ? 'gupshup' : 'sandbox';
+    const dmProvider = isGupshupConfigured ? 'gupshup' : 'sandbox';
     
-    console.log(`Using provider: ${provider} for DM to ${ig_user}`);
+    console.log(`Using provider: ${dmProvider} for DM to ${ig_user}`);
     
     try {
-      const dmResult = provider === 'gupshup' 
+      const dmResult = dmProvider === 'gupshup' 
         ? await sendInstagramDM(ig_user, dmText, gupshupApiKey!, gupshupAppName!)
         : await sendInstagramDMSandbox(ig_user, dmText);
 
@@ -269,7 +278,7 @@ const handler = async (req: Request): Promise<Response> => {
         throw new Error(dmResult.error || 'DM failed');
       }
 
-      console.log("DM sent successfully to:", ig_user, "via", provider);
+      console.log("DM sent successfully to:", ig_user, "via", dmProvider);
 
       // TODO: Reply to comment functionality will be added later
       // For now, we just log the intent
@@ -279,7 +288,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Save success event
       await supabaseClient.from('events').insert({
-        type: provider === 'sandbox' ? 'sandbox_dm' : 'dm_sent',
+        type: dmProvider === 'sandbox' ? 'sandbox_dm' : 'dm_sent',
         ig_user,
         ig_post_id,
         comment_text,
@@ -289,10 +298,10 @@ const handler = async (req: Request): Promise<Response> => {
 
       const successMessage = autoEnabled 
         ? "Automation was off; enabled and simulated"
-        : (provider === 'sandbox' ? "Sandbox DM generated (logged)" : "DM sent successfully");
+        : (dmProvider === 'sandbox' ? "SANDBOX_DM_LOGGED" : "DM sent successfully");
 
       return new Response(JSON.stringify({ 
-        success: true, 
+        ok: true, 
         message: successMessage,
         finalLink,
         dmText

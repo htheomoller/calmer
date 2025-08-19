@@ -1,0 +1,1 @@
+export const WEBHOOK_COMMENTS_FN = 'webhook-comments'; // must match folder name under supabase/functions

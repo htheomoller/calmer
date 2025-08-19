@@ -6,6 +6,7 @@ import { PUBLIC_CONFIG } from "@/config/public";
 import { getCurrentProvider, type MessagingProvider } from "@/config/provider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { WEBHOOK_COMMENTS_FN } from "@/config/functions";
 
 // Expected secrets for the application
 const EXPECTED_SECRETS = [
@@ -21,6 +22,7 @@ const EXPECTED_SECRETS = [
 export default function Health() {
   const [provider, setProvider] = useState<MessagingProvider>('sandbox');
   const [edgeLoading, setEdgeLoading] = useState(false);
+  const [webhookLoading, setWebhookLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -73,6 +75,61 @@ export default function Health() {
       });
     } finally {
       setEdgeLoading(false);
+    }
+  };
+
+  const testWebhookFunction = async () => {
+    setWebhookLoading(true);
+    try {
+      // Find first sandbox post with automation enabled
+      const { data: posts, error: postsError } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('automation_enabled', true)
+        .limit(1);
+
+      if (postsError || !posts?.length) {
+        toast({
+          title: "Webhook Test Failed",
+          description: "No active sandbox posts found",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const post = posts[0];
+      const { data, error } = await supabase.functions.invoke(WEBHOOK_COMMENTS_FN, {
+        body: {
+          provider: 'sandbox',
+          ig_post_id: post.ig_post_id,
+          comment_text: 'LINK'
+        }
+      });
+
+      console.log('webhook:test ->', { data, error });
+
+      if (error) {
+        toast({
+          title: "Webhook Error",
+          description: error.message || "Unknown error",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Webhook Test Result",
+          description: `Result: ${JSON.stringify(data, null, 2)}`,
+          variant: "default"
+        });
+      }
+    } catch (error: any) {
+      console.error('Webhook test failed:', error);
+      toast({
+        title: "Webhook Test Failed",
+        description: error.message || "Unknown error",
+        variant: "destructive"
+      });
+    } finally {
+      setWebhookLoading(false);
     }
   };
 
@@ -133,21 +190,39 @@ export default function Health() {
               )}
             </div>
             
-            <Button 
-              onClick={testEdgeFunction} 
-              disabled={edgeLoading}
-              variant="outline"
-              className="w-full"
-            >
-              {edgeLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Testing...
-                </>
-              ) : (
-                "Test Edge Function"
-              )}
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={testEdgeFunction} 
+                disabled={edgeLoading}
+                variant="outline"
+                className="flex-1"
+              >
+                {edgeLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Testing...
+                  </>
+                ) : (
+                  "Test Edge (ping)"
+                )}
+              </Button>
+              
+              <Button 
+                onClick={testWebhookFunction} 
+                disabled={webhookLoading}
+                variant="outline"
+                className="flex-1"
+              >
+                {webhookLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Testing...
+                  </>
+                ) : (
+                  "Test Webhook (invoke)"
+                )}
+              </Button>
+            </div>
           </div>
         </Card>
 

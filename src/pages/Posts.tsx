@@ -12,6 +12,7 @@ import { sendInstagramDM as sendGupshupDM } from "@/integrations/gupshup/client"
 import { getCurrentProvider, setProviderOverride, getProviderOverride, type MessagingProvider } from "@/config/provider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { WEBHOOK_COMMENTS_FN } from "@/config/functions";
 
 interface Post {
   id: string;
@@ -122,17 +123,15 @@ export default function Posts() {
 
       console.log({ stage:"simulate:request", ig_post_id: targetPost.ig_post_id, provider: "sandbox" });
 
-      const { data, error } = await supabase.functions.invoke('webhook-comments', {
+      const { data, error } = await supabase.functions.invoke(WEBHOOK_COMMENTS_FN, {
         body: {
           ig_post_id: targetPost.ig_post_id,
-          ig_user: testUser,
-          comment_text: commentText,
           provider: "sandbox",
-          created_at: new Date().toISOString()
+          comment_text: 'LINK'
         }
       });
 
-      console.log('simulate:invoke', { ig_post_id: targetPost.ig_post_id, provider: 'sandbox' }, { data, error });
+      console.log('simulate:invoke', { fn: WEBHOOK_COMMENTS_FN, ig_post_id: targetPost.ig_post_id }, { data, error });
 
       if (error) {
         // Surface the exact error message from the function
@@ -141,10 +140,10 @@ export default function Posts() {
       }
 
       // If function returns structured error, show that
-      if (data && !data.success) {
+      if (data && !data.ok) {
         toast({
           title: "Simulation Result",
-          description: data.message || "Test failed",
+          description: data.error || "Test failed",
           variant: "destructive"
         });
         return;
@@ -157,7 +156,7 @@ export default function Posts() {
       });
 
       // Refresh activity to show new events
-      if (data.success) {
+      if (data.ok) {
         setTimeout(() => window.location.reload(), 1000);
       }
 
@@ -197,27 +196,25 @@ export default function Posts() {
 
       console.log({ stage:"simulate:request", ig_post_id: targetPost.ig_post_id, provider: "sandbox" });
 
-      const { data, error } = await supabase.functions.invoke('webhook-comments', {
+      const { data, error } = await supabase.functions.invoke(WEBHOOK_COMMENTS_FN, {
         body: {
           ig_post_id: targetPost.ig_post_id,
-          ig_user: testUser,
-          comment_text: commentText,
           provider: "sandbox",
-          created_at: new Date().toISOString()
+          comment_text: 'LINK'
         }
       });
 
-      console.log('simulate:invoke', { ig_post_id: targetPost.ig_post_id, provider: 'sandbox' }, { data, error });
+      console.log('simulate:invoke', { fn: WEBHOOK_COMMENTS_FN, ig_post_id: targetPost.ig_post_id }, { data, error });
 
       if (error) {
         const errorMessage = error.message || "Unknown error occurred";
         throw new Error(errorMessage);
       }
 
-      if (data && !data.success) {
+      if (data && !data.ok) {
         toast({
           title: "Simulation Result",
-          description: data.message || "Test failed",
+          description: data.error || "Test failed",
           variant: "destructive"
         });
         return;
@@ -230,7 +227,7 @@ export default function Posts() {
       });
 
       // Refresh activity to show new events
-      if (data.success) {
+      if (data.ok) {
         setTimeout(() => window.location.reload(), 1000);
       }
 
