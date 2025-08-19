@@ -19,7 +19,10 @@ export const WaitlistForm = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke("add-to-waitlist", {
-        body: { email },
+        body: { 
+          email,
+          listId: PUBLIC_CONFIG.BREVO_WAITLIST_LIST_ID
+        },
         headers: {
           "X-Form-Secret": PUBLIC_CONFIG.WAITLIST_FORM_SECRET,
         },

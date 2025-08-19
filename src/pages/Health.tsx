@@ -111,6 +111,10 @@ export default function Health() {
               <span>BREVO_WAITLIST_LIST_ID</span>
               <span>{checkPublicConfig("BREVO_WAITLIST_LIST_ID")} (List ID: {PUBLIC_CONFIG.BREVO_WAITLIST_LIST_ID})</span>
             </div>
+            <div className="flex justify-between">
+              <span>Waitlist list id (effective)</span>
+              <span>{PUBLIC_CONFIG.BREVO_WAITLIST_LIST_ID}</span>
+            </div>
           </div>
         </Card>
 

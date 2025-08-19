@@ -7,6 +7,7 @@ const corsHeaders = {
 
 interface WaitlistRequest {
   email: string;
+  listId?: number;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -35,7 +36,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { email }: WaitlistRequest = await req.json();
+    const { email, listId: bodyListId }: WaitlistRequest = await req.json();
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -55,19 +56,26 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Get list ID and ensure it's a number
-    const listIdString = Deno.env.get("BREVO_WAITLIST_LIST_ID") || "7";
-    const listId = Number(listIdString);
-    
-    if (isNaN(listId)) {
-      console.error("Invalid BREVO_WAITLIST_LIST_ID:", listIdString);
-      return new Response(JSON.stringify({ ok: false, error: "Configuration error" }), {
+    // Robust list ID selection: secret → body → error
+    const rawSecret = Deno.env.get('BREVO_WAITLIST_LIST_ID') ?? '';
+    const secretId = Number(rawSecret);
+    const bodyId = Number(bodyListId);
+
+    function valid(n: number) { return Number.isFinite(n) && n > 0; }
+
+    const LIST_ID = valid(secretId) ? secretId
+                  : valid(bodyId)   ? bodyId
+                  : NaN;
+
+    if (!valid(LIST_ID)) {
+      console.error(`Invalid list id. secret=${rawSecret} body=${bodyListId}`);
+      return new Response(JSON.stringify({ ok: false, error: 'BAD_LIST_ID' }), { 
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    console.log("Adding email to Brevo list:", email, "listId:", listId, "type:", typeof listId);
+    console.log("Adding email to Brevo list:", email, "listId:", LIST_ID, "type:", typeof LIST_ID);
 
     // Call Brevo API to add contact
     const brevoResponse = await fetch("https://api.brevo.com/v3/contacts", {
@@ -78,7 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         email: email,
-        listIds: [listId],
+        listIds: [LIST_ID],
       }),
     });
 
