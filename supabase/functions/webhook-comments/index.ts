@@ -107,8 +107,23 @@ interface CommentWebhookPayload {
   ig_post_id: string;
   ig_user?: string;
   comment_text: string;
+  comment_id?: string;
+  account_id?: string;
   provider?: string;
   debug?: boolean;
+}
+
+// --- MVP safety guards (best-effort, non-persistent) ---
+const processedIds = new Set<string>();
+const accountHits = new Map<string, number[]>();
+
+function allowRequestForAccount(accountId: string, limit = 10, windowMs = 60_000) {
+  const now = Date.now();
+  const arr = accountHits.get(accountId) ?? [];
+  const recent = arr.filter(t => now - t < windowMs);
+  if (recent.length >= limit) return false;
+  accountHits.set(accountId, [...recent, now]);
+  return true;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -156,10 +171,34 @@ const handler = async (req: Request): Promise<Response> => {
     // SANDBOX_END
 
 
+    // TODO: Validate Gupshup webhook signature once key is configured.
+    // if (!isValidSignature(req, rawBody, Deno.env.get('GUPSHUP_WEBHOOK_SECRET'))) {
+    //   return new Response(JSON.stringify({ ok: false, code: 'INVALID_SIGNATURE' }), { status: 401, headers: { 'Content-Type': 'application/json', ...cors(origin) } });
+    // }
+
     // Validate required fields
     const provider = body?.provider;
     const ig_post_id = body?.ig_post_id;
     const comment_text = body?.comment_text ?? '';
+    const comment_id = body?.comment_id;
+    const account_id = body?.account_id;
+
+    // Deduplicate by comment_id (best effort within the same instance)
+    if (comment_id && processedIds.has(comment_id)) {
+      return new Response(JSON.stringify({ ok: true, code: 'DUPLICATE_IGNORED' }), { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json', ...cors(origin) }
+      });
+    }
+    if (comment_id) processedIds.add(comment_id);
+
+    // Per-account rate limiting
+    if (account_id && !allowRequestForAccount(account_id)) {
+      return new Response(JSON.stringify({ ok: false, code: 'RATE_LIMITED' }), { 
+        status: 429, 
+        headers: { 'Content-Type': 'application/json', ...cors(origin) }
+      });
+    }
 
     if (!ig_post_id) {
       return new Response(JSON.stringify({ 

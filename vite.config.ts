@@ -47,6 +47,8 @@ export default defineConfig(({ mode }) => ({
     ...(mode !== 'production' ? [{
       name: 'dev-audit-plugin',
       configureServer(server: any) {
+        // SAFETY: This dev middleware is never active in production builds.
+        // We only register /__dev/* when mode !== 'production'.
         // Run audit
         server.middlewares.use('/__dev/audit-run', (req: any, res: any) => {
           if (req.method !== 'GET') {
