@@ -3,8 +3,25 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { SITE_LOCKDOWN } from '@/config/public';
 
+const PUBLIC_ALWAYS = ['/', '/comingsoon', '/login', '/signup'];
+const PUBLIC_DEV = ['/health', '/dev/breadcrumbs', '/self-test'];
+const RESOURCE_PREFIXES = ['/resources'];
+const PROTECTED_PREFIXES = ['/posts', '/settings', '/activity', '/simulate', '/health', '/home-legacy'];
+
 const isDev = !import.meta.env.PROD;
-const DEV_TOOL_ROUTES = ['/self-test', '/health', '/dev/breadcrumbs'];
+
+const startsWithAny = (path: string, prefixes: string[]) =>
+  prefixes.some(p => path === p || path.startsWith(p + '/') || path.startsWith(p));
+
+const isPublicRoute = (path: string) =>
+  startsWithAny(path, PUBLIC_ALWAYS) ||
+  RESOURCE_PREFIXES.some(p => path.startsWith(p)) ||
+  (isDev && startsWithAny(path, PUBLIC_DEV));
+
+const isProtectedRoute = (path: string) =>
+  PROTECTED_PREFIXES.some(p => path.startsWith(p));
+
+const toComingSoon = (from: string) => `/comingsoon?from=${encodeURIComponent(from)}`;
 
 interface AuthGateProps {
   children: React.ReactNode;
@@ -19,71 +36,47 @@ export const AuthGate = ({ children }: AuthGateProps) => {
     // Don't redirect while loading auth state
     if (loading) return;
 
-    // Emergency kill-switch: force everyone to /comingsoon if site is locked down
-    // EXCEPT allow /login even during lockdown
-    // AND allow authenticated users full access to protected routes
-    // AND allow dev tools in development
+    const pathname = location.pathname;
+
+    // If user is logged in AND visiting /login or /signup, redirect to /posts
+    if (user && (pathname === '/login' || pathname === '/signup')) {
+      navigate('/posts', { replace: true });
+      return;
+    }
+
+    // If SITE_LOCKDOWN is true
     if (SITE_LOCKDOWN) {
-      const pathname = location.pathname;
-      const isPublic =
-        pathname === '/' ||
-        pathname === '/comingsoon' ||
-        pathname === '/login' ||
-        pathname === '/signup' ||
-        pathname.startsWith('/resources');
-
-      const isDevTool = isDev && DEV_TOOL_ROUTES.some(p => pathname.startsWith(p));
-
-      // Allow authenticated users full access to protected routes
-      const protectedRoutes = ['/posts', '/settings', '/activity', '/simulate', '/home-legacy'];
-      const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-      if (isProtectedRoute && user) {
+      // If isPublicRoute: allow children
+      if (isPublicRoute(pathname)) {
         return;
       }
-
-      if (!isPublic && !isDevTool) {
-        const from = encodeURIComponent(pathname + location.search);
-        navigate(`/comingsoon?from=${from}`, { replace: true });
+      // Else if user is authenticated: allow children
+      if (user) {
+        return;
       }
+      // Else: navigate to comingsoon
+      navigate(toComingSoon(pathname + location.search), { replace: true });
       return;
     }
 
-    // Define route categories
-    const publicRoutes = ['/', '/comingsoon', '/login'];
-    const resourceRoutes = ['/resources'];
-    const protectedRoutes = ['/posts', '/settings', '/activity', '/simulate', '/health', '/home-legacy'];
-
-    const currentPath = location.pathname;
-
-    // Check if current path matches any category
-    const isPublicRoute = publicRoutes.includes(currentPath);
-    const isResourceRoute = resourceRoutes.some(route => currentPath.startsWith(route));
-    const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
-
-    // Public and resource routes are always accessible
-    if (isPublicRoute || isResourceRoute) {
-      // Special case: if already logged in and visiting /login, redirect to /posts
-      // Note: /signup is no longer a public route, so it will be blocked
-      if (user && currentPath === '/login') {
-        navigate('/posts', { replace: true });
-      }
+    // If SITE_LOCKDOWN is false
+    // If isPublicRoute: allow children
+    if (isPublicRoute(pathname)) {
       return;
     }
-
-    // Protected routes require authentication
-    if (isProtectedRoute) {
-      if (!user) {
-        // Redirect to /comingsoon with from parameter for protected routes
-        navigate(`/comingsoon?from=${encodeURIComponent(currentPath)}`, { replace: true });
+    // Else if isProtectedRoute:
+    if (isProtectedRoute(pathname)) {
+      // If user is authenticated: allow children
+      if (user) {
+        return;
       }
+      // Else: navigate to comingsoon
+      navigate(toComingSoon(pathname + location.search), { replace: true });
       return;
     }
-
-    // For any other routes (like 404, /signup), redirect to /comingsoon
-    if (currentPath === '/signup' || !isPublicRoute && !isResourceRoute && !isProtectedRoute) {
-      navigate('/comingsoon', { replace: true });
-    }
-  }, [user, loading, location.pathname, navigate]);
+    // Else: Unknown path: send to comingsoon but preserve "from"
+    navigate(toComingSoon(pathname + location.search), { replace: true });
+  }, [user, loading, location.pathname, location.search, navigate]);
 
   // Show nothing while loading to prevent flicker/loops
   if (loading) {
