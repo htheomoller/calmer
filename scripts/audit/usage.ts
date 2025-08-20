@@ -7,6 +7,7 @@ import { UsageStats } from './types';
 
 // Ensure artifact directories exist
 mkdirSync('tmp/audit', { recursive: true });
+mkdirSync('docs/cleanup', { recursive: true });
 
 const OUTPUT_DIR = path.join(__dirname, '../../tmp/audit');
 

@@ -6,150 +6,130 @@ import path from 'node:path';
 
 function createHandlers() {
   const auditRunHandler = async (req: any, res: any) => {
+    const url = new URL(req.url, 'http://localhost');
+    
+    // Handle ping requests (GET only)
+    if (req.method === 'GET' && url.searchParams.has('ping')) {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-store');
+      res.end(JSON.stringify({ ok: true, ping: true }));
+      return;
+    }
+
+    // Only handle POST requests for audit runs
+    if (req.method !== 'POST') {
+      res.statusCode = 405;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Method not allowed' }));
+      return;
+    }
+
+    console.log('[__dev] CWD', process.cwd());
+    console.log('[__dev] audit step', 'npm run audit:report');
+
     try {
-      console.log('[__dev] audit-run', req.url);
-      const url = new URL(req.url, 'http://local');
-      
-      // Ping check
-      if (url.searchParams.get('ping') === '1') {
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Cache-Control', 'no-store');
-        res.end(JSON.stringify({ ok: true, ping: true }));
-        return;
+      const result = await new Promise<{code: number, stdout: string, stderr: string}>((resolve) => {
+        const child = spawn('npm', ['run', 'audit:report'], {
+          shell: true,
+          cwd: process.cwd(),
+          env: { ...process.env, NODE_ENV: 'development' },
+          stdio: ['ignore', 'pipe', 'pipe']
+        });
+
+        let stdout = '';
+        let stderr = '';
+
+        child.stdout?.on('data', (data) => {
+          stdout += data.toString();
+        });
+
+        child.stderr?.on('data', (data) => {
+          stderr += data.toString();
+        });
+
+        child.on('close', (code) => {
+          resolve({ code: code || 0, stdout, stderr });
+        });
+      });
+
+      const payload = {
+        success: result.code === 0,
+        code: result.code,
+        stdout_head: result.stdout.slice(0, 4000),
+        stderr_head: result.stderr.slice(0, 4000),
+        artifacts: { 
+          report: 'tmp/audit/report.md', 
+          plan: 'docs/cleanup/plan.md' 
+        },
+        timestamp: new Date().toISOString(),
+        cwd: process.cwd()
+      };
+
+      if (result.code !== 0) {
+        await generateFallbackReport(result.stdout, result.stderr);
       }
 
-      console.log('[__dev] audit-run exec scripts via npx ts-node');
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-store');
+      res.end(JSON.stringify(payload));
       
-      // Run audit scripts sequentially with npx ts-node ESM
-      const scripts = [
-        'scripts/audit/scan.ts',
-        'scripts/audit/usage.ts', 
-        'scripts/audit/plan.ts'
-      ];
+    } catch (error: any) {
+      console.error('[__dev] Error in audit-run:', error);
+      await generateFallbackReport('', error.message);
       
-      let allStdout = '';
-      let allStderr = '';
-      let finalCode = 0;
-      
-      try {
-        for (const script of scripts) {
-          console.log('[__dev] CWD', process.cwd());
-          console.log('[__dev] audit step', ['npx', '--yes', 'ts-node', '--esm', '--transpile-only', script].join(' '));
-          
-          const result = await new Promise<{code: number, stdout: string, stderr: string}>((resolve) => {
-            const child = spawn('npx', ['--yes', 'ts-node', '--esm', '--transpile-only', script], {
-              stdio: ['ignore', 'pipe', 'pipe'],
-              cwd: process.cwd()
-            });
-            
-            let stdout = '';
-            let stderr = '';
-            child.stdout.on('data', (d) => { stdout += String(d); });
-            child.stderr.on('data', (d) => { stderr += String(d); });
-            
-            child.on('close', (code) => {
-              resolve({ code: code || 0, stdout, stderr });
-            });
-            
-            child.on('error', (error) => {
-              resolve({ code: 1, stdout: '', stderr: error.message });
-            });
-          });
-          
-          allStdout += result.stdout;
-          allStderr += result.stderr;
-          
-          if (result.code !== 0) {
-            finalCode = result.code;
-            console.log(`[__dev] audit script ${script} failed with code ${result.code}`);
-            console.log(`[__dev] stderr preview:`, result.stderr.slice(0, 400));
-            console.log(`[__dev] stdout preview:`, result.stdout.slice(0, 400));
-            break;
-          }
-        }
-        
-        if (finalCode === 0) {
-          // All scripts succeeded
-          const payload = {
-            ok: true,
-            code: finalCode,
-            stdout: allStdout,
-            stderr: allStderr,
-            artifacts: { report: 'tmp/audit/report.md', plan: 'docs/cleanup/plan.md' }
-          };
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Cache-Control', 'no-store');
-          res.end(JSON.stringify(payload));
-        } else {
-          // Some script failed, use safety fallback with diagnostics
-          const diagnostics = {
-            stdout_preview: allStdout.slice(0, 400),
-            stderr_preview: allStderr.slice(0, 400),
-            failed_script: scripts.find((script, index) => index < scripts.length && finalCode !== 0) || 'unknown'
-          };
-          
-          await generateFallbackReport(allStdout, allStderr);
-          const payload = {
-            ok: true,
-            code: -1,
-            stdout: 'fallback',
-            stderr: allStderr,
-            diagnostics,
-            artifacts: { report: 'tmp/audit/report.md', plan: 'docs/cleanup/plan.md' }
-          };
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Cache-Control', 'no-store');
-          res.end(JSON.stringify(payload));
-        }
-      } catch (spawnError: any) {
-        // Spawn failed, use safety fallback
-        console.log('[__dev] audit spawn failed, using fallback:', spawnError.message);
-        await generateFallbackReport('', spawnError.message);
-        const payload = {
-          ok: true,
-          code: -1,
-          stdout: 'fallback',
-          stderr: spawnError.message,
-          artifacts: { report: 'tmp/audit/report.md', plan: 'docs/cleanup/plan.md' }
-        };
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Cache-Control', 'no-store');
-        res.end(JSON.stringify(payload));
-      }
-    } catch (e: any) {
+      const payload = {
+        success: false,
+        code: -1,
+        stdout_head: '',
+        stderr_head: error.message.slice(0, 4000),
+        artifacts: { report: 'tmp/audit/report.md', plan: 'docs/cleanup/plan.md' },
+        timestamp: new Date().toISOString(),
+        cwd: process.cwd()
+      };
       res.statusCode = 500;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ ok: false, error: e?.message || String(e) }));
+      res.setHeader('Cache-Control', 'no-store');
+      res.end(JSON.stringify(payload));
     }
   };
 
   const readFileHandler = async (req: any, res: any) => {
+    const url = new URL(req.url, 'http://localhost');
+    const filePath = url.searchParams.get('path');
+    
+    if (!filePath) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Missing path parameter' }));
+      return;
+    }
+    
+    // Whitelist only these specific directories for security
+    const allowedPrefixes = ['tmp/audit/', 'docs/cleanup/'];
+    const isAllowed = allowedPrefixes.some(prefix => filePath.startsWith(prefix));
+    
+    if (!isAllowed) {
+      res.statusCode = 403;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Access denied' }));
+      return;
+    }
+    
     try {
-      console.log('[__dev] read-file', req.url);
-      const url = new URL(req.url, 'http://local');
-      const p = url.searchParams.get('path') || '';
-      
-      // Security whitelist
-      if (!p.startsWith('tmp/audit/') && !p.startsWith('docs/cleanup/')) {
-        res.statusCode = 403;
-        res.end('Access denied');
-        return;
-      }
-      
-      const abs = path.resolve(process.cwd(), p);
-      const content = await readFile(abs, 'utf8');
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      const content = await readFile(filePath, 'utf-8');
+      const payload = {
+        content,
+        path: filePath,
+        timestamp: new Date().toISOString()
+      };
+      res.setHeader('Content-Type', 'application/json');
       res.setHeader('Cache-Control', 'no-store');
-      res.end(content);
-    } catch (e: any) {
-      res.statusCode = 500;
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.end(`Could not read file: ${e?.message || String(e)}`);
+      res.end(JSON.stringify(payload));
+    } catch (error) {
+      res.statusCode = 404;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'File not found' }));
     }
   };
 

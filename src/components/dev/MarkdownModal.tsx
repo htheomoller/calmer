@@ -29,8 +29,8 @@ export function MarkdownModal({ path, onClose, title }: MarkdownModalProps) {
           throw new Error(`Failed to load file: ${response.status} ${response.statusText}`);
         }
         
-        const text = await response.text();
-        setContent(text);
+        const data = await response.json();
+        setContent(data.content);
       } catch (err: any) {
         setError(err.message || 'Failed to load file');
       } finally {

@@ -216,7 +216,15 @@ export default function Health() {
   const runAuditReport = async () => {
     setAuditLoading(true);
     try {
-      const response = await fetch('/__dev/audit-run');
+      const response = await fetch('/__dev/audit-run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
       const text = await response.text();
       
       let res: any;
@@ -232,7 +240,7 @@ export default function Health() {
         return;
       }
       
-      if (res.ok) {
+      if (res.success) {
         setReportPath(res.artifacts?.report || '');
         setPlanPath(res.artifacts?.plan || '');
         toast({
@@ -242,7 +250,7 @@ export default function Health() {
       } else {
         toast({
           title: "Audit run failed",
-          description: `Exit code ${res.code}: ${res.stderr?.slice(0, 100) || 'Unknown error'}`,
+          description: `Exit code ${res.code}: ${res.stderr_head?.slice(0, 100) || 'Unknown error'}`,
           variant: "destructive",
         });
       }
@@ -250,16 +258,16 @@ export default function Health() {
       // Fire-and-forget breadcrumb logging
       logBreadcrumb({
         scope: 'audit',
-        summary: res.ok ? 'Audit report generated' : 'Audit run failed',
+        summary: res.success ? 'Audit report generated' : 'Audit run failed',
         details: {
-          ok: !!res.ok,
+          success: !!res.success,
           code: res.code,
           artifacts: res.artifacts || null,
-          stdout_head: (res.stdout || '').slice(0, 800),
-          stderr_head: (res.stderr || '').slice(0, 800),
+          stdout_head: (res.stdout_head || '').slice(0, 800),
+          stderr_head: (res.stderr_head || '').slice(0, 800),
           at: new Date().toISOString()
         },
-        tags: res.ok ? ['audit', 'success'] : ['audit', 'error']
+        tags: res.success ? ['audit', 'success'] : ['audit', 'error']
       });
     } catch (error: any) {
       // Log failed audit run
@@ -510,6 +518,17 @@ export default function Health() {
           
           {!import.meta.env.PROD ? (
             <>
+              <div className="mb-4 p-3 bg-muted rounded-lg">
+                <p className="text-sm font-medium mb-2">📦 Package Scripts Update Required</p>
+                <p className="text-xs text-muted-foreground mb-2">Add these scripts to package.json manually:</p>
+                <pre className="text-xs bg-background p-2 rounded border overflow-x-auto">
+{`"audit:build": "tsc -p scripts/audit/tsconfig.audit.json",
+"audit:scan": "node scripts/audit/dist/scan.js",
+"audit:usage": "node scripts/audit/dist/usage.js", 
+"audit:plan": "node scripts/audit/dist/plan.js",
+"audit:report": "npm run audit:build && npm run audit:scan && npm run audit:usage && npm run audit:plan"`}
+                </pre>
+              </div>
               {auditAvailable ? (
                 <div className="space-y-4">
                   <Button 
