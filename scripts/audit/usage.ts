@@ -1,24 +1,25 @@
 #!/usr/bin/env tsx
 
-import { fileURLToPath } from "node:url";
-import path from "node:path";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, "../../");
-
-import { mkdirSync } from 'node:fs';
-import * as fs from 'fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import * as fsSync from 'node:fs';
 import { UsageStats } from './types';
 
-// Ensure artifact directories exist
-mkdirSync('tmp/audit', { recursive: true });
-mkdirSync('docs/cleanup', { recursive: true });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, '../../');
 
-const OUTPUT_DIR = path.join(__dirname, '../../tmp/audit');
+// Ensure artifacts directories
+await fs.mkdir(path.resolve(PROJECT_ROOT, 'tmp/audit'), { recursive: true });
+await fs.mkdir(path.resolve(PROJECT_ROOT, 'docs/cleanup'), { recursive: true });
+await fs.mkdir(path.resolve(PROJECT_ROOT, 'docs/cleanup/sql'), { recursive: true }).catch(() => {});
+
+const OUTPUT_DIR = path.join(PROJECT_ROOT, 'tmp/audit');
 
 function ensureDir(dir: string) {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  if (!fsSync.existsSync(dir)) {
+    fsSync.mkdirSync(dir, { recursive: true });
   }
 }
 
@@ -133,13 +134,11 @@ async function queryUsage(): Promise<UsageStats[]> {
 async function main() {
   console.debug('📊 Analyzing usage patterns...');
   
-  // Ensure tmp/audit directory exists before writing
-  mkdirSync('tmp/audit', { recursive: true });
   ensureDir(OUTPUT_DIR);
   
   const usage = await queryUsage();
   
-  fs.writeFileSync(
+  fsSync.writeFileSync(
     path.join(OUTPUT_DIR, 'usage.json'),
     JSON.stringify(usage, null, 2)
   );
@@ -153,6 +152,6 @@ async function main() {
   });
 }
 
-main().catch(err => { console.error("Audit failed:", err); process.exit(1); });
+await main().catch(err => { console.error("Audit failed:", err); process.exit(1) });
 
 export { main as runUsage };

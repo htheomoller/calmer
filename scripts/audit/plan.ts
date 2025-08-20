@@ -1,36 +1,37 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 
-import { mkdirSync } from 'node:fs';
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import * as fsSync from 'node:fs';
 import * as yaml from 'yaml';
 import { FeatureManifest, AuditReport, UsageStats } from './types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, '../../');
 
-// Ensure artifact directories exist
-mkdirSync('tmp/audit', { recursive: true });
-mkdirSync('docs/cleanup', { recursive: true });
-mkdirSync('docs/cleanup/sql', { recursive: true });
+// Ensure artifacts directories
+await fs.mkdir(path.resolve(PROJECT_ROOT, 'tmp/audit'), { recursive: true });
+await fs.mkdir(path.resolve(PROJECT_ROOT, 'docs/cleanup'), { recursive: true });
+await fs.mkdir(path.resolve(PROJECT_ROOT, 'docs/cleanup/sql'), { recursive: true }).catch(() => {});
 
-const ROOT_DIR = path.resolve(__dirname, '../..');
+const ROOT_DIR = PROJECT_ROOT;
 const MANIFEST_DIR = path.join(ROOT_DIR, 'docs/feature-manifest');
 const AUDIT_DIR = path.join(ROOT_DIR, 'tmp/audit');
 const CLEANUP_DIR = path.join(ROOT_DIR, 'docs/cleanup');
 const CLEANUP_SQL_DIR = path.join(CLEANUP_DIR, 'sql');
 
 function ensureDir(dir: string) {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  if (!fsSync.existsSync(dir)) {
+    fsSync.mkdirSync(dir, { recursive: true });
   }
 }
 
 function loadManifests(): FeatureManifest[] {
-  const manifestFiles = fs.readdirSync(MANIFEST_DIR).filter(f => f.endsWith('.yaml'));
+  const manifestFiles = fsSync.readdirSync(MANIFEST_DIR).filter(f => f.endsWith('.yaml'));
   return manifestFiles.map(file => {
-    const content = fs.readFileSync(path.join(MANIFEST_DIR, file), 'utf8');
+    const content = fsSync.readFileSync(path.join(MANIFEST_DIR, file), 'utf8');
     return yaml.parse(content) as FeatureManifest;
   });
 }
@@ -40,14 +41,14 @@ function loadAuditData(): { scan: AuditReport | null, usage: UsageStats[] } {
   let usage: UsageStats[] = [];
 
   try {
-    const scanContent = fs.readFileSync(path.join(AUDIT_DIR, 'scan.json'), 'utf8');
+    const scanContent = fsSync.readFileSync(path.join(AUDIT_DIR, 'scan.json'), 'utf8');
     scan = JSON.parse(scanContent);
   } catch (e) {
     console.debug('⚠️ No scan.json found, generating plan without scan data');
   }
 
   try {
-    const usageContent = fs.readFileSync(path.join(AUDIT_DIR, 'usage.json'), 'utf8');
+    const usageContent = fsSync.readFileSync(path.join(AUDIT_DIR, 'usage.json'), 'utf8');
     usage = JSON.parse(usageContent);
   } catch (e) {
     console.debug('⚠️ No usage.json found, generating plan without usage data');
@@ -260,11 +261,6 @@ function generateCleanupPlan(
 async function main() {
   console.debug('📋 Generating cleanup plan...');
   
-  // Ensure directories exist before writing
-  mkdirSync('tmp/audit', { recursive: true });
-  mkdirSync('docs/cleanup', { recursive: true });
-  mkdirSync('docs/cleanup/sql', { recursive: true });
-  
   ensureDir(CLEANUP_DIR);
   ensureDir(CLEANUP_SQL_DIR);
   
@@ -274,7 +270,7 @@ async function main() {
   // Generate SQL cleanup files
   for (const manifest of manifests) {
     const sql = generateSQLCleanup(manifest);
-    fs.writeFileSync(
+    fsSync.writeFileSync(
       path.join(CLEANUP_SQL_DIR, `${manifest.slug}.sql`),
       sql
     );
@@ -282,7 +278,7 @@ async function main() {
   
   // Generate main cleanup plan
   const plan = generateCleanupPlan(manifests, scan, usage);
-  fs.writeFileSync(
+  fsSync.writeFileSync(
     path.join(CLEANUP_DIR, 'plan.md'),
     plan
   );
@@ -292,6 +288,6 @@ async function main() {
   console.debug(`🗄️ SQL files: docs/cleanup/sql/`);
 }
 
-main().catch(err => { console.error("Audit failed:", err); process.exit(1); });
+await main().catch(err => { console.error("Audit failed:", err); process.exit(1) });
 
 export { main as runPlan };

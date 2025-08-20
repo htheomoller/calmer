@@ -6,8 +6,7 @@ import { SITE_LOCKDOWN } from '@/config/public';
 const PUBLIC_ALWAYS = ['/', '/comingsoon', '/login', '/signup'];
 const PUBLIC_DEV = ['/health', '/dev/breadcrumbs', '/self-test'];
 const RESOURCE_PREFIXES = ['/resources'];
-const PROTECTED_PREFIXES = ['/posts', '/settings', '/activity', '/simulate', '/health', '/home-legacy'];
-const DEV_ROUTES = ["/health","/dev/breadcrumbs","/self-test"];
+const PROTECTED_PREFIXES = ['/posts', '/settings', '/activity', '/simulate', '/home-legacy'];
 
 const isDev = !import.meta.env.PROD;
 
@@ -39,8 +38,8 @@ export const AuthGate = ({ children }: AuthGateProps) => {
 
     const pathname = location.pathname;
 
-    // Allow dev routes when in DEV
-    if (import.meta.env.DEV && DEV_ROUTES.includes(pathname)) return;
+    // Allow dev routes when not in production
+    if (!import.meta.env.PROD && PUBLIC_DEV.includes(pathname)) return;
 
     // If user is logged in AND visiting /login or /signup, redirect to /posts
     if (user && (pathname === '/login' || pathname === '/signup')) {

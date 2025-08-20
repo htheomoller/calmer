@@ -34,60 +34,15 @@ export default function Health() {
   const [webhookLoading, setWebhookLoading] = useState(false);
   const { toast } = useToast();
   // SANDBOX_START (audit)
-  const [auditLoading, setAuditLoading] = useState(false);
-  const [auditAvailable, setAuditAvailable] = useState(false);
-  const [pingDiag, setPingDiag] = useState<{status: number, ok: boolean, head: string} | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [error, setError] = useState<string|null>(null);
+  const [result, setResult] = useState<string|null>(null);
+  const [report, setReport] = useState<string|null>(null);
   const [modalPath, setModalPath] = useState<string>('');
-  const [reportPath, setReportPath] = useState<string>('');
-  const [planPath, setPlanPath] = useState<string>('');
   // SANDBOX_END
 
   useEffect(() => {
     getCurrentProvider().then(setProvider);
-    
-    // SANDBOX_START (audit)
-    // Check if audit middleware is available (DEV or PREVIEW) with robust diagnostics
-    const checkAuditPing = async () => {
-      try {
-        const res = await fetch('/__dev/audit-run?ping=1', { 
-          headers: { 'X-Dev-Ping': '1' } 
-        });
-        const text = await res.text();
-        let pingOk = false;
-        
-        try {
-          pingOk = res.ok && JSON.parse(text)?.ok === true;
-        } catch {
-          // Fallback heuristic: if res.ok && text.includes('"ok":true') then pingOk = true
-          pingOk = res.ok && text.includes('"ok":true');
-        }
-        
-        let diagMsg = `${res.status} – ${text.slice(0, 200)}`;
-        if (res.status === 200 && text.includes('<html')) {
-          diagMsg = 'Ping returned HTML — SPA fallback intercepted. Try running anyway.';
-        }
-        
-        const diag = { 
-          status: res.status, 
-          ok: pingOk, 
-          head: diagMsg
-        };
-        
-        setPingDiag(diag);
-        setAuditAvailable(pingOk);
-      } catch (error: any) {
-        const diag = { 
-          status: 0, 
-          ok: false, 
-          head: `Fetch failed: ${error.message?.slice(0, 150) || 'unknown'}` 
-        };
-        setPingDiag(diag);
-        setAuditAvailable(false);
-      }
-    };
-    
-    checkAuditPing();
-    // SANDBOX_END
   }, []);
 
   // Only show in development
@@ -213,85 +168,41 @@ export default function Health() {
   };
 
   // SANDBOX_START (audit)
-  const runAuditReport = async () => {
-    setAuditLoading(true);
+  const runAudit = async () => {
+    setIsRunning(true); setError(null); setResult(null); setReport(null);
     try {
-      const response = await fetch('/__dev/audit-run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      
-      const text = await response.text();
-      
-      let res: any;
-      try {
-        res = JSON.parse(text);
-      } catch {
-        // Not JSON response
-        toast({
-          title: "Audit runner not reachable",
-          description: `Preview middleware? Response: ${text.slice(0, 200)}`,
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (res.success) {
-        setReportPath(res.artifacts?.report || '');
-        setPlanPath(res.artifacts?.plan || '');
-        toast({
-          title: "Audit report generated",
-          description: "Real audit report completed successfully",
-        });
-      } else {
-        toast({
-          title: "Audit run failed",
-          description: `Exit code ${res.code}: ${res.stderr_head?.slice(0, 100) || 'Unknown error'}`,
-          variant: "destructive",
-        });
-      }
-
-      // Fire-and-forget breadcrumb logging
-      logBreadcrumb({
-        scope: 'audit',
-        summary: res.success ? 'Audit report generated' : 'Audit run failed',
-        details: {
-          success: !!res.success,
-          code: res.code,
-          artifacts: res.artifacts || null,
-          stdout_head: (res.stdout_head || '').slice(0, 800),
-          stderr_head: (res.stderr_head || '').slice(0, 800),
-          at: new Date().toISOString()
-        },
-        tags: res.success ? ['audit', 'success'] : ['audit', 'error']
-      });
-    } catch (error: any) {
-      // Log failed audit run
-      logBreadcrumb({
-        scope: 'audit',
-        summary: 'Audit run failed',
-        details: {
-          ok: false,
-          code: 1,
-          artifacts: null,
-          stdout_head: '',
-          stderr_head: error.message?.slice(0, 800) || '',
-          at: new Date().toISOString()
-        },
-        tags: ['audit', 'error']
-      });
-
-      toast({
-        title: "Audit generation failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      const res = await fetch('/__dev/audit-run');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      setResult(data.message || 'Audit completed.');
+    } catch (e: any) {
+      setError(e.message || 'Audit failed');
     } finally {
-      setAuditLoading(false);
+      setIsRunning(false);
+    }
+  };
+
+  const viewReport = async () => {
+    try {
+      const res = await fetch('/__dev/read-file?path=tmp/audit/report.md');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      setReport(data.content || '(empty)');
+      setModalPath('tmp/audit/report.md');
+    } catch (e: any) {
+      setError(e.message || 'Could not read report');
+    }
+  };
+
+  const viewPlan = async () => {
+    try {
+      const res = await fetch('/__dev/read-file?path=docs/cleanup/plan.md');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      setReport(data.content || '(empty)');
+      setModalPath('docs/cleanup/plan.md');
+    } catch (e: any) {
+      setError(e.message || 'Could not read plan');
     }
   };
   // SANDBOX_END
@@ -306,7 +217,7 @@ export default function Health() {
             <p className="text-muted-foreground">Configuration and secrets status</p>
           </div>
           <Badge variant="outline" className="text-xs">
-            {import.meta.env.DEV ? 'ENV: DEV' : auditAvailable ? 'ENV: PREVIEW' : 'ENV: PROD'}
+            {import.meta.env.DEV ? 'ENV: DEV' : 'ENV: PREVIEW'}
           </Badge>
         </div>
 
@@ -516,92 +427,58 @@ export default function Health() {
             Development-only audit and cleanup tools
           </p>
           
-          {!import.meta.env.PROD ? (
-            <>
-              <div className="mb-4 p-3 bg-muted rounded-lg">
-                <p className="text-sm font-medium mb-2">📦 Package Scripts Update Required</p>
-                <p className="text-xs text-muted-foreground mb-2">Add these scripts to package.json manually:</p>
-                <pre className="text-xs bg-background p-2 rounded border overflow-x-auto">
-{`"audit:build": "tsc -p scripts/audit/tsconfig.audit.json",
-"audit:scan": "node scripts/audit/dist/scan.js",
-"audit:usage": "node scripts/audit/dist/usage.js", 
-"audit:plan": "node scripts/audit/dist/plan.js",
-"audit:report": "npm run audit:build && npm run audit:scan && npm run audit:usage && npm run audit:plan"`}
-                </pre>
-              </div>
-              {auditAvailable ? (
-                <div className="space-y-4">
-                  <Button 
-                    onClick={runAuditReport}
-                    disabled={auditLoading}
-                    variant="default"
-                  >
-                    {auditLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Running audit...
-                      </>
-                    ) : (
-                      "Run audit report"
-                    )}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <Button 
-                    disabled={true}
-                    variant="outline"
-                  >
-                    Run audit report
-                  </Button>
-                  
-                  {pingDiag && (
-                    <div className="text-xs text-muted-foreground">
-                      Ping failed: {pingDiag.status} – {pingDiag.head}
-                    </div>
-                  )}
-                  
-                  {import.meta.env.DEV && (
-                    <Button 
-                      onClick={runAuditReport}
-                      disabled={auditLoading}
-                      variant="link"
-                      size="sm"
-                      className="h-auto p-0 text-xs underline"
-                    >
-                      {auditLoading ? "Running..." : "Try anyway (DEV)"}
-                    </Button>
-                  )}
+          {import.meta.env.PROD ? (
+            <p className="text-sm text-muted-foreground">
+              Audit Kit is disabled in production.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              <Button 
+                onClick={runAudit}
+                disabled={isRunning}
+                variant="default"
+              >
+                {isRunning ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Running audit...
+                  </>
+                ) : (
+                  "Run Audit"
+                )}
+              </Button>
+              
+              {result && (
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-sm text-green-600">{result}</p>
                 </div>
               )}
               
-              {(reportPath || planPath) && (
-                <div className="flex gap-2">
-                  {reportPath && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setModalPath(reportPath)}
-                    >
-                      Open report
-                    </Button>
-                  )}
-                  {planPath && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setModalPath(planPath)}
-                    >
-                      Open plan
-                    </Button>
-                  )}
+              {error && (
+                <div className="p-3 bg-destructive/10 rounded-lg">
+                  <p className="text-sm text-destructive">{error}</p>
                 </div>
               )}
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Run locally: <code>npm run audit:report</code>
-            </p>
+              
+              {result && (
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={viewReport}
+                  >
+                    View Report
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={viewPlan}
+                  >
+                    View Plan
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
         </Card>
         {/* SANDBOX_END */}
@@ -619,7 +496,7 @@ export default function Health() {
       </div>
       
       {/* SANDBOX_START (audit) */}
-      {modalPath && (
+      {modalPath && report && (
         <MarkdownModal 
           path={modalPath} 
           onClose={() => setModalPath('')}

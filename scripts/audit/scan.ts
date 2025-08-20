@@ -1,34 +1,36 @@
 #!/usr/bin/env tsx
 
-import { fileURLToPath } from "node:url";
-import path from "node:path";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, "../../");
-
-import { mkdirSync } from 'node:fs';
-import * as fs from 'fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import * as fsSync from 'node:fs';
 import { glob } from 'glob';
 import * as yaml from 'yaml';
 import { FeatureManifest, ScanResult, AuditReport } from './types';
 
-// Ensure artifact directories exist
-mkdirSync('tmp/audit', { recursive: true });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, '../../');
 
-const ROOT_DIR = path.resolve(__dirname, '../..');
+// Ensure artifacts directories
+await fs.mkdir(path.resolve(PROJECT_ROOT, 'tmp/audit'), { recursive: true });
+await fs.mkdir(path.resolve(PROJECT_ROOT, 'docs/cleanup'), { recursive: true });
+await fs.mkdir(path.resolve(PROJECT_ROOT, 'docs/cleanup/sql'), { recursive: true }).catch(() => {});
+
+const ROOT_DIR = PROJECT_ROOT;
 const MANIFEST_DIR = path.join(ROOT_DIR, 'docs/feature-manifest');
 const OUTPUT_DIR = path.join(ROOT_DIR, 'tmp/audit');
 
 function ensureDir(dir: string) {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  if (!fsSync.existsSync(dir)) {
+    fsSync.mkdirSync(dir, { recursive: true });
   }
 }
 
 function loadManifests(): FeatureManifest[] {
-  const manifestFiles = fs.readdirSync(MANIFEST_DIR).filter(f => f.endsWith('.yaml'));
+  const manifestFiles = fsSync.readdirSync(MANIFEST_DIR).filter(f => f.endsWith('.yaml'));
   return manifestFiles.map(file => {
-    const content = fs.readFileSync(path.join(MANIFEST_DIR, file), 'utf8');
+    const content = fsSync.readFileSync(path.join(MANIFEST_DIR, file), 'utf8');
     return yaml.parse(content) as FeatureManifest;
   });
 }
@@ -54,7 +56,7 @@ function findFeatureTaggedFiles(): Record<string, string[]> {
   const allFiles = glob.sync('src/**/*.{ts,tsx}', { cwd: ROOT_DIR });
   
   for (const file of allFiles) {
-    const content = fs.readFileSync(path.join(ROOT_DIR, file), 'utf8');
+    const content = fsSync.readFileSync(path.join(ROOT_DIR, file), 'utf8');
     const featureMatch = content.match(/^\/\/ FEATURE:(\w+)/m);
     if (featureMatch) {
       const feature = featureMatch[1];
@@ -70,7 +72,7 @@ function countSandboxBlocks(filePaths: string[]): number {
   let count = 0;
   for (const file of filePaths) {
     try {
-      const content = fs.readFileSync(path.join(ROOT_DIR, file), 'utf8');
+      const content = fsSync.readFileSync(path.join(ROOT_DIR, file), 'utf8');
       const matches = content.match(/\/\/ SANDBOX_START/g);
       count += matches ? matches.length : 0;
     } catch (e) {
@@ -82,7 +84,7 @@ function countSandboxBlocks(filePaths: string[]): number {
 
 function checkRoutes(routes: string[]): { found: string[], missing: string[] } {
   try {
-    const appContent = fs.readFileSync(path.join(ROOT_DIR, 'src/App.tsx'), 'utf8');
+    const appContent = fsSync.readFileSync(path.join(ROOT_DIR, 'src/App.tsx'), 'utf8');
     const found: string[] = [];
     const missing: string[] = [];
     
@@ -106,7 +108,7 @@ function checkEdgeFunctions(functions: string[]): { found: string[], missing: st
   
   for (const func of functions) {
     const funcPath = path.join(ROOT_DIR, 'supabase/functions', func, 'index.ts');
-    if (fs.existsSync(funcPath)) {
+    if (fsSync.existsSync(funcPath)) {
       found.push(func);
     } else {
       missing.push(func);
@@ -192,8 +194,6 @@ function generateMarkdownReport(report: AuditReport): string {
 async function main() {
   console.debug('🔍 Starting audit scan...');
   
-  // Ensure tmp/audit directory exists before writing
-  mkdirSync('tmp/audit', { recursive: true });
   ensureDir(OUTPUT_DIR);
   
   const manifests = loadManifests();
@@ -231,14 +231,14 @@ async function main() {
   };
   
   // Write JSON report
-  fs.writeFileSync(
+  fsSync.writeFileSync(
     path.join(OUTPUT_DIR, 'scan.json'),
     JSON.stringify(report, null, 2)
   );
   
   // Write Markdown report
   const markdown = generateMarkdownReport(report);
-  fs.writeFileSync(
+  fsSync.writeFileSync(
     path.join(OUTPUT_DIR, 'report.md'),
     markdown
   );
@@ -247,6 +247,6 @@ async function main() {
   console.debug(`📄 Reports written to tmp/audit/`);
 }
 
-runScan().catch(err => { console.error("Audit failed:", err); process.exit(1); });
+await main().catch(err => { console.error("Audit failed:", err); process.exit(1) });
 
 export { main as runScan };
