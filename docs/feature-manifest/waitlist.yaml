@@ -5,7 +5,7 @@ flags:
   - SITE_LOCKDOWN
 routes:
   - /
-  - /coming-soon
+  - /comingsoon
 files:
   - src/components/WaitlistForm.tsx
   - src/pages/ComingSoon.tsx

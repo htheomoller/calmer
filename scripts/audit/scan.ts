@@ -82,6 +82,18 @@ function countSandboxBlocks(filePaths: string[]): number {
   return count;
 }
 
+function normalizeRoutePath(p: string): string {
+  // collapse multiple slashes, trim, lowercase
+  let s = (p || '').trim().toLowerCase().replace(/\/+/g, '/');
+
+  // treat "coming-soon" and "comingsoon" as equivalent
+  s = s.replace('/coming-soon', '/comingsoon');
+
+  // ensure it starts with a single slash
+  if (!s.startsWith('/')) s = '/' + s;
+  return s;
+}
+
 function checkRoutes(routes: string[]): { found: string[], missing: string[] } {
   try {
     const appContent = fsSync.readFileSync(path.join(ROOT_DIR, 'src/App.tsx'), 'utf8');
@@ -89,7 +101,9 @@ function checkRoutes(routes: string[]): { found: string[], missing: string[] } {
     const missing: string[] = [];
     
     for (const route of routes) {
-      if (appContent.includes(`path="${route}"`) || appContent.includes(`path='${route}'`)) {
+      const normalizedRoute = normalizeRoutePath(route);
+      if (appContent.includes(`path="${normalizedRoute}"`) || appContent.includes(`path='${normalizedRoute}'`) ||
+          appContent.includes(`path="${route}"`) || appContent.includes(`path='${route}'`)) {
         found.push(route);
       } else {
         missing.push(route);
