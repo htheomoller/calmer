@@ -8,8 +8,8 @@ files:
   - src/selftest/**
   - src/pages/SelfTest.tsx
 edge_functions:
-  - add-to-waitlist (tested)
-  - webhook-comments (tested)
+  - add-to-waitlist
+  - webhook-comments
 db:
   tables:
     - events (test events)

@@ -52,11 +52,12 @@ function AppContent() {
         <Route path="/comingsoon" element={<ComingSoon />} />
         <Route path="/home-legacy" element={<Index />} />
         <Route path="/login" element={<Login />} />
-        {/* Signup disabled - redirects to comingsoon via AuthGate */}
+        <Route path="/signup" element={<Signup />} />
         <Route path="/health" element={<Health />} />
           <Route path="/self-test" element={<SelfTest />} />
           <Route path="/dev/breadcrumbs" element={<DevBreadcrumbs />} />
         <Route path="/settings" element={<AccountSettings />} />
+        <Route path="/account-settings" element={<AccountSettings />} />
         <Route path="/posts" element={<Posts />} />
         <Route path="/posts/:id" element={<PostDetails />} />
         <Route path="/activity" element={<Activity />} />
