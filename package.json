@@ -9,10 +9,11 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "audit:scan": "ts-node scripts/audit/scan.ts",
-    "audit:usage": "ts-node scripts/audit/usage.ts",
-    "audit:plan": "ts-node scripts/audit/plan.ts",
-    "audit:report": "npm run audit:scan && npm run audit:usage && npm run audit:plan"
+    "audit:build": "tsc -p scripts/audit/tsconfig.audit.json",
+    "audit:scan": "node scripts/audit/dist/scan.js",
+    "audit:usage": "node scripts/audit/dist/usage.js", 
+    "audit:plan": "node scripts/audit/dist/plan.js",
+    "audit:report": "npm run audit:build && npm run audit:scan && npm run audit:usage && npm run audit:plan"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
