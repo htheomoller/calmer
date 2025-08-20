@@ -1,15 +1,16 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
+
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, "../../");
 
 import { mkdirSync } from 'node:fs';
 import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
 import { glob } from 'glob';
 import * as yaml from 'yaml';
 import { FeatureManifest, ScanResult, AuditReport } from './types';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Ensure artifact directories exist
 mkdirSync('tmp/audit', { recursive: true });
@@ -246,8 +247,6 @@ async function main() {
   console.debug(`📄 Reports written to tmp/audit/`);
 }
 
-if (require.main === module) {
-  main().catch(console.error);
-}
+runScan().catch(err => { console.error("Audit failed:", err); process.exit(1); });
 
 export { main as runScan };

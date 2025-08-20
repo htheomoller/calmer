@@ -7,6 +7,7 @@ const PUBLIC_ALWAYS = ['/', '/comingsoon', '/login', '/signup'];
 const PUBLIC_DEV = ['/health', '/dev/breadcrumbs', '/self-test'];
 const RESOURCE_PREFIXES = ['/resources'];
 const PROTECTED_PREFIXES = ['/posts', '/settings', '/activity', '/simulate', '/health', '/home-legacy'];
+const DEV_ROUTES = ["/health","/dev/breadcrumbs","/self-test"];
 
 const isDev = !import.meta.env.PROD;
 
@@ -37,6 +38,9 @@ export const AuthGate = ({ children }: AuthGateProps) => {
     if (loading) return;
 
     const pathname = location.pathname;
+
+    // Allow dev routes when in DEV
+    if (import.meta.env.DEV && DEV_ROUTES.includes(pathname)) return;
 
     // If user is logged in AND visiting /login or /signup, redirect to /posts
     if (user && (pathname === '/login' || pathname === '/signup')) {

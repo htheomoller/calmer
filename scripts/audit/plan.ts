@@ -292,8 +292,6 @@ async function main() {
   console.debug(`🗄️ SQL files: docs/cleanup/sql/`);
 }
 
-if (require.main === module) {
-  main().catch(console.error);
-}
+main().catch(err => { console.error("Audit failed:", err); process.exit(1); });
 
 export { main as runPlan };
