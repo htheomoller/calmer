@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": ".",
-    "module": "commonjs",
+    "module": "ES2020",
     "target": "ES2020",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
