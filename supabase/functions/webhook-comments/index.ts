@@ -157,7 +157,9 @@ const handler = async (req: Request): Promise<Response> => {
     
     console.log('webhook-comments:input', { 
       hasBody: !!body, 
-      keys: body ? Object.keys(body) : [] 
+      keys: body ? Object.keys(body) : [],
+      comment_id: comment_id,
+      duplicate_check: processedIds.has(comment_id)
     });
 
     // SANDBOX_START - Debug switch for testing
@@ -185,8 +187,9 @@ const handler = async (req: Request): Promise<Response> => {
     const account_id = body?.account_id;
     const ig_post_id = body?.ig_post_id;
 
-    // Per-account rate limiting
+    // Per-account rate limiting (must happen after account_id is determined)
     if (account_id && !allowRequestForAccount(account_id)) {
+      console.log('webhook-comments:rate-limited', { account_id, hits: accountHits.get(account_id)?.length });
       return new Response(JSON.stringify({ ok: false, code: 'RATE_LIMITED' }), { 
         status: 429, 
         headers: { 'Content-Type': 'application/json', ...cors(origin) }

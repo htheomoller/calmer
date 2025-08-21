@@ -30,6 +30,7 @@ const script: TestScript = {
           provider: 'sandbox'
         });
         
+        console.log('Duplicate test calls:', { first: first?.code, second: second?.code });
         return second?.code === 'DUPLICATE_IGNORED'
           ? { pass: true, note: 'Duplicate suppressed' }
           : { pass: false, note: `Expected DUPLICATE_IGNORED, got ${second?.code}` };
@@ -43,28 +44,25 @@ const script: TestScript = {
         const { data: { user } } = await ctx.supabase.auth.getUser();
         const account_id = user?.id;
         
-        // Create burst calls with small delays to trigger rate limiting
-        const calls = [];
+        // Make sequential calls to ensure rate limiting triggers
+        const results = [];
         for (let i = 0; i < 12; i++) {
-          calls.push(
-            ctx.invokeWebhook({ 
-              ig_post_id, 
-              comment_text: `burst ${i}`, 
-              comment_id: `b_${Date.now()}_${i}`,
-              account_id: account_id,
-              provider: 'sandbox'
-            })
-          );
-          // Small delay between calls to ensure they're processed sequentially
-          if (i < 11) await new Promise(resolve => setTimeout(resolve, 10));
+          const result = await ctx.invokeWebhook({ 
+            ig_post_id, 
+            comment_text: `burst ${i}`, 
+            comment_id: `rate_${Date.now()}_${i}`,
+            account_id: account_id,
+            provider: 'sandbox'
+          });
+          results.push(result);
+          console.log(`Rate test call ${i}: ${result?.code}`);
         }
         
-        const results = await Promise.all(calls);
-        
-        const hit = results.some(r => r?.code === 'RATE_LIMITED');
-        return hit
-          ? { pass: true, note: 'Rate limit observed' }
-          : { pass: false, note: 'No RATE_LIMITED response detected' };
+        const rateLimitedCount = results.filter(r => r?.code === 'RATE_LIMITED').length;
+        console.log(`Rate limiting results: ${rateLimitedCount} out of 12 calls were rate limited`);
+        return rateLimitedCount > 0
+          ? { pass: true, note: `Rate limit observed (${rateLimitedCount} calls rate limited)` }
+          : { pass: false, note: `No RATE_LIMITED responses detected. Codes: ${results.map(r => r?.code).join(', ')}` };
       }
     },
     {
