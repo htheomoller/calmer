@@ -57,6 +57,9 @@ const script: TestScript = {
 
         // Debug log for the self-test console
         console.log('rate-limit results', results.map(r => ({ code: r.code, status: r.status })));
+        
+        // Compact summary
+        console.log('rate test summary', results.reduce((m,r)=>{m[r.code]=(m[r.code]||0)+1;return m;},{}));
 
         const successes = results.filter(r => r.status === 200 && r.code === 'SANDBOX_DM_LOGGED').length;
         const limited   = results.filter(r => r.status === 429 && r.code === 'RATE_LIMITED').length;

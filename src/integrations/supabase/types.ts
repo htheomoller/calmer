@@ -208,6 +208,24 @@ export type Database = {
           },
         ]
       }
+      rate_counters: {
+        Row: {
+          account_id: string
+          bucket_start: string
+          hits: number
+        }
+        Insert: {
+          account_id: string
+          bucket_start: string
+          hits?: number
+        }
+        Update: {
+          account_id?: string
+          bucket_start?: string
+          hits?: number
+        }
+        Relationships: []
+      }
       reply_logs: {
         Row: {
           created_at: string
