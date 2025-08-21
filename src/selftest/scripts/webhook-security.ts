@@ -9,24 +9,22 @@ const script: TestScript = {
       name: 'Duplicate comment ignored',
       stopOnFail: false,
       run: async (ctx) => {
-        const { ig_post_id } = await ctx.ensureSandboxPost();
-        const { data: { user } } = await ctx.supabase.auth.getUser();
-        const account_id = user?.id;
+        const { ig_post_id, account_id } = await ctx.ensureSandboxPost();
         const cid = `dup_${Date.now()}`;
         
         const first = await ctx.invokeWebhook({ 
           ig_post_id, 
+          account_id,
           comment_text: 'LINK', 
           comment_id: cid,
-          account_id,
           provider: 'sandbox'
         });
         
         const second = await ctx.invokeWebhook({ 
           ig_post_id, 
+          account_id,
           comment_text: 'LINK', 
           comment_id: cid,
-          account_id,
           provider: 'sandbox'
         });
         
@@ -40,9 +38,7 @@ const script: TestScript = {
       name: 'Rate limit triggers under load',
       stopOnFail: false,
       run: async (ctx) => {
-        const { ig_post_id } = await ctx.ensureSandboxPost();
-        const { data: { user } } = await ctx.supabase.auth.getUser();
-        const account_id = user?.id;
+        const { ig_post_id, account_id } = await ctx.ensureSandboxPost();
         
         // Fire 20 calls in parallel with same account_id but distinct comment_ids
         const base = Date.now();

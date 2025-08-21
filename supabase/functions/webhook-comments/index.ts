@@ -144,9 +144,29 @@ const handler = async (req: Request): Promise<Response> => {
     // Early parsing and basic vars
     const body = await req.json().catch(() => ({} as any));
     const origin = req.headers.get('Origin') ?? '*';
-    const account_id: string | undefined = body?.account_id;
     const comment_id: string = body?.comment_id || `auto_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     const comment_text: string = String(body?.comment_text ?? '');
+    
+    // Resolve account_id: prefer body.account_id, else look up from ig_post_id
+    let account_id: string | undefined = body?.account_id;
+
+    if (!account_id) {
+      const supabaseAnon = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_ANON_KEY') ?? '');
+      const { data: postRow } = await supabaseAnon
+        .from('posts')
+        .select('account_id')
+        .eq('ig_post_id', body?.ig_post_id)
+        .maybeSingle();
+
+      account_id = postRow?.account_id;
+    }
+
+    if (!account_id) {
+      return new Response(JSON.stringify({ ok: false, code: 'BAD_REQUEST', message: 'account_id missing' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', ...cors(origin) }
+      });
+    }
     
     console.log('webhook-comments:input', { 
       hasBody: !!body, 

@@ -6,7 +6,7 @@ export type TestContext = {
   now: number;
   log: (m: string, extra?: any) => void;
   ensureSandbox: () => Promise<void>;
-  ensureSandboxPost: () => Promise<{ ig_post_id: string }>;
+  ensureSandboxPost: () => Promise<{ ig_post_id: string; account_id: string }>;
   getRecentActivity: (minutes: number, types?: string[]) => Promise<any[]>;
   invokeWebhook: (args: { ig_post_id: string; comment_text: string; comment_id?: string; account_id?: string; provider?: string }) => Promise<{ ok: boolean; code?: string; message?: string }>;
   invokeEdge: (fnName: string, body: any) => Promise<{ ok: boolean; code?: string; message?: string; details?: any }>;

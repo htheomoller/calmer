@@ -20,7 +20,7 @@ export const ensureSandbox = async (): Promise<void> => {
 /**
  * Create or find a sandbox post with automation enabled
  */
-export const ensureSandboxPost = async (): Promise<{ ig_post_id: string }> => {
+export const ensureSandboxPost = async (): Promise<{ ig_post_id: string; account_id: string }> => {
   // Get current user
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) {
@@ -40,7 +40,7 @@ export const ensureSandboxPost = async (): Promise<{ ig_post_id: string }> => {
   }
 
   if (posts && posts.length > 0) {
-    return { ig_post_id: posts[0].ig_post_id };
+    return { ig_post_id: posts[0].ig_post_id, account_id: posts[0].account_id };
   }
 
   // Create a new sandbox post with explicit triggers
@@ -81,7 +81,7 @@ export const ensureSandboxPost = async (): Promise<{ ig_post_id: string }> => {
     throw new Error(`Failed to verify sandbox post: ${verifyError?.message || 'Post not found'}`);
   }
 
-  return { ig_post_id: newPost.ig_post_id };
+  return { ig_post_id: newPost.ig_post_id, account_id: newPost.account_id };
 };
 
 /**
