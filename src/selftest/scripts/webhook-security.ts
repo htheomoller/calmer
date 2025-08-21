@@ -55,12 +55,12 @@ const script: TestScript = {
         );
         
         console.log('Rate test results:', results.map(r => ({ code: r?.code, status: r?.status, ok: r?.ok })));
-        const rateLimitedCount = results.filter(r => r?.code === 'RATE_LIMITED').length;
-        const successfulCount = results.filter(r => r?.ok === true).length;
+        const rateLimitedCount = results.filter(r => r?.code === 'RATE_LIMITED' && r?.status === 429).length;
+        const successfulCount = results.filter(r => r?.code === 'SANDBOX_DM_LOGGED' && r?.status === 200).length;
         
-        return rateLimitedCount > 0 && successfulCount <= 10
+        return rateLimitedCount > 0 && successfulCount > 0 && successfulCount <= 5
           ? { pass: true, note: `Rate limit observed (${rateLimitedCount} rate limited, ${successfulCount} successful)` }
-          : { pass: false, note: `Expected ≥1 RATE_LIMITED and ≤10 successes. Got ${rateLimitedCount} rate limited, ${successfulCount} successful. Codes: ${results.map(r => r?.code).join(', ')}` };
+          : { pass: false, note: `Expected ≥1 RATE_LIMITED(429) and ≤5 SANDBOX_DM_LOGGED(200). Got ${rateLimitedCount} rate limited, ${successfulCount} successful. All codes: ${results.map(r => `${r?.code}(${r?.status})`).join(', ')}` };
       }
     },
     {

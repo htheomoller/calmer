@@ -234,6 +234,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     const recentCount = recentEvents?.length ?? 0;
     console.log('webhook-comments:rate-check', { account_id, recentCount, limit });
+    console.log({
+      message: 'Rate limit check',
+      accountId: account_id,
+      recentCount,
+      limit
+    });
     
     if (recentCount >= limit) {
       console.log('webhook-comments:rate-limited', { account_id, recentCount });
