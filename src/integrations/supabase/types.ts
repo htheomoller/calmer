@@ -371,6 +371,24 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_counters: {
+        Row: {
+          account_id: string
+          bucket: string
+          count: number
+        }
+        Insert: {
+          account_id: string
+          bucket: string
+          count?: number
+        }
+        Update: {
+          account_id?: string
+          bucket?: string
+          count?: number
+        }
+        Relationships: []
+      }
       webhook_events: {
         Row: {
           account_id: string

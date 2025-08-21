@@ -2,10 +2,14 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendInstagramDM, sendInstagramDMSandbox } from "../utils/gupshup-client.ts";
 
-const DEFAULT_RATE_LIMIT = 10;
-const DEV_RATE_LIMIT = 5; // easier to trigger during self-test
+const DEFAULT_RATE_LIMIT = 60; // Production limit
+const DEV_RATE_LIMIT = 5; // Self-test limit
+
 function getRateLimit(provider?: string) {
-  return provider === 'sandbox' ? DEV_RATE_LIMIT : DEFAULT_RATE_LIMIT;
+  if (provider === 'sandbox') {
+    return Number(Deno.env.get('SELFTEST_RATE_LIMIT_MAX') ?? DEV_RATE_LIMIT);
+  }
+  return DEFAULT_RATE_LIMIT;
 }
 
 // Normalization and matching utilities
@@ -224,37 +228,45 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // ATOMIC RATE LIMITING - per-minute bucket counter
-    // Round down to the start of the current minute for bucket
-    const bucketStart = new Date(Math.floor(Date.now() / 60000) * 60000).toISOString();
+    // Create deterministic bucket (minute precision)
+    const bucket = new Date(Date.now() - (Date.now() % 60000)).toISOString().slice(0, 16); // "2025-08-21T14:46"
 
-    // Upsert counter atomically and get the new value
-    const { data: rcRow, error: rcErr } = await supabaseAdmin
-      .from('rate_counters')
-      .upsert({ account_id, bucket_start: bucketStart, hits: 1 }, { onConflict: 'account_id,bucket_start' })
-      .select('hits')
-      .single();
+    // Atomic increment using PostgreSQL ON CONFLICT
+    const { data: counterData, error: counterErr } = await supabaseAdmin.rpc('increment_webhook_counter', {
+      p_account_id: account_id,
+      p_bucket: bucket
+    });
 
-    let hits = rcRow?.hits ?? null;
+    let count = counterData;
 
-    // If upsert didn't return hits (some Postgrest versions), perform an UPDATE ... RETURNING fallback
-    if (hits === null && !rcErr) {
-      const { data: updRow } = await supabaseAdmin
-        .from('rate_counters')
-        .update({ hits: 1 })
-        .eq('account_id', account_id)
-        .eq('bucket_start', bucketStart)
-        .select('hits')
-        .single();
-      hits = updRow?.hits ?? null;
+    // Fallback: manual upsert if RPC not available
+    if (counterErr || count === null) {
+      console.log('webhook-comments:rpc-fallback', { counterErr: counterErr?.message });
+      
+      // Try INSERT first
+      const { error: insertErr } = await supabaseAdmin
+        .from('webhook_counters')
+        .insert({ account_id, bucket, count: 1 });
+
+      if (insertErr && String(insertErr.code) === '23505') {
+        // Conflict - increment existing
+        const { data: updateData } = await supabaseAdmin
+          .from('webhook_counters')
+          .update({ count: supabaseAdmin.rpc('webhook_counters', { account_id, bucket }) })
+          .eq('account_id', account_id)
+          .eq('bucket', bucket)
+          .select('count')
+          .single();
+        count = updateData?.count ?? 1;
+      } else {
+        count = 1; // Fresh insert
+      }
     }
 
-    console.log('[rate] bucket counter', { account_id, bucketStart, hits, limit });
+    console.log('rl_check', { account_id, bucket, count, limit });
 
-    // If we didn't get a number, log and continue as "allowed" (don't hard-fail the MVP)
-    if (typeof hits !== 'number') {
-      console.log('[rate] non-numeric hits; allowing request');
-    } else if (hits > limit) {
-      console.log('[rate] RATE_LIMITED', { account_id, hits, limit, bucketStart });
+    // Rate limit check
+    if (count > limit) {
       return new Response(
         JSON.stringify({ ok: false, code: 'RATE_LIMITED', message: 'Too many requests in the last minute' }),
         { status: 429, headers: { 'Content-Type': 'application/json', ...cors(origin) } }
