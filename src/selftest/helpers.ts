@@ -212,23 +212,52 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
 };
 
 /**
- * Invoke webhook-comments function with error handling
+ * Invoke webhook-comments function with direct fetch to properly handle 429 responses
  */
 export const invokeWebhook = async (args: { ig_post_id: string; comment_text: string; comment_id?: string; account_id?: string; provider?: string }): Promise<{ ok: boolean; code?: string; message?: string; status?: number }> => {
-  const result = await invokeEdge(WEBHOOK_COMMENTS_FN, {
-    provider: args.provider || 'sandbox',
-    ig_post_id: args.ig_post_id,
-    comment_text: args.comment_text,
-    comment_id: args.comment_id,
-    account_id: args.account_id
-  });
-  
-  return {
-    ok: result.ok,
-    status: result.status,
-    code: result.code,
-    message: result.message
-  };
+  try {
+    // Use direct fetch instead of supabase.functions.invoke to properly handle 429 responses
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    
+    const response = await fetch(`https://upzjnifdcmevsdfmzwzw.supabase.co/functions/v1/${WEBHOOK_COMMENTS_FN}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : '',
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwempuaWZkY21ldnNkZm16d3p3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjc5MDUsImV4cCI6MjA3MDYwMzkwNX0.s136RNSm8DfsE_qC_llnaQY2nmbwH0vxhYq84MypTg0'
+      },
+      body: JSON.stringify({
+        provider: args.provider || 'sandbox',
+        ig_post_id: args.ig_post_id,
+        comment_text: args.comment_text,
+        comment_id: args.comment_id,
+        account_id: args.account_id
+      })
+    });
+
+    let responseBody: any = {};
+    try {
+      const text = await response.text();
+      responseBody = text ? JSON.parse(text) : {};
+    } catch {
+      responseBody = { message: 'Failed to parse response body' };
+    }
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      code: responseBody.code || (response.ok ? 'SUCCESS' : 'HTTP_ERROR'),
+      message: responseBody.message || `HTTP ${response.status}`
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      code: 'NETWORK_ERROR',
+      message: String(error)
+    };
+  }
 };
 
 /**
