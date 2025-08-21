@@ -124,9 +124,35 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
     const { data, error } = await supabase.functions.invoke(fnName, { body });
     
     if (error) {
-      // Try to extract meaningful error from Supabase error object
+      // Try multiple extraction methods for the response body
       const ctx = error?.context ?? error?.details ?? {};
-      let payload = ctx.body ?? ctx.response ?? null;
+      let payload = null;
+      let status = null;
+      
+      // Method 1: Direct response extraction
+      if (ctx.response) {
+        payload = ctx.response;
+        status = ctx.status;
+      }
+      
+      // Method 2: Body field extraction  
+      if (!payload && ctx.body) {
+        payload = ctx.body;
+        status = ctx.status;
+      }
+      
+      // Method 3: Parse error message if it contains JSON
+      if (!payload && error.message) {
+        try {
+          // Sometimes the error message contains the full response
+          if (error.message.includes('{') && error.message.includes('}')) {
+            const jsonMatch = error.message.match(/\{[^}]*\}/);
+            if (jsonMatch) {
+              payload = JSON.parse(jsonMatch[0]);
+            }
+          }
+        } catch {}
+      }
       
       // Handle string JSON responses (common with 4xx/5xx responses)
       if (typeof payload === 'string') { 
@@ -135,8 +161,23 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
         } catch {} 
       }
       
-      // Extract status code from error context
-      const status = ctx.status ?? (ctx.response_status ?? null);
+      // Extract status code with multiple fallbacks
+      if (!status) {
+        status = ctx.status ?? ctx.response_status ?? 
+                (error.message?.includes('429') ? 429 : 
+                 error.message?.includes('404') ? 404 :
+                 error.message?.includes('400') ? 400 : null);
+      }
+      
+      // Temporary debug logging to see what we're getting
+      console.log('invokeEdge error parsing:', {
+        hasContext: !!ctx,
+        hasResponse: !!ctx.response, 
+        hasBody: !!ctx.body,
+        status,
+        payload,
+        originalMessage: error.message
+      });
       
       // Return the actual server response code when available, especially for rate limits
       return { 
