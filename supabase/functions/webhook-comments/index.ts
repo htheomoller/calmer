@@ -156,6 +156,25 @@ const handler = async (req: Request): Promise<Response> => {
       keys: body ? Object.keys(body) : [] 
     });
 
+    // Generate comment_id early for duplicate check
+    const ig_post_id = body?.ig_post_id;
+    const comment_id = body?.comment_id || `${ig_post_id}:${Date.now()}`;
+
+    // EARLY DEDUPE CHECK (before any post lookup)
+    if (processedIds.has(comment_id)) {
+      return new Response(JSON.stringify({
+        ok: true, 
+        code: 'DUPLICATE_IGNORED', 
+        message: 'Already processed'
+      }), { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json', ...cors(origin) }
+      });
+    }
+    
+    // Mark as processed to prevent future duplicates
+    processedIds.add(comment_id);
+
     // SANDBOX_START - Debug switch for testing
     if (body?.debug === true) {
       return new Response(JSON.stringify({ 
@@ -170,7 +189,6 @@ const handler = async (req: Request): Promise<Response> => {
     }
     // SANDBOX_END
 
-
     // TODO: Validate Gupshup webhook signature once key is configured.
     // if (!isValidSignature(req, rawBody, Deno.env.get('GUPSHUP_WEBHOOK_SECRET'))) {
     //   return new Response(JSON.stringify({ ok: false, code: 'INVALID_SIGNATURE' }), { status: 401, headers: { 'Content-Type': 'application/json', ...cors(origin) } });
@@ -178,19 +196,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Validate required fields
     const provider = body?.provider;
-    const ig_post_id = body?.ig_post_id;
     const comment_text = body?.comment_text ?? '';
-    const comment_id = body?.comment_id;
     const account_id = body?.account_id;
-
-    // Deduplicate by comment_id (best effort within the same instance)
-    if (comment_id && processedIds.has(comment_id)) {
-      return new Response(JSON.stringify({ ok: true, code: 'DUPLICATE_IGNORED' }), { 
-        status: 200, 
-        headers: { 'Content-Type': 'application/json', ...cors(origin) }
-      });
-    }
-    if (comment_id) processedIds.add(comment_id);
 
     // Per-account rate limiting
     if (account_id && !allowRequestForAccount(account_id)) {
