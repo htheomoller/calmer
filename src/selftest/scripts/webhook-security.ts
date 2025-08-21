@@ -16,17 +16,17 @@ const script: TestScript = {
         
         const first = await ctx.invokeWebhook({ 
           ig_post_id, 
-          comment_text: 'hello', 
+          comment_text: 'LINK', 
           comment_id: cid,
-          account_id: account_id,
+          account_id,
           provider: 'sandbox'
         });
         
         const second = await ctx.invokeWebhook({ 
           ig_post_id, 
-          comment_text: 'hello again', 
+          comment_text: 'LINK', 
           comment_id: cid,
-          account_id: account_id,
+          account_id,
           provider: 'sandbox'
         });
         
@@ -44,22 +44,19 @@ const script: TestScript = {
         const { data: { user } } = await ctx.supabase.auth.getUser();
         const account_id = user?.id;
         
-        // Fire 12 calls in parallel to quickly hit rate limit
-        const promises = [];
-        const baseTime = Date.now();
-        for (let i = 0; i < 12; i++) {
-          promises.push(
+        // Fire 12 calls in parallel with same account_id but distinct comment_ids
+        const base = Date.now();
+        const results = await Promise.all(
+          Array.from({length: 12}).map((_, i) =>
             ctx.invokeWebhook({ 
               ig_post_id, 
-              comment_text: `LINK`, // Use matching trigger text
-              comment_id: `rate_${baseTime}_${i}`,
-              account_id: account_id,
+              account_id,
+              comment_text: 'LINK', 
+              comment_id: `rate_${base}_${i}`,
               provider: 'sandbox'
             })
-          );
-        }
-        
-        const results = await Promise.all(promises);
+          )
+        );
         
         for (let i = 0; i < results.length; i++) {
           console.log(`Rate test call ${i}: ${results[i]?.code}`);

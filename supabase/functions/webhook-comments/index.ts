@@ -145,28 +145,70 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     // Parse JSON safely
     const body = await req.json().catch(() => ({}));
-    const comment_id: string = body?.comment_id || `auto_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const account_id: string | undefined = body?.account_id;
+    const comment_id: string = body?.comment_id || `auto_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     
     console.log('webhook-comments:input', { 
       hasBody: !!body, 
       keys: body ? Object.keys(body) : [],
-      comment_id: comment_id,
-      duplicate_check: processedIds.has(comment_id)
+      account_id,
+      comment_id
     });
 
-    // DUPLICATE CHECK FIRST (before any other branching)
-    if (comment_id && processedIds.has(comment_id)) {
-      console.log('webhook-comments:duplicate-detected', { comment_id });
-      return new Response(JSON.stringify({ ok: true, code: 'DUPLICATE_IGNORED' }), { 
-        status: 200, 
+    if (!comment_id) {
+      return new Response(JSON.stringify({ ok: false, code: 'BAD_REQUEST', message: 'comment_id required' }), {
+        status: 400,
         headers: { 'Content-Type': 'application/json', ...cors(origin) }
       });
     }
-    
-    // Register the id immediately so a second call is recognized as duplicate
-    if (comment_id) {
-      processedIds.add(comment_id);
-      console.log('webhook-comments:id-registered', { comment_id, total_tracked: processedIds.size });
+
+    // Use service-role client for persistent deduplication and rate limiting
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    );
+
+    // 1) PERSISTENT DEDUPLICATION - Insert into webhook_events, catch unique violation
+    const { error: insErr } = await supabaseAdmin
+      .from('webhook_events')
+      .insert({ 
+        account_id: account_id ?? '00000000-0000-0000-0000-000000000000', 
+        comment_id 
+      });
+
+    if (insErr && String(insErr.code) === '23505') {
+      // Unique violation on comment_id - duplicate detected
+      console.log('webhook-comments:duplicate-detected', { comment_id, account_id });
+      return new Response(JSON.stringify({ ok: true, code: 'DUPLICATE_IGNORED' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...cors(origin) }
+      });
+    }
+
+    // If other DB error, log but continue (MVP: don't fail on DB issues)
+    if (insErr) {
+      console.log('webhook-comments:db-insert-error', { error: insErr, comment_id });
+    }
+
+    // 2) RATE LIMITING - Check last 60 seconds for this account
+    if (account_id) {
+      const since = new Date(Date.now() - 60_000).toISOString();
+      const { data: items } = await supabaseAdmin
+        .from('webhook_events')
+        .select('id')
+        .gte('created_at', since)
+        .eq('account_id', account_id);
+
+      const recentCount = items?.length ?? 0;
+      console.log('webhook-comments:rate-check', { account_id, recentCount, limit: 10 });
+
+      if (recentCount > 10) {
+        console.log('webhook-comments:rate-limited', { account_id, recentCount });
+        return new Response(JSON.stringify({ ok: false, code: 'RATE_LIMITED' }), {
+          status: 429,
+          headers: { 'Content-Type': 'application/json', ...cors(origin) }
+        });
+      }
     }
 
     // SANDBOX_START - Debug switch for testing
@@ -191,21 +233,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Validate required fields
     const provider = body?.provider;
     const comment_text = body?.comment_text ?? '';
-    const account_id = body?.account_id;
     const ig_post_id = body?.ig_post_id;
-
-    // Per-account rate limiting (must happen after account_id is determined)
-    if (account_id && !allowRequestForAccount(account_id)) {
-      console.log('webhook-comments:rate-limited', { 
-        account_id, 
-        hits: accountHits.get(account_id)?.length,
-        recent_hits: accountHits.get(account_id)?.filter(t => Date.now() - t < 60000).length
-      });
-      return new Response(JSON.stringify({ ok: false, code: 'RATE_LIMITED' }), { 
-        status: 429, 
-        headers: { 'Content-Type': 'application/json', ...cors(origin) }
-      });
-    }
 
     if (!ig_post_id) {
       return new Response(JSON.stringify({ 
@@ -218,11 +246,8 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Use service-role client so RLS doesn't hide posts
-    const client = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    );
+    // Use the same service-role client for post lookup
+    const client = supabaseAdmin;
 
     // Lookup by the exact column used in Posts list (no mismatched names)
     const { data: posts, error: postErr } = await client
