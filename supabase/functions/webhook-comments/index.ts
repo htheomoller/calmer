@@ -145,7 +145,8 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     // Parse JSON safely
     const body = await req.json().catch(() => ({}));
-    const comment_id: string = body?.comment_id || '';
+    // Generate comment_id with more entropy to ensure uniqueness
+    const comment_id: string = body?.comment_id || `auto_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     // DUPLICATE CHECK FIRST (before any other branching)
     if (comment_id && processedIds.has(comment_id)) {

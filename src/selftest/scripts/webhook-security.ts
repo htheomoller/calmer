@@ -13,18 +13,20 @@ const script: TestScript = {
         const { data: { user } } = await ctx.supabase.auth.getUser();
         const account_id = user?.id;
         const cid = `dup_${Date.now()}`;
-        const first = await ctx.invokeEdge('webhook-comments', { 
+        
+        const first = await ctx.invokeWebhook({ 
           ig_post_id, 
-          account_id, 
           comment_text: 'hello', 
           comment_id: cid,
+          account_id: account_id,
           provider: 'sandbox'
         });
-        const second = await ctx.invokeEdge('webhook-comments', { 
+        
+        const second = await ctx.invokeWebhook({ 
           ig_post_id, 
-          account_id, 
           comment_text: 'hello again', 
           comment_id: cid,
+          account_id: account_id,
           provider: 'sandbox'
         });
         
@@ -41,17 +43,25 @@ const script: TestScript = {
         const { data: { user } } = await ctx.supabase.auth.getUser();
         const account_id = user?.id;
         
-        const calls = await Promise.all(Array.from({ length: 12 }).map((_, i) =>
-          ctx.invokeEdge('webhook-comments', { 
-            ig_post_id, 
-            account_id, 
-            comment_text: `burst ${i}`, 
-            comment_id: `b_${Date.now()}_${i}`,
-            provider: 'sandbox'
-          })
-        ));
+        // Create burst calls with small delays to trigger rate limiting
+        const calls = [];
+        for (let i = 0; i < 12; i++) {
+          calls.push(
+            ctx.invokeWebhook({ 
+              ig_post_id, 
+              comment_text: `burst ${i}`, 
+              comment_id: `b_${Date.now()}_${i}`,
+              account_id: account_id,
+              provider: 'sandbox'
+            })
+          );
+          // Small delay between calls to ensure they're processed sequentially
+          if (i < 11) await new Promise(resolve => setTimeout(resolve, 10));
+        }
         
-        const hit = calls.some(r => r?.code === 'RATE_LIMITED');
+        const results = await Promise.all(calls);
+        
+        const hit = results.some(r => r?.code === 'RATE_LIMITED');
         return hit
           ? { pass: true, note: 'Rate limit observed' }
           : { pass: false, note: 'No RATE_LIMITED response detected' };
