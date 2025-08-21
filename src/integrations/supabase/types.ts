@@ -421,7 +421,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_webhook_counter: {
+        Args: { p_account_id: string; p_bucket: string }
+        Returns: number
+      }
     }
     Enums: {
       reply_status: "SENT" | "SKIPPED" | "FAILED"
