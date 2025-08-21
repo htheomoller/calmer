@@ -455,20 +455,41 @@ export default function Health() {
             </p>
           ) : (
             <div className="space-y-4">
-              <Button 
-                onClick={runAudit}
-                disabled={isRunning}
-                variant="default"
-              >
-                {isRunning ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Running audit...
-                  </>
-                ) : (
-                  "Run Audit"
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={runAudit}
+                  disabled={isRunning}
+                  variant="default"
+                >
+                  {isRunning ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Running audit...
+                    </>
+                  ) : (
+                    "Run Audit"
+                  )}
+                </Button>
+                
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    const r = await logBreadcrumb({
+                      scope: 'audit',
+                      summary: 'manual_test',
+                      details: { from: 'Health button', at: new Date().toISOString() },
+                      tags: ['audit','test'],
+                    });
+                    if (r?.ok) {
+                      toast({ title: 'Breadcrumb logged ✅', description: 'Check /dev/breadcrumbs' });
+                    } else {
+                      toast({ title: 'Breadcrumb failed ❌', description: String(r?.error || 'unknown error'), variant: 'destructive' });
+                    }
+                  }}
+                >
+                  Log test breadcrumb
+                </Button>
+              </div>
               
               {result && (
                 <div className="p-3 bg-muted rounded-lg">

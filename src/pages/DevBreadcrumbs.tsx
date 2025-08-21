@@ -230,6 +230,13 @@ export default function DevBreadcrumbs() {
     localStorage.setItem('dev-breadcrumbs-minutes', minutes);
   }, [minutes]);
 
+  // Auto-refresh every 5s in DEV
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const id = setInterval(() => loadBreadcrumbs(), 5000);
+    return () => clearInterval(id);
+  }, []);
+
   // SANDBOX_START (polish)
   useEffect(() => {
     localStorage.setItem('dev_breadcrumbs_filter', scopeFilter);
