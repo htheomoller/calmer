@@ -21,8 +21,8 @@ export async function logBreadcrumb(b: Breadcrumb): Promise<{ok:boolean; error?:
       scope: b.scope,
       summary: b.summary,
       details: b.details ?? null,
-      tags: b.tags ?? null,
-      at: b.at ?? new Date().toISOString(),
+      tags: b.tags ?? null
+      // no 'at' field here; rely on created_at default in DB
     };
     const { error } = await supabase.from('dev_breadcrumbs').insert(row);
     if (error) {

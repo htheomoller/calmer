@@ -17,6 +17,7 @@ import { MarkdownModal } from '@/components/dev/MarkdownModal';
 interface Breadcrumb {
   id: string;
   created_at: string;
+  at?: string; // Legacy field for fallback
   author_email: string;
   scope: string;
   summary: string;
@@ -90,7 +91,7 @@ export default function DevBreadcrumbs() {
     const groups: { [key: string]: Breadcrumb[] } = {};
     
     breadcrumbs.forEach(breadcrumb => {
-      const date = new Date(breadcrumb.created_at);
+      const date = new Date(breadcrumb.created_at ?? breadcrumb.at ?? '');
       let groupKey: string;
       
       if (date.toDateString() === today.toDateString()) {
@@ -416,9 +417,9 @@ export default function DevBreadcrumbs() {
                               <Badge className={getScopeColor(breadcrumb.scope)}>
                                 {breadcrumb.scope}
                               </Badge>
-                              <span className="text-sm text-muted-foreground">
-                                {formatFriendlyDate(breadcrumb.created_at)}
-                              </span>
+                               <span className="text-sm text-muted-foreground">
+                                 {formatFriendlyDate(breadcrumb.created_at ?? breadcrumb.at ?? '')}
+                               </span>
                             </div>
                             <h3 className="font-medium">{breadcrumb.summary}</h3>
                             {breadcrumb.tags.length > 0 && (
@@ -442,9 +443,9 @@ export default function DevBreadcrumbs() {
                                 <DialogContent className="max-w-2xl">
                                   <DialogHeader>
                                     <DialogTitle>{breadcrumb.summary}</DialogTitle>
-                                    <DialogDescription>
-                                      {breadcrumb.scope} • {formatFriendlyDate(breadcrumb.created_at)}
-                                    </DialogDescription>
+                                     <DialogDescription>
+                                       {breadcrumb.scope} • {formatFriendlyDate(breadcrumb.created_at ?? breadcrumb.at ?? '')}
+                                     </DialogDescription>
                                   </DialogHeader>
                                    <div className="mt-4">
                                      <pre className="whitespace-pre-wrap text-sm">

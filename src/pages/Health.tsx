@@ -481,8 +481,10 @@ export default function Health() {
                       tags: ['audit','test'],
                     });
                     if (r?.ok) {
+                      console.info('[breadcrumb:ok] logged');
                       toast({ title: 'Breadcrumb logged ✅', description: 'Check /dev/breadcrumbs' });
                     } else {
+                      console.warn('[breadcrumb:fail]', r?.error);
                       toast({ title: 'Breadcrumb failed ❌', description: String(r?.error || 'unknown error'), variant: 'destructive' });
                     }
                   }}
