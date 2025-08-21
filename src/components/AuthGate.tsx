@@ -1,25 +1,25 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { SITE_LOCKDOWN, DEV_ROUTES } from '@/config/public';
+import { SITE_LOCKDOWN } from '@/config/public';
 
-// Manual DEV unlock override for testing in preview
-const devUnlocked = typeof window !== 'undefined' && localStorage.getItem('calmer.dev.unlocked') === '1';
-
+// Dev-only routes open in dev/preview, locked in prod
+const DEV_ROUTES = ['/health', '/self-test', '/dev/breadcrumbs'];
 const PUBLIC_ALWAYS = ['/', '/comingsoon', '/login', '/signup'];
-const PUBLIC_DEV = ['/health', '/dev/breadcrumbs', '/self-test'];
 const RESOURCE_PREFIXES = ['/resources'];
 const PROTECTED_PREFIXES = ['/posts', '/settings', '/activity', '/simulate', '/home-legacy'];
 
-const isDev = !import.meta.env.PROD;
+// Detect dev/preview environment
+const isDevOrPreview = import.meta.env.DEV || 
+                      import.meta.env.MODE === 'development' || 
+                      import.meta.env.MODE === 'preview';
 
 const startsWithAny = (path: string, prefixes: string[]) =>
   prefixes.some(p => path === p || path.startsWith(p + '/') || path.startsWith(p));
 
 const isPublicRoute = (path: string) =>
   startsWithAny(path, PUBLIC_ALWAYS) ||
-  RESOURCE_PREFIXES.some(p => path.startsWith(p)) ||
-  (isDev && startsWithAny(path, PUBLIC_DEV));
+  RESOURCE_PREFIXES.some(p => path.startsWith(p));
 
 const isProtectedRoute = (path: string) =>
   PROTECTED_PREFIXES.some(p => path.startsWith(p));
@@ -43,31 +43,26 @@ export const AuthGate = ({ children }: AuthGateProps) => {
     }
 
     const pathname = location.pathname;
-    const isDev = !import.meta.env.PROD;
-    const isDevRoute = PUBLIC_DEV.includes(pathname);
-    const matchedDevRoute = DEV_ROUTES.includes(pathname);
+    const isDevRoute = DEV_ROUTES.includes(pathname);
 
     console.info('[AuthGate] routing state', { 
       path: pathname,
-      isProd: import.meta.env.PROD,
-      devUnlocked,
+      isDevOrPreview,
       SITE_LOCKDOWN,
-      matchedDevRoute,
       isDevRoute,
       authed: !!user
     });
 
-    // Allow dev routes when in DEV or when manually unlocked
-    if ((isDev || devUnlocked) && (isDevRoute || matchedDevRoute)) {
-      console.info('[AuthGate] allow dev route', { isDev, devUnlocked, isDevRoute, matchedDevRoute });
-      return;
-    }
-
-    // Block dev routes in PROD without unlock
-    if (!isDev && !devUnlocked && (isDevRoute || matchedDevRoute)) {
-      console.info('[AuthGate] block dev route in PROD → /comingsoon', { pathname });
-      navigate(toComingSoon(pathname + location.search), { replace: true });
-      return;
+    // Handle dev routes first - deterministic behavior
+    if (isDevRoute) {
+      if (isDevOrPreview) {
+        console.info('[AuthGate] allow dev route in dev/preview');
+        return;
+      } else {
+        console.info('[AuthGate] block dev route in production → /');
+        navigate('/', { replace: true });
+        return;
+      }
     }
 
     // If user is logged in AND visiting /login or /signup, redirect to /posts

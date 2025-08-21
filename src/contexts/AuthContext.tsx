@@ -21,19 +21,15 @@ export const useAuth = () => {
   return context;
 };
 
+// Single source of truth for auth state to avoid race causing redirects
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let settledInitial = false;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        // First time this fires acts as our initial session resolution
-        if (!settledInitial) {
-          settledInitial = true;
-        }
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
