@@ -1,7 +1,10 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { SITE_LOCKDOWN } from '@/config/public';
+import { SITE_LOCKDOWN, DEV_ROUTES } from '@/config/public';
+
+// Manual DEV unlock override for testing in preview
+const devUnlocked = typeof window !== 'undefined' && localStorage.getItem('calmer.dev.unlocked') === '1';
 
 const PUBLIC_ALWAYS = ['/', '/comingsoon', '/login', '/signup'];
 const PUBLIC_DEV = ['/health', '/dev/breadcrumbs', '/self-test'];
@@ -42,24 +45,27 @@ export const AuthGate = ({ children }: AuthGateProps) => {
     const pathname = location.pathname;
     const isDev = !import.meta.env.PROD;
     const isDevRoute = PUBLIC_DEV.includes(pathname);
+    const matchedDevRoute = DEV_ROUTES.includes(pathname);
 
-    console.debug('[AuthGate] state', { 
-      pathname, 
-      isDev, 
-      isDevRoute, 
-      authed: !!user,
-      lockdown: SITE_LOCKDOWN 
+    console.info('[AuthGate] routing state', { 
+      path: pathname,
+      isProd: import.meta.env.PROD,
+      devUnlocked,
+      SITE_LOCKDOWN,
+      matchedDevRoute,
+      isDevRoute,
+      authed: !!user
     });
 
-    // Allow dev routes when not in production
-    if (isDev && isDevRoute) {
-      console.debug('[AuthGate] allow dev route in DEV');
+    // Allow dev routes when in DEV or when manually unlocked
+    if ((isDev || devUnlocked) && (isDevRoute || matchedDevRoute)) {
+      console.info('[AuthGate] allow dev route', { isDev, devUnlocked, isDevRoute, matchedDevRoute });
       return;
     }
 
-    // Block dev routes in PROD regardless of auth
-    if (!isDev && isDevRoute) {
-      console.debug('[AuthGate] block dev route in PROD → /comingsoon');
+    // Block dev routes in PROD without unlock
+    if (!isDev && !devUnlocked && (isDevRoute || matchedDevRoute)) {
+      console.info('[AuthGate] block dev route in PROD → /comingsoon', { pathname });
       navigate(toComingSoon(pathname + location.search), { replace: true });
       return;
     }

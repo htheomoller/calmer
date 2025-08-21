@@ -241,9 +241,13 @@ export default function Health() {
             <h1 className="text-3xl font-bold">Application Health</h1>
             <p className="text-muted-foreground">Configuration and secrets status</p>
           </div>
-          <Badge variant="outline" className="text-xs">
-            {import.meta.env.DEV ? 'ENV: DEV' : 'ENV: PREVIEW'}
-          </Badge>
+          <div className="text-right space-y-2">
+            <Badge variant="outline" className="block text-xs">
+              {import.meta.env.DEV ? 'ENV: DEV • dev routes enabled' : 
+               (typeof window !== 'undefined' && localStorage.getItem('calmer.dev.unlocked') === '1') ? 
+               'ENV: PREVIEW (dev-unlocked)' : 'ENV: PREVIEW'}
+            </Badge>
+          </div>
         </div>
 
         <Card className="p-6">

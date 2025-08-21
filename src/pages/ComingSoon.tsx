@@ -58,6 +58,33 @@ const ComingSoon = () => {
             <div className="pt-8">
               <WaitlistForm />
             </div>
+            
+            {/* DEV Unlock buttons - temporary for testing */}
+            <div className="pt-8 border-t border-border/50">
+              <div className="text-center space-y-2">
+                <p className="text-sm text-muted-foreground mb-4">Development Access (Temporary)</p>
+                <div className="flex gap-2 justify-center">
+                  <button 
+                    onClick={() => { 
+                      localStorage.setItem('calmer.dev.unlocked','1'); 
+                      window.location.href='/health'; 
+                    }}
+                    className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90"
+                  >
+                    Unlock DEV (temp)
+                  </button>
+                  <button 
+                    onClick={() => { 
+                      localStorage.removeItem('calmer.dev.unlocked'); 
+                      alert('DEV access locked again.'); 
+                    }}
+                    className="px-4 py-2 text-sm bg-secondary text-secondary-foreground rounded hover:bg-secondary/90"
+                  >
+                    Relock DEV
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>

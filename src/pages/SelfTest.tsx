@@ -173,9 +173,16 @@ export default function SelfTest() {
     <div className="min-h-screen p-8">
       <meta name="robots" content="noindex,nofollow" />
       <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Self‑Test Robot</h1>
-          <p className="text-muted-foreground">Automated sandbox testing and validation</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Self‑Test Robot</h1>
+            <p className="text-muted-foreground">Automated sandbox testing and validation</p>
+          </div>
+          <Badge variant="outline" className="text-xs">
+            {import.meta.env.DEV ? 'ENV: DEV • dev routes enabled' : 
+             (typeof window !== 'undefined' && localStorage.getItem('calmer.dev.unlocked') === '1') ? 
+             'ENV: PREVIEW (dev-unlocked)' : 'ENV: PREVIEW'}
+          </Badge>
         </div>
 
         {/* SANDBOX_START (polish) */}

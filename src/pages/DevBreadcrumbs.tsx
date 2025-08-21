@@ -252,6 +252,11 @@ export default function DevBreadcrumbs() {
         <div>
           <h1 className="text-3xl font-bold">Breadcrumbs (Build Log)</h1>
           <p className="text-muted-foreground">Track development changes and notes for easy cleanup later.</p>
+          <Badge variant="outline" className="mt-2 text-xs">
+            {import.meta.env.DEV ? 'ENV: DEV • dev routes enabled' : 
+             (typeof window !== 'undefined' && localStorage.getItem('calmer.dev.unlocked') === '1') ? 
+             'ENV: PREVIEW (dev-unlocked)' : 'ENV: PREVIEW'}
+          </Badge>
         </div>
         <div className="text-right">
           {/* SANDBOX_START (polish) */}

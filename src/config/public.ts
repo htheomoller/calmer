@@ -8,4 +8,7 @@ export const PUBLIC_CONFIG = {
 } as const;
 
 // Flip SITE_LOCKDOWN=false to reopen
-export const SITE_LOCKDOWN = false;
+export const SITE_LOCKDOWN = false; // TEMP for testing
+
+// DEV routes that should be accessible with unlock
+export const DEV_ROUTES = ['/health', '/self-test', '/dev/breadcrumbs'];
