@@ -36,30 +36,30 @@ export const AuthGate = ({ children }: AuthGateProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Don't redirect while loading auth state
+    // While loading, don't make any routing decisions to prevent flicker/race
     if (loading) {
-      console.debug('[AuthGate] loading… hold routing');
+      console.debug('[AuthGate] loading auth state, holding routing decisions');
       return;
     }
 
     const pathname = location.pathname;
     const isDevRoute = DEV_ROUTES.includes(pathname);
 
-    console.info('[AuthGate] routing state', { 
+    console.info('[AuthGate] routing decision', { 
       path: pathname,
       isDevOrPreview,
-      SITE_LOCKDOWN,
       isDevRoute,
+      SITE_LOCKDOWN,
       authed: !!user
     });
 
     // Handle dev routes first - deterministic behavior
     if (isDevRoute) {
       if (isDevOrPreview) {
-        console.info('[AuthGate] allow dev route in dev/preview');
+        console.info('[AuthGate] allowing dev route in dev/preview environment');
         return;
       } else {
-        console.info('[AuthGate] block dev route in production → /');
+        console.info('[AuthGate] blocking dev route in production, redirect to /');
         navigate('/', { replace: true });
         return;
       }
@@ -67,53 +67,55 @@ export const AuthGate = ({ children }: AuthGateProps) => {
 
     // If user is logged in AND visiting /login or /signup, redirect to /posts
     if (user && (pathname === '/login' || pathname === '/signup')) {
-      console.debug('[AuthGate] authed user on auth page → /posts');
+      console.debug('[AuthGate] authenticated user on auth page, redirect to /posts');
       navigate('/posts', { replace: true });
       return;
     }
 
-    // If SITE_LOCKDOWN is true
+    // For normal routes, respect existing SITE_LOCKDOWN and auth checks
     if (SITE_LOCKDOWN) {
-      // If isPublicRoute: allow children
+      // If public route: allow
       if (isPublicRoute(pathname)) {
-        console.debug('[AuthGate] lockdown: allow public route');
+        console.debug('[AuthGate] lockdown mode: allowing public route');
         return;
       }
-      // Else if user is authenticated: allow children
+      // If user is authenticated: allow
       if (user) {
-        console.debug('[AuthGate] lockdown: allow authed user');
+        console.debug('[AuthGate] lockdown mode: allowing authenticated user');
         return;
       }
-      // Else: navigate to comingsoon
-      console.debug('[AuthGate] lockdown: unauthed on protected → /comingsoon');
+      // Else: redirect to coming soon
+      console.debug('[AuthGate] lockdown mode: unauthenticated on protected route, redirect to /comingsoon');
       navigate(toComingSoon(pathname + location.search), { replace: true });
       return;
     }
 
-    // If SITE_LOCKDOWN is false
-    // If isPublicRoute: allow children
+    // SITE_LOCKDOWN is false
+    // If public route: allow
     if (isPublicRoute(pathname)) {
-      console.debug('[AuthGate] no lockdown: allow public route');
+      console.debug('[AuthGate] no lockdown: allowing public route');
       return;
     }
-    // Else if isProtectedRoute:
+    
+    // If protected route
     if (isProtectedRoute(pathname)) {
-      // If user is authenticated: allow children
+      // If user is authenticated: allow
       if (user) {
-        console.debug('[AuthGate] no lockdown: allow authed on protected');
+        console.debug('[AuthGate] no lockdown: allowing authenticated user on protected route');
         return;
       }
-      // Else: navigate to comingsoon
-      console.debug('[AuthGate] no lockdown: unauthed on protected → /comingsoon');
+      // Else: redirect to coming soon
+      console.debug('[AuthGate] no lockdown: unauthenticated on protected route, redirect to /comingsoon');
       navigate(toComingSoon(pathname + location.search), { replace: true });
       return;
     }
-    // Else: Unknown path: send to comingsoon but preserve "from"
-    console.debug('[AuthGate] unknown path → /comingsoon');
+    
+    // Unknown path: redirect to coming soon
+    console.debug('[AuthGate] unknown path, redirect to /comingsoon');
     navigate(toComingSoon(pathname + location.search), { replace: true });
   }, [user, loading, location.pathname, location.search, navigate]);
 
-  // Show nothing while loading to prevent flicker/loops
+  // While loading, return null to prevent flicker/loops
   if (loading) {
     return null;
   }
