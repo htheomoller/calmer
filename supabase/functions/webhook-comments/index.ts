@@ -237,6 +237,15 @@ const handler = async (req: Request): Promise<Response> => {
     
     if (recentCount >= limit) {
       console.log('webhook-comments:rate-limited', { account_id, recentCount });
+      // TEMP DEBUG: Log before rate limit enforcement
+      console.log('webhook-comments:DEBUG-ENFORCING-RATE-LIMIT', { 
+        account_id, 
+        recentCount, 
+        limit, 
+        provider,
+        comment_id,
+        about_to_return_429: true 
+      });
       return new Response(JSON.stringify({ ok: false, code: 'RATE_LIMITED', message: 'Per-account rate limit exceeded' }), {
         status: 429,
         headers: { 'Content-Type': 'application/json', ...cors(origin) }

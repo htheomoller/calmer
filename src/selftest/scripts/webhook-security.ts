@@ -54,12 +54,13 @@ const script: TestScript = {
           )
         );
         
-        console.log('Rate test results:', results.map(r => r?.code));
-        const count = results.filter(r => r?.code === 'RATE_LIMITED').length;
+        console.log('Rate test results:', results.map(r => ({ code: r?.code, status: r?.status, ok: r?.ok })));
+        const rateLimitedCount = results.filter(r => r?.code === 'RATE_LIMITED').length;
+        const successfulCount = results.filter(r => r?.ok === true).length;
         
-        return count > 0
-          ? { pass: true, note: `Rate limit observed (${count} calls rate limited)` }
-          : { pass: false, note: `No RATE_LIMITED responses detected. Codes: ${results.map(r => r?.code).join(', ')}` };
+        return rateLimitedCount > 0 && successfulCount <= 10
+          ? { pass: true, note: `Rate limit observed (${rateLimitedCount} rate limited, ${successfulCount} successful)` }
+          : { pass: false, note: `Expected ≥1 RATE_LIMITED and ≤10 successes. Got ${rateLimitedCount} rate limited, ${successfulCount} successful. Codes: ${results.map(r => r?.code).join(', ')}` };
       }
     },
     {

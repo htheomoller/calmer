@@ -119,7 +119,7 @@ export const getRecentActivity = async (minutes: number, types?: string[]): Prom
 /**
  * Generic edge function invoker with error handling
  */
-export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boolean; code?: string; message?: string; details?: any }> => {
+export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boolean; code?: string; message?: string; status?: number; details?: any }> => {
   try {
     const { data, error } = await supabase.functions.invoke(fnName, { body });
     
@@ -128,19 +128,24 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
       const ctx = error?.context ?? error?.details ?? {};
       let payload = ctx.body ?? ctx.response ?? null;
       
+      // Handle string JSON responses (common with 4xx/5xx responses)
       if (typeof payload === 'string') { 
         try { 
           payload = JSON.parse(payload); 
         } catch {} 
       }
       
-      // Return the actual server response code when available
+      // Extract status code from error context
+      const status = ctx.status ?? (ctx.response_status ?? null);
+      
+      // Return the actual server response code when available, especially for rate limits
       return { 
         ok: false, 
+        status: status,
         code: payload?.code ?? 'HTTP_ERROR', 
         message: payload?.message ?? error.message ?? 'invoke failed', 
         details: { 
-          status: ctx.status ?? null, 
+          status: status, 
           payload: payload ?? null,
           originalError: error
         } 
@@ -150,6 +155,7 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
     // data is JSON from the function - return as-is even if ok:false
     return { 
       ok: Boolean(data?.ok), 
+      status: 200,
       code: data?.code ?? null, 
       message: data?.message ?? null, 
       details: data ?? null 
@@ -157,6 +163,7 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
   } catch (e) {
     return { 
       ok: false, 
+      status: 0,
       code: 'NETWORK_ERROR', 
       message: String(e) 
     };
@@ -166,7 +173,7 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
 /**
  * Invoke webhook-comments function with error handling
  */
-export const invokeWebhook = async (args: { ig_post_id: string; comment_text: string; comment_id?: string; account_id?: string; provider?: string }): Promise<{ ok: boolean; code?: string; message?: string }> => {
+export const invokeWebhook = async (args: { ig_post_id: string; comment_text: string; comment_id?: string; account_id?: string; provider?: string }): Promise<{ ok: boolean; code?: string; message?: string; status?: number }> => {
   const result = await invokeEdge(WEBHOOK_COMMENTS_FN, {
     provider: args.provider || 'sandbox',
     ig_post_id: args.ig_post_id,
@@ -177,6 +184,7 @@ export const invokeWebhook = async (args: { ig_post_id: string; comment_text: st
   
   return {
     ok: result.ok,
+    status: result.status,
     code: result.code,
     message: result.message
   };
