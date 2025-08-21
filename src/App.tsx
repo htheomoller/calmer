@@ -53,9 +53,14 @@ function AppContent() {
         <Route path="/home-legacy" element={<Index />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/health" element={<Health />} />
-          <Route path="/self-test" element={<SelfTest />} />
-          <Route path="/dev/breadcrumbs" element={<DevBreadcrumbs />} />
+        {/* TODO: revert {true} back to import.meta.env.DEV after presentation */}
+        {true && (
+          <>
+            <Route path="/health" element={<Health />} />
+            <Route path="/self-test" element={<SelfTest />} />
+            <Route path="/dev/breadcrumbs" element={<DevBreadcrumbs />} />
+          </>
+        )}
         <Route path="/settings" element={<AccountSettings />} />
         <Route path="/account-settings" element={<AccountSettings />} />
         <Route path="/posts" element={<Posts />} />
