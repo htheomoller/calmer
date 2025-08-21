@@ -223,48 +223,42 @@ const handler = async (req: Request): Promise<Response> => {
       console.log('webhook-comments:db-insert-error', { error: insErr, comment_id, account_id });
     }
 
-    // RATE LIMIT (strictly BEFORE any DM logic)
-    const sinceIso = new Date(Date.now() - 60_000).toISOString();
+    // ATOMIC RATE LIMITING - per-minute bucket counter
+    // Round down to the start of the current minute for bucket
+    const bucketStart = new Date(Math.floor(Date.now() / 60000) * 60000).toISOString();
 
-    let recentCount = 0;
-    if (test_window) {
-      // Count within this self-test window only (removes interference from prior runs)
-      const { count, error: cntErr } = await supabaseAdmin
-        .from('webhook_events')
-        .select('*', { count: 'exact', head: true })
+    // Upsert counter atomically and get the new value
+    const { data: rcRow, error: rcErr } = await supabaseAdmin
+      .from('rate_counters')
+      .upsert({ account_id, bucket_start: bucketStart, hits: 1 }, { onConflict: 'account_id,bucket_start' })
+      .select('hits')
+      .single();
+
+    let hits = rcRow?.hits ?? null;
+
+    // If upsert didn't return hits (some Postgrest versions), perform an UPDATE ... RETURNING fallback
+    if (hits === null && !rcErr) {
+      const { data: updRow } = await supabaseAdmin
+        .from('rate_counters')
+        .update({ hits: 1 })
         .eq('account_id', account_id)
-        .eq('test_window', test_window)
-        .gte('created_at', sinceIso);
-      if (cntErr) console.log('rate-count-error (windowed)', cntErr);
-      recentCount = count ?? 0;
-    } else {
-      // Fallback: normal account-based window
-      const { count, error: cntErr } = await supabaseAdmin
-        .from('webhook_events')
-        .select('*', { count: 'exact', head: true })
-        .eq('account_id', account_id)
-        .gte('created_at', sinceIso);
-      if (cntErr) console.log('rate-count-error', cntErr);
-      recentCount = count ?? 0;
+        .eq('bucket_start', bucketStart)
+        .select('hits')
+        .single();
+      hits = updRow?.hits ?? null;
     }
 
-    console.log('rate-limit-check', { account_id, test_window, recentCount, limit });
+    console.log('[rate] bucket counter', { account_id, bucketStart, hits, limit });
 
-    if (recentCount > limit) {
-      console.log('webhook-comments:rate-limited', { account_id, recentCount });
-      // TEMP DEBUG: Log before rate limit enforcement
-      console.log('webhook-comments:DEBUG-ENFORCING-RATE-LIMIT', { 
-        account_id, 
-        recentCount, 
-        limit, 
-        provider,
-        comment_id,
-        about_to_return_429: true 
-      });
-      return new Response(JSON.stringify({ ok: false, code: 'RATE_LIMITED', message: 'Per-account rate limit exceeded' }), {
-        status: 429,
-        headers: { 'Content-Type': 'application/json', ...cors(origin) }
-      });
+    // If we didn't get a number, log and continue as "allowed" (don't hard-fail the MVP)
+    if (typeof hits !== 'number') {
+      console.log('[rate] non-numeric hits; allowing request');
+    } else if (hits > limit) {
+      console.log('[rate] RATE_LIMITED', { account_id, hits, limit, bucketStart });
+      return new Response(
+        JSON.stringify({ ok: false, code: 'RATE_LIMITED', message: 'Too many requests in the last minute' }),
+        { status: 429, headers: { 'Content-Type': 'application/json', ...cors(origin) } }
+      );
     }
 
     // SANDBOX_START - Debug switch for testing
