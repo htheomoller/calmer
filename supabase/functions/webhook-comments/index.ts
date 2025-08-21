@@ -145,15 +145,7 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     // Parse JSON safely
     const body = await req.json().catch(() => ({}));
-    // Generate comment_id with more entropy to ensure uniqueness
     const comment_id: string = body?.comment_id || `auto_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // DUPLICATE CHECK FIRST (before any other branching)
-    if (comment_id && processedIds.has(comment_id)) {
-      return new Response(JSON.stringify({ ok: true, code: 'DUPLICATE_IGNORED' }), { status: 200, headers: cors(req.headers.get('Origin')) });
-    }
-    // Register the id immediately so a second call is recognized as duplicate
-    if (comment_id) processedIds.add(comment_id);
     
     console.log('webhook-comments:input', { 
       hasBody: !!body, 
@@ -161,6 +153,21 @@ const handler = async (req: Request): Promise<Response> => {
       comment_id: comment_id,
       duplicate_check: processedIds.has(comment_id)
     });
+
+    // DUPLICATE CHECK FIRST (before any other branching)
+    if (comment_id && processedIds.has(comment_id)) {
+      console.log('webhook-comments:duplicate-detected', { comment_id });
+      return new Response(JSON.stringify({ ok: true, code: 'DUPLICATE_IGNORED' }), { 
+        status: 200, 
+        headers: { 'Content-Type': 'application/json', ...cors(origin) }
+      });
+    }
+    
+    // Register the id immediately so a second call is recognized as duplicate
+    if (comment_id) {
+      processedIds.add(comment_id);
+      console.log('webhook-comments:id-registered', { comment_id, total_tracked: processedIds.size });
+    }
 
     // SANDBOX_START - Debug switch for testing
     if (body?.debug === true) {
@@ -189,7 +196,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Per-account rate limiting (must happen after account_id is determined)
     if (account_id && !allowRequestForAccount(account_id)) {
-      console.log('webhook-comments:rate-limited', { account_id, hits: accountHits.get(account_id)?.length });
+      console.log('webhook-comments:rate-limited', { 
+        account_id, 
+        hits: accountHits.get(account_id)?.length,
+        recent_hits: accountHits.get(account_id)?.filter(t => Date.now() - t < 60000).length
+      });
       return new Response(JSON.stringify({ ok: false, code: 'RATE_LIMITED' }), { 
         status: 429, 
         headers: { 'Content-Type': 'application/json', ...cors(origin) }

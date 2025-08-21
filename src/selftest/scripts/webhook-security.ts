@@ -44,18 +44,25 @@ const script: TestScript = {
         const { data: { user } } = await ctx.supabase.auth.getUser();
         const account_id = user?.id;
         
-        // Make sequential calls to ensure rate limiting triggers
-        const results = [];
+        // Fire 12 calls in parallel to quickly hit rate limit
+        const promises = [];
+        const baseTime = Date.now();
         for (let i = 0; i < 12; i++) {
-          const result = await ctx.invokeWebhook({ 
-            ig_post_id, 
-            comment_text: `burst ${i}`, 
-            comment_id: `rate_${Date.now()}_${i}`,
-            account_id: account_id,
-            provider: 'sandbox'
-          });
-          results.push(result);
-          console.log(`Rate test call ${i}: ${result?.code}`);
+          promises.push(
+            ctx.invokeWebhook({ 
+              ig_post_id, 
+              comment_text: `LINK`, // Use matching trigger text
+              comment_id: `rate_${baseTime}_${i}`,
+              account_id: account_id,
+              provider: 'sandbox'
+            })
+          );
+        }
+        
+        const results = await Promise.all(promises);
+        
+        for (let i = 0; i < results.length; i++) {
+          console.log(`Rate test call ${i}: ${results[i]?.code}`);
         }
         
         const rateLimitedCount = results.filter(r => r?.code === 'RATE_LIMITED').length;
