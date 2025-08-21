@@ -17,8 +17,8 @@ import { MarkdownModal } from '@/components/dev/MarkdownModal';
 interface Breadcrumb {
   id: string;
   created_at: string;
-  at?: string; // Legacy field for fallback
-  author_email: string;
+  at?: string; // Legacy field for fallback  
+  user_id: string;
   scope: string;
   summary: string;
   details: any;
@@ -139,18 +139,16 @@ export default function DevBreadcrumbs() {
 
     setLoading(true);
     try {
-      const row = {
-        author_email: currentUser,
+      // Use logBreadcrumb function instead of direct insert to handle proper structure
+      const result = await logBreadcrumb({
         scope: scope.trim(),
         summary: summary.trim(),
-        details: details.trim() || null,
+        details: details.trim() ? JSON.parse(`{"note": ${JSON.stringify(details.trim())}}`) : null,
         tags: tags.trim() ? tags.split(',').map(t => t.trim()).filter(Boolean) : []
-      };
+      });
 
-      const { error } = await supabase.from('dev_breadcrumbs').insert(row);
-
-      if (error) {
-        throw error;
+      if (!result.ok) {
+        throw new Error(result.error || 'Failed to add breadcrumb');
       }
 
       toast({
@@ -191,13 +189,13 @@ export default function DevBreadcrumbs() {
   const loadBreadcrumbs = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.email) {
+      if (!user) {
         setBreadcrumbs([]);
         setCurrentUser('');
         return;
       }
 
-      setCurrentUser(user.email);
+      setCurrentUser(user.email || '');
 
       const now = new Date();
       const since = new Date(now.getTime() - parseInt(minutes) * 60 * 1000).toISOString();
@@ -205,7 +203,7 @@ export default function DevBreadcrumbs() {
       const { data, error } = await supabase
         .from('dev_breadcrumbs')
         .select('*')
-        .eq('author_email', user.email)
+        .eq('user_id', user.id)
         .gte('created_at', since)
         .order('created_at', { ascending: false });
 

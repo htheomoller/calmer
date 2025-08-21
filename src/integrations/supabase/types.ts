@@ -91,6 +91,7 @@ export type Database = {
       }
       dev_breadcrumbs: {
         Row: {
+          at: string | null
           author_email: string
           created_at: string
           details: Json | null
@@ -98,8 +99,10 @@ export type Database = {
           scope: string
           summary: string
           tags: string[] | null
+          user_id: string
         }
         Insert: {
+          at?: string | null
           author_email: string
           created_at?: string
           details?: Json | null
@@ -107,8 +110,10 @@ export type Database = {
           scope: string
           summary: string
           tags?: string[] | null
+          user_id?: string
         }
         Update: {
+          at?: string | null
           author_email?: string
           created_at?: string
           details?: Json | null
@@ -116,6 +121,7 @@ export type Database = {
           scope?: string
           summary?: string
           tags?: string[] | null
+          user_id?: string
         }
         Relationships: []
       }
