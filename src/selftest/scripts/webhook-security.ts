@@ -54,17 +54,12 @@ const script: TestScript = {
           )
         );
         
-        for (let i = 0; i < results.length; i++) {
-          console.log(`Rate test call ${i}: ${results[i]?.code} (ok: ${results[i]?.ok})`);
-        }
+        console.log('Rate test results:', results.map(r => r?.code));
+        const count = results.filter(r => r?.code === 'RATE_LIMITED').length;
         
-        const rateLimitedCount = results.filter(r => r?.code === 'RATE_LIMITED').length;
-        const allCodes = results.map(r => r?.code).join(', ');
-        console.log(`Rate limiting results: ${rateLimitedCount} out of 20 calls were rate limited`);
-        
-        return rateLimitedCount > 0
-          ? { pass: true, note: `Rate limit observed (${rateLimitedCount} calls rate limited)` }
-          : { pass: false, note: `No RATE_LIMITED responses detected. All codes: [${allCodes}]` };
+        return count > 0
+          ? { pass: true, note: `Rate limit observed (${count} calls rate limited)` }
+          : { pass: false, note: `No RATE_LIMITED responses detected. Codes: ${results.map(r => r?.code).join(', ')}` };
       }
     },
     {

@@ -134,6 +134,7 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
         } catch {} 
       }
       
+      // Return the actual server response code when available
       return { 
         ok: false, 
         code: payload?.code ?? 'HTTP_ERROR', 
@@ -146,7 +147,7 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
       };
     }
     
-    // data is JSON from the function
+    // data is JSON from the function - return as-is even if ok:false
     return { 
       ok: Boolean(data?.ok), 
       code: data?.code ?? null, 

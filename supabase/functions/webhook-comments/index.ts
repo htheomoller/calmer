@@ -2,6 +2,12 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendInstagramDM, sendInstagramDMSandbox } from "../utils/gupshup-client.ts";
 
+const DEFAULT_RATE_LIMIT = 10;
+const DEV_RATE_LIMIT = 5; // easier to trigger during self-test
+function getRateLimit(provider?: string) {
+  return provider === 'sandbox' ? DEV_RATE_LIMIT : DEFAULT_RATE_LIMIT;
+}
+
 // Normalization and matching utilities
 function normalize(s: string): string {
   return (s ?? '')
@@ -189,11 +195,15 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
+    // Get provider for rate limit configuration
+    const provider: string | undefined = body?.provider;
+    const limit = getRateLimit(provider);
+
     // PERSISTENT DEDUP (run first; short-circuit on duplicate)
     const { error: insErr } = await supabaseAdmin
       .from('webhook_events')
       .insert({ 
-        account_id: account_id ?? '00000000-0000-0000-0000-000000000000', 
+        account_id: account_id, 
         comment_id 
       });
 
@@ -207,29 +217,30 @@ const handler = async (req: Request): Promise<Response> => {
 
     // If any other insert error, log to console and continue (do not break MVP flow)
     if (insErr) {
-      console.log('webhook-comments:db-insert-error', { error: insErr, comment_id });
+      console.log('webhook-comments:db-insert-error', { error: insErr, comment_id, account_id });
     }
 
     // RATE LIMIT (strictly BEFORE any DM logic)
-    if (account_id) {
-      const since = new Date(Date.now() - 60_000).toISOString();
-      const { data: recent, error: selErr } = await supabaseAdmin
-        .from('webhook_events')
-        .select('id', { count: 'exact', head: false })
-        .gte('created_at', since)
-        .eq('account_id', account_id);
-      
-      const count = (recent?.length ?? 0);
-      console.log('webhook-comments:rate-check', { account_id, count, threshold: 10 });
-      
-      // Rate limit threshold: 10 per rolling minute (>= 10 means block the 11th+)
-      if (count >= 10) {
-        console.log('webhook-comments:rate-limited', { account_id, count });
-        return new Response(JSON.stringify({ ok: false, code: 'RATE_LIMITED' }), {
-          status: 429,
-          headers: { 'Content-Type': 'application/json', ...cors(origin) }
-        });
-      }
+    const since = new Date(Date.now() - 60_000).toISOString();
+    const { data: recentEvents, error: selErr } = await supabaseAdmin
+      .from('webhook_events')
+      .select('id')
+      .eq('account_id', account_id)
+      .gte('created_at', since);
+    
+    if (selErr) {
+      console.log('webhook-comments:db-select-error', { error: selErr, account_id });
+    }
+
+    const recentCount = recentEvents?.length ?? 0;
+    console.log('webhook-comments:rate-check', { account_id, recentCount, limit });
+    
+    if (recentCount >= limit) {
+      console.log('webhook-comments:rate-limited', { account_id, recentCount });
+      return new Response(JSON.stringify({ ok: false, code: 'RATE_LIMITED', message: 'Per-account rate limit exceeded' }), {
+        status: 429,
+        headers: { 'Content-Type': 'application/json', ...cors(origin) }
+      });
     }
 
     // SANDBOX_START - Debug switch for testing
@@ -251,8 +262,7 @@ const handler = async (req: Request): Promise<Response> => {
     //   return new Response(JSON.stringify({ ok: false, code: 'INVALID_SIGNATURE' }), { status: 401, headers: { 'Content-Type': 'application/json', ...cors(origin) } });
     // }
 
-    // Validate required fields
-    const provider = body?.provider;
+    // Validate required fields (provider already extracted above)
     const ig_post_id = body?.ig_post_id;
 
     if (!ig_post_id) {
