@@ -132,27 +132,28 @@ const handler = async (req: Request): Promise<Response> => {
     origin: req.headers.get('Origin') 
   });
   
-  const origin = req.headers.get('Origin');
-  
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { 
       status: 204, 
-      headers: cors(origin) 
+      headers: cors(req.headers.get('Origin')) 
     });
   }
 
   try {
-    // Parse JSON safely
-    const body = await req.json().catch(() => ({}));
+    // Early parsing and basic vars
+    const body = await req.json().catch(() => ({} as any));
+    const origin = req.headers.get('Origin') ?? '*';
     const account_id: string | undefined = body?.account_id;
     const comment_id: string = body?.comment_id || `auto_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const comment_text: string = String(body?.comment_text ?? '');
     
     console.log('webhook-comments:input', { 
       hasBody: !!body, 
       keys: body ? Object.keys(body) : [],
       account_id,
-      comment_id
+      comment_id,
+      comment_text: comment_text.substring(0, 50)
     });
 
     if (!comment_id) {
@@ -162,13 +163,13 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Use service-role client for persistent deduplication and rate limiting
+    // Create admin client (SERVICE ROLE) for DB writes that bypass RLS
     const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // 1) PERSISTENT DEDUPLICATION - Insert into webhook_events, catch unique violation
+    // PERSISTENT DEDUP (run first; short-circuit on duplicate)
     const { error: insErr } = await supabaseAdmin
       .from('webhook_events')
       .insert({ 
@@ -177,7 +178,6 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
     if (insErr && String(insErr.code) === '23505') {
-      // Unique violation on comment_id - duplicate detected
       console.log('webhook-comments:duplicate-detected', { comment_id, account_id });
       return new Response(JSON.stringify({ ok: true, code: 'DUPLICATE_IGNORED' }), {
         status: 200,
@@ -185,25 +185,26 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // If other DB error, log but continue (MVP: don't fail on DB issues)
+    // If any other insert error, log to console and continue (do not break MVP flow)
     if (insErr) {
       console.log('webhook-comments:db-insert-error', { error: insErr, comment_id });
     }
 
-    // 2) RATE LIMITING - Check last 60 seconds for this account
+    // RATE LIMIT (strictly BEFORE any DM logic)
     if (account_id) {
       const since = new Date(Date.now() - 60_000).toISOString();
-      const { data: items } = await supabaseAdmin
+      const { data: recent, error: selErr } = await supabaseAdmin
         .from('webhook_events')
-        .select('id')
+        .select('id', { count: 'exact', head: false })
         .gte('created_at', since)
         .eq('account_id', account_id);
-
-      const recentCount = items?.length ?? 0;
-      console.log('webhook-comments:rate-check', { account_id, recentCount, limit: 10 });
-
-      if (recentCount > 10) {
-        console.log('webhook-comments:rate-limited', { account_id, recentCount });
+      
+      const count = (recent?.length ?? 0);
+      console.log('webhook-comments:rate-check', { account_id, count, threshold: 10 });
+      
+      // Rate limit threshold: 10 per rolling minute (>= 10 means block the 11th+)
+      if (count >= 10) {
+        console.log('webhook-comments:rate-limited', { account_id, count });
         return new Response(JSON.stringify({ ok: false, code: 'RATE_LIMITED' }), {
           status: 429,
           headers: { 'Content-Type': 'application/json', ...cors(origin) }
@@ -232,7 +233,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Validate required fields
     const provider = body?.provider;
-    const comment_text = body?.comment_text ?? '';
     const ig_post_id = body?.ig_post_id;
 
     if (!ig_post_id) {
@@ -422,9 +422,10 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (e) {
     console.log('webhook-comments:catch', { error: String(e) });
+    const origin = req.headers.get('Origin') ?? '*';
     return new Response(JSON.stringify({ 
       ok: false, 
-      code: 'UNEXPECTED', 
+      code: 'UNEXPECTED_ERROR', 
       message: String(e) 
     }), {
       status: 500,

@@ -124,8 +124,10 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
     const { data, error } = await supabase.functions.invoke(fnName, { body });
     
     if (error) {
+      // Try to extract meaningful error from Supabase error object
       const ctx = error?.context ?? error?.details ?? {};
       let payload = ctx.body ?? ctx.response ?? null;
+      
       if (typeof payload === 'string') { 
         try { 
           payload = JSON.parse(payload); 
@@ -134,9 +136,13 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
       
       return { 
         ok: false, 
-        code: payload?.code ?? 'INVOKE_ERROR', 
+        code: payload?.code ?? 'HTTP_ERROR', 
         message: payload?.message ?? error.message ?? 'invoke failed', 
-        details: payload ?? null 
+        details: { 
+          status: ctx.status ?? null, 
+          payload: payload ?? null,
+          originalError: error
+        } 
       };
     }
     
@@ -150,7 +156,7 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
   } catch (e) {
     return { 
       ok: false, 
-      code: 'EXCEPTION', 
+      code: 'NETWORK_ERROR', 
       message: String(e) 
     };
   }
