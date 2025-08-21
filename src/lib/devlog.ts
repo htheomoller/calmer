@@ -14,17 +14,25 @@ const supabaseAnon = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const supabase = createClient(supabaseUrl, supabaseAnon);
 
 export async function logBreadcrumb(b: Breadcrumb): Promise<{ ok: boolean; error?: string }> {
-  // Never log in production bundles
+  // No-op in production to avoid leaking dev logs
   if (import.meta.env.PROD) return { ok: true };
 
   try {
+    // Try to attach user_id + author_email when possible
+    const { data: userRes } = await supabase.auth.getUser();
+    const user = userRes?.user || null;
+
     const row = {
       scope: b.scope,
       summary: b.summary,
       details: b.details ?? null,
       tags: b.tags ?? null,
       at: b.at ?? new Date().toISOString(),
+      // Optional metadata — RLS can still require auth.uid() for INSERT
+      user_id: user?.id ?? null,
+      author_email: (user?.email as string | null) ?? null,
     };
+
     const { error } = await supabase.from('dev_breadcrumbs').insert(row);
     if (error) {
       console.warn('[breadcrumb:insert:error]', error);

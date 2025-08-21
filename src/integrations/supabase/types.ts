@@ -92,7 +92,7 @@ export type Database = {
       dev_breadcrumbs: {
         Row: {
           at: string | null
-          author_email: string
+          author_email: string | null
           created_at: string
           details: Json | null
           id: string
@@ -103,7 +103,7 @@ export type Database = {
         }
         Insert: {
           at?: string | null
-          author_email: string
+          author_email?: string | null
           created_at?: string
           details?: Json | null
           id?: string
@@ -114,7 +114,7 @@ export type Database = {
         }
         Update: {
           at?: string | null
-          author_email?: string
+          author_email?: string | null
           created_at?: string
           details?: Json | null
           id?: string
