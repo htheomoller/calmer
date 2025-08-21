@@ -13,7 +13,8 @@
     "audit:scan": "node scripts/audit/dist/scan.js",
     "audit:usage": "node scripts/audit/dist/usage.js",
     "audit:plan": "node scripts/audit/dist/plan.js",
-    "audit:report": "npm run audit:build && npm run audit:scan && npm run audit:usage && npm run audit:plan"
+    "audit:report": "npm run audit:build && npm run audit:scan && npm run audit:usage && npm run audit:plan",
+    "audit:strip-sandbox": "NODE_ENV=production tsx scripts/sandbox-strip.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
