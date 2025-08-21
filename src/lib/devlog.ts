@@ -1,34 +1,35 @@
-// FEATURE:sandbox
-// SANDBOX_START: automatic breadcrumbs (client direct insert)
-import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 
-type LogArgs = { 
-  scope: string; 
-  summary: string; 
-  details?: any; 
-  tags?: string[] 
+type Breadcrumb = {
+  scope: string;
+  summary: string;
+  details?: Record<string, any> | null;
+  tags?: string[] | null;
+  at?: string | null;
 };
 
-export async function logBreadcrumb(args: LogArgs) {
+// DEV/Preview: write to dev_breadcrumbs
+const supabaseUrl = 'https://upzjnifdcmevsdfmzwzw.supabase.co';
+const supabaseAnon = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwempuaWZkY21ldnNkZm16d3p3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMjc5MDUsImV4cCI6MjA3MDYwMzkwNX0.s136RNSm8DfsE_qC_llnaQY2nmbwH0vxhYq84MypTg0';
+const supabase = createClient(supabaseUrl, supabaseAnon);
+
+export async function logBreadcrumb(b: Breadcrumb): Promise<void> {
+  // In production builds, make logging a no-op (safe guard)
+  if (import.meta.env.PROD) {
+    return;
+  }
+  
   try {
-    if (import.meta.env.PROD) return; // dev/preview only
-    const { data } = await supabase.auth.getUser();
-    const email = data?.user?.email;
-    if (!email) return; // must be logged in
-
     const row = {
-      author_email: email,
-      scope: args.scope,
-      summary: args.summary,
-      details: args.details ?? null,
-      tags: args.tags ?? null,
+      scope: b.scope,
+      summary: b.summary,
+      details: b.details ?? null,
+      tags: b.tags ?? null,
+      at: b.at ?? new Date().toISOString(),
     };
-
-    // Fire-and-forget: do not block, do not throw
-    const insertPromise = supabase.from('dev_breadcrumbs').insert(row);
-    void insertPromise.then(({ error }) => { 
-      if (error) console.debug('devlog insert error', error); 
-    });
-  } catch {}
+    await supabase.from('dev_breadcrumbs').insert(row);
+  } catch (err) {
+    // Swallow errors in DEV so logging never breaks flows
+    // console.debug('breadcrumb error', err);
+  }
 }
-// SANDBOX_END

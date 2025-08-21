@@ -170,13 +170,35 @@ export default function Health() {
   // SANDBOX_START (audit)
   const runAudit = async () => {
     setIsRunning(true); setError(null); setResult(null); setReport(null);
+    
+    await logBreadcrumb({
+      scope: 'audit',
+      summary: 'audit_start',
+      details: { at: new Date().toISOString() },
+      tags: ['audit','start']
+    });
+    
     try {
       const res = await fetch('/__dev/audit-run');
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
       setResult(data.message || 'Audit completed.');
+      
+      await logBreadcrumb({
+        scope: 'audit',
+        summary: 'audit_success',
+        details: { code: data?.code, at: new Date().toISOString() },
+        tags: ['audit','success']
+      });
     } catch (e: any) {
       setError(e.message || 'Audit failed');
+      
+      await logBreadcrumb({
+        scope: 'audit',
+        summary: 'audit_fail',
+        details: { error: e.message, at: new Date().toISOString() },
+        tags: ['audit','error']
+      });
     } finally {
       setIsRunning(false);
     }
