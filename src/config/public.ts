@@ -8,4 +8,4 @@ export const PUBLIC_CONFIG = {
 } as const;
 
 // Flip SITE_LOCKDOWN=false to reopen
-export const SITE_LOCKDOWN = true;
+export const SITE_LOCKDOWN = false;
