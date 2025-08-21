@@ -144,36 +144,20 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     // Parse JSON safely
-    let body: any = {};
-    try {
-      body = await req.json();
-    } catch {
-      body = null;
+    const body = await req.json().catch(() => ({}));
+    const comment_id: string = body?.comment_id || '';
+    
+    // DUPLICATE CHECK FIRST (before any other branching)
+    if (comment_id && processedIds.has(comment_id)) {
+      return new Response(JSON.stringify({ ok: true, code: 'DUPLICATE_IGNORED' }), { status: 200, headers: cors(req.headers.get('Origin')) });
     }
+    // Register the id immediately so a second call is recognized as duplicate
+    if (comment_id) processedIds.add(comment_id);
     
     console.log('webhook-comments:input', { 
       hasBody: !!body, 
       keys: body ? Object.keys(body) : [] 
     });
-
-    // Generate comment_id early for duplicate check
-    const ig_post_id = body?.ig_post_id;
-    const comment_id = body?.comment_id || `${ig_post_id}:${Date.now()}`;
-
-    // EARLY DEDUPE CHECK (before any post lookup)
-    if (processedIds.has(comment_id)) {
-      return new Response(JSON.stringify({
-        ok: true, 
-        code: 'DUPLICATE_IGNORED', 
-        message: 'Already processed'
-      }), { 
-        status: 200, 
-        headers: { 'Content-Type': 'application/json', ...cors(origin) }
-      });
-    }
-    
-    // Mark as processed to prevent future duplicates
-    processedIds.add(comment_id);
 
     // SANDBOX_START - Debug switch for testing
     if (body?.debug === true) {
@@ -198,6 +182,7 @@ const handler = async (req: Request): Promise<Response> => {
     const provider = body?.provider;
     const comment_text = body?.comment_text ?? '';
     const account_id = body?.account_id;
+    const ig_post_id = body?.ig_post_id;
 
     // Per-account rate limiting
     if (account_id && !allowRequestForAccount(account_id)) {

@@ -159,11 +159,13 @@ export const invokeEdge = async (fnName: string, body: any): Promise<{ ok: boole
 /**
  * Invoke webhook-comments function with error handling
  */
-export const invokeWebhook = async (args: { ig_post_id: string; comment_text: string }): Promise<{ ok: boolean; code?: string; message?: string }> => {
+export const invokeWebhook = async (args: { ig_post_id: string; comment_text: string; comment_id?: string; account_id?: string; provider?: string }): Promise<{ ok: boolean; code?: string; message?: string }> => {
   const result = await invokeEdge(WEBHOOK_COMMENTS_FN, {
-    provider: 'sandbox',
+    provider: args.provider || 'sandbox',
     ig_post_id: args.ig_post_id,
-    comment_text: args.comment_text
+    comment_text: args.comment_text,
+    comment_id: args.comment_id,
+    account_id: args.account_id
   });
   
   return {

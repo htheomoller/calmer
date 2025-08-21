@@ -7,12 +7,12 @@ const script: TestScript = {
   steps: [
     {
       name: 'Duplicate comment ignored',
+      stopOnFail: false,
       run: async (ctx) => {
         const { ig_post_id } = await ctx.ensureSandboxPost();
         const { data: { user } } = await ctx.supabase.auth.getUser();
         const account_id = user?.id;
         const cid = `dup_${Date.now()}`;
-        
         const first = await ctx.invokeEdge('webhook-comments', { 
           ig_post_id, 
           account_id, 
@@ -20,7 +20,6 @@ const script: TestScript = {
           comment_id: cid,
           provider: 'sandbox'
         });
-        
         const second = await ctx.invokeEdge('webhook-comments', { 
           ig_post_id, 
           account_id, 
@@ -36,6 +35,7 @@ const script: TestScript = {
     },
     {
       name: 'Rate limit triggers under load',
+      stopOnFail: false,
       run: async (ctx) => {
         const { ig_post_id } = await ctx.ensureSandboxPost();
         const { data: { user } } = await ctx.supabase.auth.getUser();

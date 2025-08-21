@@ -233,6 +233,9 @@ export default function Health() {
     <div className="min-h-screen p-8">
       <meta name="robots" content="noindex,nofollow" />
       <div className="max-w-2xl mx-auto space-y-6">
+        {import.meta.env.DEV && (
+          <div style={{fontSize:'12px', opacity:0.7, marginBottom:8}}>ENV: DEV • dev routes enabled</div>
+        )}
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-bold">Application Health</h1>
