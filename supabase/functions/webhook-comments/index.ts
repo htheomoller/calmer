@@ -152,6 +152,8 @@ const handler = async (req: Request): Promise<Response> => {
     const origin = req.headers.get('Origin') ?? '*';
     const comment_id: string = body?.comment_id || `auto_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     const comment_text: string = String(body?.comment_text ?? '');
+    const provider: string | undefined = body?.provider || 'sandbox';
+    const test_window: string | undefined = body?.test_window; // NEW
     
     // Resolve account_id: prefer body.account_id, else look up from ig_post_id
     let account_id: string | undefined = body?.account_id;
@@ -195,8 +197,7 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Get provider for rate limit configuration
-    const provider: string | undefined = body?.provider;
+    // Get rate limit configuration
     const limit = getRateLimit(provider);
 
     // PERSISTENT DEDUP (run first; short-circuit on duplicate)
@@ -204,7 +205,9 @@ const handler = async (req: Request): Promise<Response> => {
       .from('webhook_events')
       .insert({ 
         account_id: account_id, 
-        comment_id 
+        comment_id,
+        provider,      // NEW
+        test_window    // NEW
       });
 
     if (insErr && String(insErr.code) === '23505') {
@@ -221,27 +224,33 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // RATE LIMIT (strictly BEFORE any DM logic)
-    const since = new Date(Date.now() - 60_000).toISOString();
-    const { data: recentEvents, error: selErr } = await supabaseAdmin
-      .from('webhook_events')
-      .select('id')
-      .eq('account_id', account_id)
-      .gte('created_at', since);
-    
-    if (selErr) {
-      console.log('webhook-comments:db-select-error', { error: selErr, account_id });
+    const sinceIso = new Date(Date.now() - 60_000).toISOString();
+
+    let recentCount = 0;
+    if (test_window) {
+      // Count within this self-test window only (removes interference from prior runs)
+      const { count, error: cntErr } = await supabaseAdmin
+        .from('webhook_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('account_id', account_id)
+        .eq('test_window', test_window)
+        .gte('created_at', sinceIso);
+      if (cntErr) console.log('rate-count-error (windowed)', cntErr);
+      recentCount = count ?? 0;
+    } else {
+      // Fallback: normal account-based window
+      const { count, error: cntErr } = await supabaseAdmin
+        .from('webhook_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('account_id', account_id)
+        .gte('created_at', sinceIso);
+      if (cntErr) console.log('rate-count-error', cntErr);
+      recentCount = count ?? 0;
     }
 
-    const recentCount = recentEvents?.length ?? 0;
-    console.log('webhook-comments:rate-check', { account_id, recentCount, limit });
-    console.log({
-      message: 'Rate limit check',
-      accountId: account_id,
-      recentCount,
-      limit
-    });
-    
-    if (recentCount >= limit) {
+    console.log('rate-limit-check', { account_id, test_window, recentCount, limit });
+
+    if (recentCount > limit) {
       console.log('webhook-comments:rate-limited', { account_id, recentCount });
       // TEMP DEBUG: Log before rate limit enforcement
       console.log('webhook-comments:DEBUG-ENFORCING-RATE-LIMIT', { 

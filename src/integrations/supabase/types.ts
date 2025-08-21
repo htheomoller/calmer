@@ -359,18 +359,24 @@ export type Database = {
           comment_id: string
           created_at: string
           id: string
+          provider: string | null
+          test_window: string | null
         }
         Insert: {
           account_id: string
           comment_id: string
           created_at?: string
           id?: string
+          provider?: string | null
+          test_window?: string | null
         }
         Update: {
           account_id?: string
           comment_id?: string
           created_at?: string
           id?: string
+          provider?: string | null
+          test_window?: string | null
         }
         Relationships: []
       }

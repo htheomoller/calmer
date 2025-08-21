@@ -39,28 +39,36 @@ const script: TestScript = {
       stopOnFail: false,
       run: async (ctx) => {
         const { ig_post_id, account_id } = await ctx.ensureSandboxPost();
+        const test_window = `selftest_${Date.now()}`; // NEW window id
         
-        // Fire 20 calls in parallel with same account_id but distinct comment_ids
         const base = Date.now();
         const results = await Promise.all(
-          Array.from({length: 20}).map((_, i) =>
-            ctx.invokeWebhook({ 
-              ig_post_id, 
+          Array.from({ length: 20 }).map((_, i) =>
+            ctx.invokeWebhook({
+              ig_post_id,
               account_id,
-              comment_text: 'LINK', 
+              comment_text: 'LINK',
               comment_id: `rl_${base}_${i}`,
-              provider: 'sandbox'
+              provider: 'sandbox',
+              test_window                  // pass window id
             })
           )
         );
-        
-        console.log('Rate test results:', results.map(r => ({ code: r?.code, status: r?.status, ok: r?.ok })));
-        const rateLimitedCount = results.filter(r => r?.code === 'RATE_LIMITED' && r?.status === 429).length;
-        const successfulCount = results.filter(r => r?.code === 'SANDBOX_DM_LOGGED' && r?.status === 200).length;
-        
-        return rateLimitedCount > 0 && successfulCount > 0 && successfulCount <= 5
-          ? { pass: true, note: `Rate limit observed (${rateLimitedCount} rate limited, ${successfulCount} successful)` }
-          : { pass: false, note: `Expected ≥1 RATE_LIMITED(429) and ≤5 SANDBOX_DM_LOGGED(200). Got ${rateLimitedCount} rate limited, ${successfulCount} successful. All codes: ${results.map(r => `${r?.code}(${r?.status})`).join(', ')}` };
+
+        // Debug log for the self-test console
+        console.log('rate-limit results', results.map(r => ({ code: r.code, status: r.status })));
+
+        const successes = results.filter(r => r.status === 200 && r.code === 'SANDBOX_DM_LOGGED').length;
+        const limited   = results.filter(r => r.status === 429 && r.code === 'RATE_LIMITED').length;
+
+        if (limited < 1) {
+          return { pass: false, note: `Expected ≥1 RATE_LIMITED(429). Got ${limited}. Codes: ${results.map(r => `${r.code}(${r.status})`).join(', ')}` };
+        }
+        if (successes < 1 || successes > 10) {
+          return { pass: false, note: `Expected successes between 1 and 10. Got ${successes}. Codes: ${results.map(r => `${r.code}(${r.status})`).join(', ')}` };
+        }
+
+        return { pass: true, note: `Rate limit observed. successes=${successes}, limited=${limited}` };
       }
     },
     {

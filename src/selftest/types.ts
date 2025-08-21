@@ -8,7 +8,7 @@ export type TestContext = {
   ensureSandbox: () => Promise<void>;
   ensureSandboxPost: () => Promise<{ ig_post_id: string; account_id: string }>;
   getRecentActivity: (minutes: number, types?: string[]) => Promise<any[]>;
-  invokeWebhook: (args: { ig_post_id: string; comment_text: string; comment_id?: string; account_id?: string; provider?: string }) => Promise<{ ok: boolean; code?: string; message?: string; status?: number }>;
+  invokeWebhook: (args: { ig_post_id: string; comment_text: string; comment_id?: string; account_id?: string; provider?: string; test_window?: string }) => Promise<{ ok: boolean; code?: string; message?: string; status?: number }>;
   invokeEdge: (fnName: string, body: any) => Promise<{ ok: boolean; code?: string; message?: string; status?: number; details?: any }>;
 };
 
