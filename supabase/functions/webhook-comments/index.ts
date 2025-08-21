@@ -231,42 +231,19 @@ const handler = async (req: Request): Promise<Response> => {
     // Create deterministic bucket (minute precision)
     const bucket = new Date(Date.now() - (Date.now() % 60000)).toISOString().slice(0, 16); // "2025-08-21T14:46"
 
-    // Atomic increment using PostgreSQL ON CONFLICT
-    const { data: counterData, error: counterErr } = await supabaseAdmin.rpc('increment_webhook_counter', {
+    // Atomic increment using PostgreSQL function
+    const { data: count, error: counterErr } = await supabaseAdmin.rpc('increment_webhook_counter', {
       p_account_id: account_id,
       p_bucket: bucket
     });
 
-    let count = counterData;
-
-    // Fallback: manual upsert if RPC not available
-    if (counterErr || count === null) {
-      console.log('webhook-comments:rpc-fallback', { counterErr: counterErr?.message });
-      
-      // Try INSERT first
-      const { error: insertErr } = await supabaseAdmin
-        .from('webhook_counters')
-        .insert({ account_id, bucket, count: 1 });
-
-      if (insertErr && String(insertErr.code) === '23505') {
-        // Conflict - increment existing
-        const { data: updateData } = await supabaseAdmin
-          .from('webhook_counters')
-          .update({ count: supabaseAdmin.rpc('webhook_counters', { account_id, bucket }) })
-          .eq('account_id', account_id)
-          .eq('bucket', bucket)
-          .select('count')
-          .single();
-        count = updateData?.count ?? 1;
-      } else {
-        count = 1; // Fresh insert
-      }
-    }
-
     console.log('rl_check', { account_id, bucket, count, limit });
 
     // Rate limit check
-    if (count > limit) {
+    if (counterErr) {
+      console.log('webhook-comments:counter-error', { error: counterErr.message });
+      // Allow request if counter failed (don't break MVP)
+    } else if (count > limit) {
       return new Response(
         JSON.stringify({ ok: false, code: 'RATE_LIMITED', message: 'Too many requests in the last minute' }),
         { status: 429, headers: { 'Content-Type': 'application/json', ...cors(origin) } }
