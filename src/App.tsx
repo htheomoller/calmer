@@ -53,7 +53,7 @@ function AppContent() {
         <Route path="/home-legacy" element={<Index />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        {import.meta.env.DEV && (
+        {(import.meta.env.DEV || import.meta.env.MODE === 'development' || import.meta.env.MODE === 'preview') && (
           <>
             <Route path="/health" element={<Health />} />
             <Route path="/self-test" element={<SelfTest />} />
