@@ -24,8 +24,8 @@ export default function SelfTest() {
   const [lastSelectedScript, setLastSelectedScript] = useState<string>('');
   // SANDBOX_END
 
-  // Guard: only show in development
-  if (import.meta.env.PROD) {
+  // Guard: only show in development/preview
+  if (!(import.meta.env.DEV || import.meta.env.MODE === 'development' || import.meta.env.MODE === 'preview')) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="p-6">

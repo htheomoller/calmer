@@ -45,8 +45,8 @@ export default function Health() {
     getCurrentProvider().then(setProvider);
   }, []);
 
-  // Only show in development
-  if (import.meta.env.PROD) {
+  // Only show in development/preview
+  if (!(import.meta.env.DEV || import.meta.env.MODE === 'development' || import.meta.env.MODE === 'preview')) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="p-6">

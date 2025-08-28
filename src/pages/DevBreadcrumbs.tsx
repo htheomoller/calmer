@@ -26,8 +26,8 @@ interface Breadcrumb {
 }
 
 export default function DevBreadcrumbs() {
-  // Guard: only show in development
-  if (import.meta.env.PROD) {
+  // Guard: only show in development/preview
+  if (!(import.meta.env.DEV || import.meta.env.MODE === 'development' || import.meta.env.MODE === 'preview')) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
